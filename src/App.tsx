@@ -1,16 +1,22 @@
-import { Button, Typography } from '@mui/material';
+import React from 'react';
+import { useTranslation } from 'react-i18next';
 
-function App() {
+const App: React.FC = () => {
+  const { t, i18n } = useTranslation();
+
+  const changeLanguage = (lng: string) => {
+    i18n.changeLanguage(lng);
+  };
+
   return (
     <div>
-      <Typography variant="h2" component="h1" gutterBottom>
-        Добро пожаловать в проект!
-      </Typography>
-      <Button variant="contained" color="primary">
-        Кнопка MUI
-      </Button>
+      <h1>{t('welcome')}</h1>
+      <p>{t('description')}</p>
+      <button onClick={() => changeLanguage('en')}>English</button>
+      <button onClick={() => changeLanguage('ru')}>Русский</button>
+      <button onClick={() => changeLanguage('kz')}>Қазақша</button>
     </div>
   );
-}
+};
 
 export default App;
