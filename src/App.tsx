@@ -1,10 +1,15 @@
-import "./App.css";
+import { Button, Typography } from '@mui/material';
 
 function App() {
   return (
-    <>
-      <p>hello world</p>
-    </>
+    <div>
+      <Typography variant="h2" component="h1" gutterBottom>
+        Добро пожаловать в проект!
+      </Typography>
+      <Button variant="contained" color="primary">
+        Кнопка MUI
+      </Button>
+    </div>
   );
 }
 
