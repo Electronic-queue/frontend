@@ -14,13 +14,13 @@ import { useTranslation } from 'react-i18next';
 const languages: Array<string> = [
   'I18N_RUSSIAN',
   'I18N_ENGLISH',
-  'I18N_KAZAKH', // Добавлен казахский язык
+  'I18N_KAZAKH',
 ];
 
 enum Languages {
   RU = 'ru',
   EN = 'en',
-  KZ = 'kz', // Добавлен казахский язык
+  KZ = 'kz',
 }
 
 const LanguageSwitcher = () => {
@@ -75,7 +75,7 @@ const LanguageSwitcher = () => {
         aria-haspopup="true"
         onClick={handleToggle}
       >
-        <LanguageIcon />
+        <LanguageIcon style={{ width: 30, height: 30 }} />
       </Button>
       <Popper
         open={open}
@@ -106,7 +106,6 @@ const LanguageSwitcher = () => {
                       key={index}
                       onClick={(event) => {
                         handleClose(event);
-                        // Добавлено переключение на казахский язык
                         changeLanguage(
                           index === 0
                             ? Languages.RU

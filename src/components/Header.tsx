@@ -16,7 +16,7 @@ const HeaderContainer = styled(Stack)(({ theme }) => ({
   top: 0,
   zIndex: 1000,
   borderBottom: '1px solid #F3F3FD',
-  boxShadow: '0px 2px 7px rgba(0, 0, 0, 0.25)', // Тень
+  boxShadow: '0px 2px 7px rgba(0, 0, 0, 0.25)',
 }));
 
 const LinksContainer = styled(Stack)(({ theme }) => ({
