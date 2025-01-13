@@ -1,4 +1,6 @@
 {
   "welcome": "Welcome",
-  "description": "This is a multilingual app"
+  "description": "This is a multilingual app",
+  "I18N_QUEUE_MANAGEMENT": "Queue management",
+  "I18N_STATISTICS": "Statistics"
 }

@@ -1,4 +1,6 @@
 {
   "welcome": "Қош келдіңіз",
-  "description": "Бұл көптілді қосымша"
+  "description": "Бұл көптілді қосымша",
+  "I18N_QUEUE_MANAGEMENT": "Кезекті басқару",
+  "I18N_STATISTICS": "Статистика"
 }

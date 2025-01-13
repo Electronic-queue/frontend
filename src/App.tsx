@@ -1,20 +1,24 @@
-import React from 'react';
-import { useTranslation } from 'react-i18next';
-const App: React.FC = () => {
-  const { t, i18n } = useTranslation();
+import { Routes, Route } from 'react-router-dom';
+import QueuePage from './features/pages/QueuePage';
+import StatisticPage from './features/pages/StatisticPage';
+import Header from './components/Header';
+import { Stack } from '@mui/material';
 
-  const changeLanguage = (lng: string) => {
-    i18n.changeLanguage(lng);
-  };
-
+const App = () => {
   return (
-    <div>
-      <h1>{t('welcome')}</h1>
-      <p>{t('description')}</p>
-      <button onClick={() => changeLanguage('en')}>English</button>
-      <button onClick={() => changeLanguage('ru')}>Русский</button>
-      <button onClick={() => changeLanguage('kz')}>Қазақша</button>
-    </div>
+    <Stack
+      direction="column"
+      sx={{
+        minHeight: '100vh',
+      }}
+    >
+      <Header />
+      <Routes>
+        <Route path="/" element={<QueuePage />} />
+        <Route path="/queue" element={<QueuePage />} />
+        <Route path="/static" element={<StatisticPage />} />
+      </Routes>
+    </Stack>
   );
 };
 
