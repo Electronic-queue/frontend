@@ -1,7 +1,5 @@
 import { createTheme } from '@mui/material/styles';
-import { Palette, PaletteOptions } from '@mui/material/styles';
 
-// Расширяем типы Palette и PaletteOptions
 declare module '@mui/material/styles' {
   interface Palette {
     gray?: {
@@ -18,20 +16,20 @@ declare module '@mui/material/styles' {
 const theme = createTheme({
   palette: {
     primary: {
-      main: '#3A6CB4', // Цвет основных элементов голубой
+      main: '#3A6CB4',
     },
     secondary: {
-      main: '#2E90FA', // Вторичный цвет ярко голубой
+      main: '#2E90FA',
     },
     background: {
-      default: '#FFFFFF', // Цвет фона
+      default: '#FFFFFF',
     },
     text: {
       primary: '#333333',
       secondary: '#666666',
     },
     gray: {
-      main: '#f1e5e5', // Новый цвет gray
+      main: '#f1e5e5',
     },
   },
   typography: {
@@ -47,6 +45,11 @@ const theme = createTheme({
     body1: {
       fontSize: '1rem',
       lineHeight: 1.5,
+    },
+    h6: {
+      fontFamily: `'Rubik', 'Arial', sans-serif`,
+      fontSize: '16px',
+      fontWeight: 400,
     },
   },
 });

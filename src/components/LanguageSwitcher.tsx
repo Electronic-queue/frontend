@@ -19,6 +19,7 @@ const SwitcherBox = styled(Stack)(({ theme }) => ({
   borderRadius: '30px',
   padding: theme.spacing(1),
 }));
+
 const SwitcherButton = styled(Button)<{ isActive: boolean }>(
   ({ theme, isActive }) => ({
     minWidth: 50,
@@ -27,6 +28,12 @@ const SwitcherButton = styled(Button)<{ isActive: boolean }>(
     color: isActive ? 'white' : theme.palette.text.primary,
     fontSize: '12px',
     fontWeight: 'bold',
+    '&:hover': {
+      backgroundColor: isActive
+        ? theme.palette.primary.light
+        : theme.palette.secondary.light,
+      color: 'white',
+    },
   })
 );
 
@@ -46,7 +53,6 @@ const LanguageSwitcher = () => {
           variant={currentLanguage === code ? 'contained' : 'outlined'}
           onClick={() => changeLanguage(code)}
           isActive={currentLanguage === code}
-          style={{ minWidth: 50 }}
         >
           {label}
         </SwitcherButton>

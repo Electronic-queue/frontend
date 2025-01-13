@@ -1,15 +1,17 @@
 import { FC } from 'react';
-import { Link as RouterLink } from 'react-router-dom';
+import { Link as RouterLink, useLocation } from 'react-router-dom';
 import { Typography } from '@mui/material';
 import { styled } from '@mui/material';
 
-const StyledLink = styled(RouterLink)(({ theme }) => ({
-  textDecoration: 'none',
-  color: theme.palette.primary.main,
-  '&:hover': {
-    color: theme.palette.secondary.main,
-  },
-}));
+const StyledLink = styled(RouterLink)(
+  ({ theme, isActive }: { theme: any; isActive: boolean }) => ({
+    textDecoration: 'none',
+    color: isActive ? theme.palette.primary.main : theme.palette.text.primary, // Активная ссылка - primary.main, неактивная - text.primary
+    '&:hover': {
+      color: theme.palette.secondary.main,
+    },
+  })
+);
 
 interface IPageLink {
   to: string;
@@ -22,13 +24,18 @@ interface IPageLinksProps {
 }
 
 const PageLinks: FC<IPageLinksProps> = ({ link, onClick }) => {
+  const location = useLocation();
+  const isActive = location.pathname === link.to;
+
   return (
     <Typography
       variant="h6"
       onClick={() => onClick(link.to)}
-      sx={{ fontSize: '16px' }}
+      sx={{ fontSize: '16px', fontFamily: 'Rubik, Arial, sans-serif' }} // Настроим шрифт здесь
     >
-      <StyledLink to={link.to}>{link.label}</StyledLink>
+      <StyledLink to={link.to} isActive={isActive} theme={undefined}>
+        {link.label}
+      </StyledLink>
     </Typography>
   );
 };

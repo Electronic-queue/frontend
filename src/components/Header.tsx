@@ -5,7 +5,6 @@ import { useTranslation } from 'react-i18next';
 import SULogo from '../assets/SULogo';
 import UserLogo from '../assets/UserLogo';
 import LanguageSwitcher from './LanguageSwitcher';
-import theme from '../styles/theme';
 
 const HeaderContainer = styled(Stack)(({ theme }) => ({
   width: '100%',
@@ -45,15 +44,7 @@ const Header = () => {
         <SULogo />
       </Stack>
 
-      <Stack
-        direction="row"
-        justifyContent="center"
-        flexGrow={1}
-        sx={{
-          display: 'flex',
-          justifyContent: 'center',
-        }}
-      >
+      <Stack direction="row" justifyContent="center" flexGrow={1}>
         <LinksContainer>
           <PageLinks
             onClick={handleGoQueue}
