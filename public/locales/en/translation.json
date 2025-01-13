@@ -2,5 +2,8 @@
   "welcome": "Welcome",
   "description": "This is a multilingual app",
   "I18N_QUEUE_MANAGEMENT": "Queue management",
-  "I18N_STATISTICS": "Statistics"
+  "I18N_STATISTICS": "Statistics",
+  "I18N_RUSSIAN": "Russian",
+  "I18N_ENGLISH": "English",
+  "I18N_KAZAKH": "Kazakh"
 }

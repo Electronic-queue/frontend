@@ -4,6 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import SULogo from '../assets/SULogo';
 import UserLogo from '../assets/UserLogo';
+import LanguageSwitcher from './LanguageSwitcher';
+import theme from '../styles/theme';
 
 const HeaderContainer = styled(Stack)(({ theme }) => ({
   width: '100%',
@@ -23,8 +25,15 @@ const LinksContainer = styled(Stack)(({ theme }) => ({
   gap: theme.spacing(5),
 }));
 
+const RightSection = styled(Stack)(({ theme }) => ({
+  display: 'flex',
+  flexDirection: 'row',
+  gap: theme.spacing(2),
+  justifyContent: 'flex-end',
+}));
+
 const Header = () => {
-  const { t } = useTranslation('settings');
+  const { t } = useTranslation('translation');
   const navigate = useNavigate();
 
   const handleGoQueue = () => navigate('/queue');
@@ -48,18 +57,19 @@ const Header = () => {
         <LinksContainer>
           <PageLinks
             onClick={handleGoQueue}
-            link={{ to: '/queue', label: t('Управление очередью') }}
+            link={{ to: '/queue', label: t('I18N_QUEUE_MANAGEMENT') }}
           />
           <PageLinks
             onClick={handleGoStatistics}
-            link={{ to: '/static', label: t('Статистика') }}
+            link={{ to: '/static', label: t('I18N_STATISTICS') }}
           />
         </LinksContainer>
       </Stack>
 
-      <Stack justifyContent="flex-end">
+      <RightSection>
+        <LanguageSwitcher />
         <UserLogo />
-      </Stack>
+      </RightSection>
     </HeaderContainer>
   );
 };
