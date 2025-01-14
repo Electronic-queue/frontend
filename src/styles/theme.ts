@@ -2,18 +2,20 @@ import { createTheme } from '@mui/material/styles';
 
 declare module '@mui/material/styles' {
   interface Palette {
-    gray?: {
+    gray: {
       main: string;
     };
   }
   interface PaletteOptions {
-    gray?: {
+    gray: {
       main: string;
     };
   }
 }
 
 const theme = createTheme({
+  // components: {"MuiAccordion": {"styleOverrides": {"": {"borderRadius": 8}}}}, // Пример переопределения стилей компонента
+  shape: { borderRadius: 8 },
   palette: {
     primary: {
       main: '#3A6CB4',
@@ -35,20 +37,31 @@ const theme = createTheme({
   typography: {
     fontFamily: `'Rubik', 'Arial', sans-serif`,
     h1: {
-      fontSize: '2.5rem',
+      fontSize: '2.5rem', // 40px
       fontWeight: 700,
     },
     h2: {
-      fontSize: '2rem',
+      fontSize: '2rem', // 32px
       fontWeight: 600,
     },
-    body1: {
-      fontSize: '1rem',
-      lineHeight: 1.5,
+    h3: {
+      fontSize: '1.75rem', // 28px
+      fontWeight: 600,
+    },
+    h4: {
+      fontSize: '1.5rem', // 24px
+      fontWeight: 600,
+    },
+    h5: {
+      fontSize: '1.25rem', // 20px
+      fontWeight: 600,
     },
     h6: {
-      fontFamily: `'Rubik', 'Arial', sans-serif`,
       fontSize: '16px',
+      fontWeight: 400,
+    },
+    body1: {
+      fontSize: '12px',
       fontWeight: 400,
     },
   },

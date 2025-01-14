@@ -1,7 +1,10 @@
-import { Stack, styled } from '@mui/material';
-import PageLinks from './PageLinks';
+import { FC } from 'react';
+import Stack from '@mui/material/Stack';
+import { styled } from '@mui/material/styles';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+
+import PageLinks from './PageLinks';
 import SULogo from '../assets/SULogo';
 import UserLogo from '../assets/UserLogo';
 import LanguageSwitcher from './LanguageSwitcher';
@@ -19,19 +22,17 @@ const HeaderContainer = styled(Stack)(({ theme }) => ({
 }));
 
 const LinksContainer = styled(Stack)(({ theme }) => ({
-  display: 'flex',
   flexDirection: 'row',
   gap: theme.spacing(5),
 }));
 
 const RightSection = styled(Stack)(({ theme }) => ({
-  display: 'flex',
   flexDirection: 'row',
   gap: theme.spacing(2),
   justifyContent: 'flex-end',
 }));
 
-const Header = () => {
+const Header: FC = () => {
   const { t } = useTranslation('translation');
   const navigate = useNavigate();
 

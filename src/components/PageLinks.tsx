@@ -28,7 +28,7 @@ const PageLinks: FC<IPageLinksProps> = ({ link, onClick }) => {
   const isActive = location.pathname === link.to;
 
   return (
-    <Typography
+    <Typography //вместо этого использовать link from mui (component link from react-router-dom)
       variant="h6"
       onClick={() => onClick(link.to)}
       sx={{ fontSize: '16px', fontFamily: 'Rubik, Arial, sans-serif' }} // Настроим шрифт здесь

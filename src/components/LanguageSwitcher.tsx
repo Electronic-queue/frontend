@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { FC, useState } from 'react';
+import React from 'react'; // Для использования React.memo
 import Button from '@mui/material/Button';
 import Stack from '@mui/material/Stack';
 import i18n from '../i18n';
-import { styled } from '@mui/material';
+import { styled } from '@mui/material/styles';
 
 const languages = [
   { code: 'en', label: 'EN' },
@@ -14,31 +15,28 @@ const SwitcherBox = styled(Stack)(({ theme }) => ({
   display: 'flex',
   flexDirection: 'row',
   gap: theme.spacing(0.2),
+  width: theme.spacing(15),
   alignItems: 'center',
-  backgroundColor: theme.palette.gray?.main,
-  borderRadius: '30px',
-  padding: theme.spacing(1),
+  backgroundColor: theme.palette.gray.main,
+  borderRadius: theme.shape.borderRadius * 4, // mui theme.shape.borderRadius
+  paddingLeft: theme.spacing(0.5),
 }));
 
 const SwitcherButton = styled(Button)<{ isActive: boolean }>(
   ({ theme, isActive }) => ({
-    minWidth: 50,
+    minWidth: 10,
+    height: '35px',
+    width: '35px',
     borderRadius: '10px',
     border: 'none',
     color: isActive ? 'white' : theme.palette.text.primary,
-    fontSize: '12px',
+    fontSize: theme.typography.body1.fontSize,
     fontWeight: 'bold',
-    '&:hover': {
-      backgroundColor: isActive
-        ? theme.palette.primary.light
-        : theme.palette.secondary.light,
-      color: 'white',
-    },
   })
 );
 
-const LanguageSwitcher = () => {
-  const [currentLanguage, setCurrentLanguage] = useState('ru');
+const LanguageSwitcher: FC = () => {
+  const [currentLanguage, setCurrentLanguage] = useState<string>('ru');
 
   const changeLanguage = (language: string) => {
     i18n.changeLanguage(language);
@@ -61,4 +59,4 @@ const LanguageSwitcher = () => {
   );
 };
 
-export default LanguageSwitcher;
+export default React.memo(LanguageSwitcher);
