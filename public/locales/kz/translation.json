@@ -1,13 +1,14 @@
 {
-  "welcome": "Қош келдіңіз",
-  "description": "Бұл көптілді қосымша",
-  "I18N_QUEUE_MANAGEMENT": "Кезекті басқару",
-  "I18N_STATISTICS": "Статистика",
-  "I18N_RUSSIAN": "Орыс",
-  "I18N_ENGLISH": "Ағылшын",
-  "I18N_KAZAKH": "Қазақ",
-  "accepteds": "Қабылданды",
-  "not_accepteds": "Қабылданбады",
-  "redirected": "Басқарылды",
-  "in_anticipation": "Күтілуде"
+    "I18N_QUEUE_MANAGEMENT": "Кезекті басқару",
+    "I18N_STATISTICS": "Статистика",
+
+    "status": {
+        "accepted": "Қабылданды",
+        "not_accepted": "Қабылданбады",
+        "redirected": "Басқарылды",
+        "in_anticipation": "Күтілуде"
+    },
+    "queue": {
+        "pause": "Терезені кідірту"
+    }
 }

@@ -1,13 +1,14 @@
 {
-  "welcome": "Welcome",
-  "description": "This is a multilingual app",
-  "I18N_QUEUE_MANAGEMENT": "Queue management",
-  "I18N_STATISTICS": "Statistics",
-  "I18N_RUSSIAN": "Russian",
-  "I18N_ENGLISH": "English",
-  "I18N_KAZAKH": "Kazakh",
-  "accepteds": "Accepteds",
-  "not_accepteds": "Not accepteds",
-  "redirected": "Redirected",
-  "in_anticipation": "In anticipation"
+    "I18N_QUEUE_MANAGEMENT": "Queue management",
+    "I18N_STATISTICS": "Statistics",
+
+    "status": {
+        "accepted": "Accepteds",
+        "not_accepted": "Not accepteds",
+        "redirected": "Redirected",
+        "in_anticipation": "In anticipation"
+    },
+    "queue": {
+        "pause": "Pause the window"
+    }
 }

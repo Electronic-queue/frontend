@@ -1,13 +1,14 @@
 {
-  "welcome": "Добро пожаловать",
-  "description": "Это многоязычное приложение",
-  "I18N_QUEUE_MANAGEMENT": "Управление очередью",
-  "I18N_STATISTICS": "Статистика",
-  "I18N_RUSSIAN": "Русский",
-  "I18N_ENGLISH": "Английский",
-  "I18N_KAZAKH": "Казахский",
-  "accepteds": "Приняты",
-  "not_accepteds": "Не приняты",
-  "redirected": "Перенаправлены",
-  "in_anticipation": "В ожидании"
+    "I18N_QUEUE_MANAGEMENT": "Управление очередью",
+    "I18N_STATISTICS": "Статистика",
+
+    "status": {
+        "accepted": "Приняты",
+        "not_accepted": "Не приняты",
+        "redirected": "Перенаправлены",
+        "in_anticipation": "В ожидании"
+    },
+    "queue": {
+        "pause": "Приостановить окно на паузу"
+    }
 }
