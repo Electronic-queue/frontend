@@ -4,10 +4,6 @@ import Page from "../../components/Page";
 import { styled, Box, Stack } from "@mui/material";
 import { useTranslation } from "react-i18next";
 import StatusCard from "../../components/StatusCard";
-import CheckMarkIcon from "../../assets/CheckMarkIcon";
-import CancelIcon from "../../assets/CancelIcon";
-import ExclamationMarkIcon from "../../assets/ExclamationMarkIcon";
-import LoadingIcon from "../../assets/LoadingIcon";
 
 const CenteredWrapper = styled(Box)(({ theme }) => ({
     maxWidth: theme.spacing(150),
@@ -41,26 +37,10 @@ const QueuePage: FC = () => {
                     </CustomButton>
                 </ButtonWrapper>
                 <StatusCardWrapper>
-                    <StatusCard
-                        icon={<CheckMarkIcon />}
-                        text={t("status.accepted")}
-                        number={75}
-                    />
-                    <StatusCard
-                        icon={<CancelIcon />}
-                        text={t("status.not_accepted")}
-                        number={3}
-                    />
-                    <StatusCard
-                        icon={<ExclamationMarkIcon />}
-                        text={t("status.redirected")}
-                        number={5}
-                    />
-                    <StatusCard
-                        icon={<LoadingIcon />}
-                        text={t("status.in_anticipation")}
-                        number={8}
-                    />
+                    <StatusCard variant="accepted" number={75} />
+                    <StatusCard variant="not_accepted" number={3} />
+                    <StatusCard variant="redirected" number={5} />
+                    <StatusCard variant="in_anticipation" number={8} />
                 </StatusCardWrapper>
             </CenteredWrapper>
         </Page>

@@ -1,12 +1,42 @@
 import React, { FC } from "react";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
-import { SvgIconProps } from "@mui/material/SvgIcon";
 import { styled } from "@mui/material/styles";
+import CheckMarkIcon from "../assets/CheckMarkIcon";
+import CancelIcon from "../assets/CancelIcon";
+import ExclamationMarkIcon from "../assets/ExclamationMarkIcon";
+import LoadingIcon from "../assets/LoadingIcon";
+
+type StatusVariant =
+    | "accepted"
+    | "not_accepted"
+    | "redirected"
+    | "in_anticipation";
+
+const STATUS_VARIANTS: Record<
+    StatusVariant,
+    { icon: React.ReactElement; text: string }
+> = {
+    accepted: {
+        icon: <CheckMarkIcon />,
+        text: "Принято",
+    },
+    not_accepted: {
+        icon: <CancelIcon />,
+        text: "Не принято",
+    },
+    redirected: {
+        icon: <ExclamationMarkIcon />,
+        text: "Перенаправлено",
+    },
+    in_anticipation: {
+        icon: <LoadingIcon />,
+        text: "В ожидании",
+    },
+};
 
 interface StatusCardProps {
-    icon: React.ReactElement<SvgIconProps>;
-    text: string;
+    variant: StatusVariant;
     number: number;
 }
 
@@ -29,7 +59,9 @@ const IconAndTextWrapper = styled(Box)(({ theme }) => ({
     gap: theme.spacing(2),
 }));
 
-const StatusCard: FC<StatusCardProps> = ({ icon, text, number }) => {
+const StatusCard: FC<StatusCardProps> = ({ variant, number }) => {
+    const { icon, text } = STATUS_VARIANTS[variant];
+
     return (
         <CardContainer>
             <IconAndTextWrapper>
