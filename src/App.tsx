@@ -13,6 +13,7 @@ const App = () => {
       }}
     >
       <Header />
+      {/* // написать фильтры для ролей */}
       <Routes>
         <Route path="/" element={<QueuePage />} />
         <Route path="/queue" element={<QueuePage />} />

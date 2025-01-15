@@ -5,5 +5,9 @@
   "I18N_STATISTICS": "Statistics",
   "I18N_RUSSIAN": "Russian",
   "I18N_ENGLISH": "English",
-  "I18N_KAZAKH": "Kazakh"
+  "I18N_KAZAKH": "Kazakh",
+  "accepteds": "Accepteds",
+  "not_accepteds": "Not accepteds",
+  "redirected": "Redirected",
+  "in_anticipation": "In anticipation"
 }

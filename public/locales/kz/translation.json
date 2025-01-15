@@ -5,5 +5,9 @@
   "I18N_STATISTICS": "Статистика",
   "I18N_RUSSIAN": "Орыс",
   "I18N_ENGLISH": "Ағылшын",
-  "I18N_KAZAKH": "Қазақ"
+  "I18N_KAZAKH": "Қазақ",
+  "accepteds": "Қабылданды",
+  "not_accepteds": "Қабылданбады",
+  "redirected": "Басқарылды",
+  "in_anticipation": "Күтілуде"
 }
