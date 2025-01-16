@@ -4,6 +4,7 @@ import { styled, Box, Stack } from "@mui/material";
 import { useTranslation } from "react-i18next";
 import StatusCard from "../../components/StatusCard";
 import ClientCard from "../../components/ClientCard";
+import QueueCard from "src/widgets/QueueCard";
 
 const ButtonWrapper = styled(Box)(({ theme }) => ({
     marginBottom: theme.spacing(3),
@@ -57,6 +58,32 @@ const QueuePage: FC = () => {
                 onRedirect={handleRedirect}
                 onAccept={handleAccept}
             />
+            <Box sx={{ display: "flex", gap: 3, paddingBottom: "222px" }}>
+                <QueueCard
+                    clientNumber="C34"
+                    service="Услуга 5"
+                    bookingTime="12:30"
+                    expectedTime="12:45"
+                />
+                <QueueCard
+                    clientNumber="C34"
+                    service="Услуга 5"
+                    bookingTime="12:30"
+                    expectedTime="12:45"
+                />
+                <QueueCard
+                    clientNumber="C34"
+                    service="Услуга 5"
+                    bookingTime="12:30"
+                    expectedTime="12:45"
+                />
+                <QueueCard
+                    clientNumber="C34"
+                    service="Услуга 5"
+                    bookingTime="12:30"
+                    expectedTime="12:45"
+                />
+            </Box>
         </>
     );
 };
