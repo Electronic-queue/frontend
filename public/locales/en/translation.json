@@ -9,6 +9,13 @@
         "in_anticipation": "In anticipation"
     },
     "queue": {
-        "pause": "Pause the window"
+        "pause": "Pause the window",
+        "clientNumber": "Client number",
+        "lastName": "Last name",
+        "firstName": "First name",
+        "surname": "Surname",
+        "service": "Service",
+        "iin": "IIN",
+        "serviceTime": "Service time"
     }
 }

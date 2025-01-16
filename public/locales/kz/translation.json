@@ -9,6 +9,13 @@
         "in_anticipation": "Күтілуде"
     },
     "queue": {
-        "pause": "Терезені кідірту"
+        "pause": "Терезені кідірту",
+        "clientNumber": "Клиент нөмірі",
+        "lastName": "Тегі",
+        "firstName": "Аты",
+        "surname": "Әкесінің аты",
+        "service": "Қызмет",
+        "iin": "ЖСН",
+        "serviceTime": "Қызмет уақыты"
     }
 }

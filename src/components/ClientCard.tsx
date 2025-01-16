@@ -5,13 +5,14 @@ import Button from "@mui/material/Button";
 import { styled } from "@mui/material/styles";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import { useTranslation } from "react-i18next";
+import CustomButton from "./Button";
 
 interface ClientCardProps {
     clientData: {
         clientNumber: string;
         lastName: string;
         firstName: string;
-        patronymic: string;
+        patronymic?: string;
         service: string;
         iin: string;
     };
@@ -22,7 +23,6 @@ interface ClientCardProps {
 
 const CardContainer = styled(Box)(({ theme }) => ({
     width: theme.spacing(140.5),
-    height: theme.spacing(40),
     display: "flex",
     justifyContent: "space-between",
     padding: theme.spacing(4),
@@ -34,7 +34,7 @@ const CardContainer = styled(Box)(({ theme }) => ({
 const ClientDetails = styled(Box)(({ theme }) => ({
     display: "flex",
     flexDirection: "column",
-    gap: theme.spacing(1.5),
+    gap: theme.spacing(1),
 }));
 
 const ActionPanel = styled(Box)(({}) => ({
@@ -50,15 +50,24 @@ const TimeWrapper = styled(Box)(({ theme }) => ({
     gap: theme.spacing(1),
 }));
 
+const ClientInfoWrapper = styled(Box)(({ theme }) => ({
+    display: "grid",
+    gridTemplateColumns: "1fr 1fr",
+    gap: theme.spacing(5),
+    width: "100%",
+}));
+
 const LabelText = styled(Typography)(({ theme }) => ({
     fontWeight: 600,
     color: theme.palette.text.primary,
     fontSize: theme.typography.body1.fontSize,
+    textAlign: "left",
 }));
 
 const ValueText = styled(Typography)(({ theme }) => ({
     color: theme.palette.text.secondary,
-    fontSize: theme.typography.body2.fontSize,
+    fontSize: theme.typography.body1.fontSize,
+    textAlign: "left",
 }));
 
 const ClientCard: FC<ClientCardProps> = ({
@@ -74,45 +83,53 @@ const ClientCard: FC<ClientCardProps> = ({
             <ClientDetails>
                 {[
                     {
-                        label: t("clientNumber"),
+                        label: t("queue.clientNumber"),
                         value: clientData.clientNumber,
                     },
-                    { label: t("lastName"), value: clientData.lastName },
-                    { label: t("firstName"), value: clientData.firstName },
-                    { label: t("patronymic"), value: clientData.patronymic },
-                    { label: t("service"), value: clientData.service },
-                    { label: t("iin"), value: clientData.iin },
+                    { label: t("queue.lastName"), value: clientData.lastName },
+                    {
+                        label: t("queue.firstName"),
+                        value: clientData.firstName,
+                    },
+                    { label: t("queue.surname"), value: clientData.patronymic },
+                    { label: t("queue.service"), value: clientData.service },
+                    { label: t("queue.iin"), value: clientData.iin },
                 ].map(({ label, value }, index) => (
-                    <Box key={index} display="flex" gap={1}>
-                        <LabelText>{label}:</LabelText>
+                    <ClientInfoWrapper key={index}>
+                        <LabelText>{label}</LabelText>
                         <ValueText>{value}</ValueText>
-                    </Box>
+                    </ClientInfoWrapper>
                 ))}
             </ClientDetails>
 
             <ActionPanel>
                 <TimeWrapper>
-                    <AccessTimeIcon color="action" />
-                    <Typography variant="body1" color="textSecondary">
-                        {t("serviceTime")}: {serviceTime}
-                    </Typography>
+                    <AccessTimeIcon color="inherit" />
+                    <Box display="flex" gap={1}>
+                        <Typography variant="h6" color="text" fontWeight="bold">
+                            {t("queue.serviceTime")}:
+                        </Typography>
+                        <Typography variant="h6" color="text">
+                            {serviceTime}
+                        </Typography>
+                    </Box>
                 </TimeWrapper>
 
                 <Box display="flex" gap={2}>
-                    <Button
-                        variant="outlined"
-                        color="primary"
+                    <CustomButton
+                        variantType="primary"
+                        sizeType="small"
                         onClick={onRedirect}
                     >
-                        {t("redirect")}
-                    </Button>
-                    <Button
-                        variant="contained"
-                        color="primary"
+                        {t("queue.redirect")}
+                    </CustomButton>
+                    <CustomButton
+                        variantType="primary"
+                        sizeType="small"
                         onClick={onAccept}
                     >
-                        {t("accept")}
-                    </Button>
+                        {t("queue.accept")}
+                    </CustomButton>
                 </Box>
             </ActionPanel>
         </CardContainer>
