@@ -1,5 +1,3 @@
-const CancelIcon = () => {
-    return (
         <svg
             width="30"
             height="30"
@@ -12,7 +10,3 @@ const CancelIcon = () => {
                 fill="#FF0D0D"
             />
         </svg>
-    );
-};
-
-export default CancelIcon;

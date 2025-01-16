@@ -3,8 +3,8 @@ import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import { styled } from "@mui/material/styles";
 import CheckMarkIcon from "../assets/CheckMarkIcon";
-import CancelIcon from "../assets/CancelIcon";
-import ExclamationMarkIcon from "../assets/ExclamationMarkIcon";
+import { CancelIcon } from "../assets";
+import ExclamationMarkIcon from "src/assets/ExclamationMarkIcon";
 import LoadingIcon from "../assets/LoadingIcon";
 
 type StatusVariant =
