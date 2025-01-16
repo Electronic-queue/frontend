@@ -2,11 +2,10 @@ import React, { FC } from "react";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import { styled } from "@mui/material/styles";
-import CheckMarkIcon from "../assets/CheckMarkIcon";
-import { CancelIcon } from "../assets";
-import ExclamationMarkIcon from "src/assets/ExclamationMarkIcon";
-import LoadingIcon from "../assets/LoadingIcon";
-
+import { CancelIcon } from "src/assets";
+import { CheckMarkIcon } from "src/assets";
+import { ExclamationMarkIcon } from "src/assets";
+import { LoadingIcon } from "src/assets";
 type StatusVariant =
     | "accepted"
     | "not_accepted"

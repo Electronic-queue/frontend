@@ -1,5 +1,3 @@
-const ExclamationMarkIcon = () => {
-    return (
         <svg
             width="30"
             height="30"
@@ -12,7 +10,3 @@ const ExclamationMarkIcon = () => {
                 fill="#3A6CB4"
             />
         </svg>
-    );
-};
-
-export default ExclamationMarkIcon;

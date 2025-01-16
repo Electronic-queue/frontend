@@ -5,8 +5,8 @@ import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
 import PageLinks from "./PageLinks";
-import SULogo from "../assets/SULogo";
-import UserLogo from "../assets/UserLogo";
+import { SULogo } from "src/assets";
+import { UserLogo } from "src/assets";
 import LanguageSwitcher from "./LanguageSwitcher";
 
 const HeaderContainer = styled(Stack)(({ theme }) => ({

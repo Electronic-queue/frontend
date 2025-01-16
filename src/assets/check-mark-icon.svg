@@ -1,5 +1,3 @@
-const CheckMarkIcon = () => {
-    return (
         <svg
             width="30"
             height="30"
@@ -20,7 +18,3 @@ const CheckMarkIcon = () => {
                 fill="white"
             />
         </svg>
-    );
-};
-
-export default CheckMarkIcon;

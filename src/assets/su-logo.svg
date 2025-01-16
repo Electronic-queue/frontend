@@ -1,6 +1,4 @@
-const SULogo = () => {
-  return (
-    <svg
+<svg
       width="146"
       height="48"
       viewBox="0 0 146 58"
@@ -124,7 +122,3 @@ const SULogo = () => {
         </clipPath>
       </defs>
     </svg>
-  );
-};
-
-export default SULogo;

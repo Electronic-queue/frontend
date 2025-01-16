@@ -1,6 +1,4 @@
-const UserLogo = () => {
-  return (
-    <svg
+  <svg
       width="43"
       height="42"
       viewBox="0 0 43 42"
@@ -25,7 +23,3 @@ const UserLogo = () => {
         fill="white"
       />
     </svg>
-  );
-};
-
-export default UserLogo;
