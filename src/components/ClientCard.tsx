@@ -1,10 +1,11 @@
-import { FC } from "react";
+import { FC, useState } from "react";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import { styled } from "@mui/material/styles";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import { useTranslation } from "react-i18next";
 import CustomButton from "./Button";
+import ReusableModal from "./ModalPage";
 
 interface ClientCardProps {
     clientData: {
@@ -76,6 +77,9 @@ const ClientCard: FC<ClientCardProps> = ({
     onAccept,
 }) => {
     const { t } = useTranslation();
+    const [isOpen, setIsOpen] = useState(false);
+    const handleOpen = () => setIsOpen(true);
+    const handleClose = () => setIsOpen(false);
 
     return (
         <CardContainer>
@@ -118,10 +122,20 @@ const ClientCard: FC<ClientCardProps> = ({
                     <CustomButton
                         variantType="primary"
                         sizeType="small"
-                        onClick={onRedirect}
+                        onClick={handleOpen}
                     >
                         {t("queue.redirect")}
                     </CustomButton>
+                    <ReusableModal
+                        open={isOpen}
+                        onClose={handleClose}
+                        title="Заголовок модального окна"
+                        width="500px"
+                        height="300px"
+                        showCloseButton={true}
+                    >
+                        <p>Содержимое модального окна</p>
+                    </ReusableModal>
                     <CustomButton
                         variantType="primary"
                         sizeType="small"
