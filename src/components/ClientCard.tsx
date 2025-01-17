@@ -6,7 +6,8 @@ import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import { useTranslation } from "react-i18next";
 import CustomButton from "./Button";
 import ReusableModal from "./ModalPage";
-
+import CustomSearchInput from "./SearchInput";
+import SearchIcon from "@mui/icons-material/Search";
 interface ClientCardProps {
     clientData: {
         clientNumber: string;
@@ -73,14 +74,19 @@ const ValueText = styled(Typography)(({ theme }) => ({
 const ClientCard: FC<ClientCardProps> = ({
     clientData,
     serviceTime,
-    onRedirect,
+
     onAccept,
 }) => {
     const { t } = useTranslation();
     const [isOpen, setIsOpen] = useState(false);
     const handleOpen = () => setIsOpen(true);
     const handleClose = () => setIsOpen(false);
+    const [searchValue, setSearchValue] = useState("");
 
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setSearchValue(e.target.value);
+        console.log("Search query:", e.target.value);
+    };
     return (
         <CardContainer>
             <ClientDetails>
@@ -129,12 +135,23 @@ const ClientCard: FC<ClientCardProps> = ({
                     <ReusableModal
                         open={isOpen}
                         onClose={handleClose}
-                        title="Заголовок модального окна"
-                        width="500px"
-                        height="300px"
-                        showCloseButton={true}
+                        title="Перенаправление услуги"
+                        width="796px"
+                        height="558px"
+                        showCloseButton={false}
                     >
-                        <p>Содержимое модального окна</p>
+                        <CustomSearchInput
+                            placeholder="Поиск услуги..."
+                            icon={<SearchIcon style={{ color: "#1976d2" }} />}
+                            value={searchValue}
+                            onChange={handleInputChange}
+                            width="684px"
+                            height="44px"
+                            borderColor="#1976d2"
+                            borderRadius="8px"
+                            backgroundColor="#f0f0f0"
+                            iconPosition="left"
+                        />
                     </ReusableModal>
                     <CustomButton
                         variantType="primary"

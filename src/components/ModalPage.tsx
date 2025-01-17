@@ -30,7 +30,12 @@ const StyledModalContent = styled(Box)<{
     padding: theme.spacing(4),
     outline: "none",
 }));
-
+const TitleText = styled(Typography)(({ theme }) => ({
+    marginBottom: theme.spacing(2),
+    fontSize: theme.typography.h2.fontSize,
+    color: theme.palette.primary.main,
+    fontWeight: 600,
+}));
 const ReusableModal: FC<ReusableModalProps> = ({
     open,
     onClose,
@@ -43,12 +48,20 @@ const ReusableModal: FC<ReusableModalProps> = ({
     return (
         <Modal open={open} onClose={onClose}>
             <StyledModalContent width={width} height={height}>
-                {title && (
-                    <Typography variant="h6" sx={{ mb: 2 }}>
-                        {title}
-                    </Typography>
-                )}
-                {children}
+                <Box sx={{ display: "flex", justifyContent: "center" }}>
+                    <TitleText>{title}</TitleText>
+                </Box>
+                <Box
+                    sx={{
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        width: "100%",
+                        height: "100%",
+                    }}
+                >
+                    {children}
+                </Box>
                 {showCloseButton && (
                     <Box sx={{ textAlign: "right", mt: 3 }}>
                         <button
