@@ -18,6 +18,8 @@
         "iin": "ЖСН",
         "serviceTime": "Қызмет уақыты",
         "redirect": "қайта бағыттау",
-        "accept": "Қабылдау"
+        "accept": "Қабылдау",
+        "rigistrationTime": "Жазу уақыты",
+        "ExpectedTime": "Болжалды кездесу уақыты"
     }
 }

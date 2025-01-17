@@ -2,6 +2,7 @@ import { FC } from "react";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import { styled } from "@mui/material/styles";
+import { useTranslation } from "react-i18next";
 
 interface QueueCardProps {
     clientNumber: string;
@@ -40,11 +41,12 @@ const QueueCard: FC<QueueCardProps> = ({
     bookingTime,
     expectedTime,
 }) => {
+    const { t } = useTranslation();
     return (
         <CardContainer>
             <Header>
                 <Typography variant="h6" fontWeight="bold">
-                    № клиента
+                    {t("queue.clientNumber")}
                 </Typography>
                 <Typography variant="h6" fontWeight="bold">
                     {clientNumber}
@@ -52,15 +54,15 @@ const QueueCard: FC<QueueCardProps> = ({
             </Header>
             <InfoBlock>
                 <Box display="flex" justifyContent="space-between">
-                    <Typography>Услуга</Typography>
+                    <Typography>{t("queue.service")}</Typography>
                     <Typography fontWeight="bold">{service}</Typography>
                 </Box>
                 <Box display="flex" justifyContent="space-between">
-                    <Typography>Время записи</Typography>
+                    <Typography> {t("queue.rigistrationTime")}</Typography>
                     <Typography fontWeight="bold">{bookingTime}</Typography>
                 </Box>
                 <Box display="flex" justifyContent="space-between">
-                    <Typography>Ожидаемое время приема</Typography>
+                    <Typography>{t("queue.ExpectedTime")}</Typography>
                     <Typography fontWeight="bold">{expectedTime}</Typography>
                 </Box>
             </InfoBlock>

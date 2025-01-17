@@ -18,6 +18,8 @@
         "iin": "IIN",
         "serviceTime": "Service time",
         "redirect": "Redirected",
-        "accept": "Accept"
+        "accept": "Accept",
+        "rigistrationTime": "Registration time",
+        "ExpectedTime": "Expected time"
     }
 }

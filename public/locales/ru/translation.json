@@ -18,6 +18,8 @@
         "iin": "ИИН",
         "serviceTime": "Время обслуживания",
         "redirect": "Перенаправить",
-        "accept": "Принять"
+        "accept": "Принять",
+        "rigistrationTime": "Время записи",
+        "ExpectedTime": "Ожидаемое время приема"
     }
 }
