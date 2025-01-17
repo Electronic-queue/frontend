@@ -2,10 +2,14 @@ import React, { FC } from "react";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import { styled } from "@mui/material/styles";
-import { CancelIcon } from "src/assets";
-import { CheckMarkIcon } from "src/assets";
-import { ExclamationMarkIcon } from "src/assets";
-import { LoadingIcon } from "src/assets";
+import {
+    CancelIcon,
+    CheckMarkIcon,
+    ExclamationMarkIcon,
+    LoadingIcon,
+} from "src/assets";
+import { useTranslation } from "react-i18next";
+
 type StatusVariant =
     | "accepted"
     | "not_accepted"
@@ -14,23 +18,23 @@ type StatusVariant =
 
 const STATUS_VARIANTS: Record<
     StatusVariant,
-    { icon: React.ReactElement; text: string }
+    { icon: React.ReactElement; translationKey: string }
 > = {
     accepted: {
         icon: <CheckMarkIcon />,
-        text: "Принято",
+        translationKey: "status.accepted",
     },
     not_accepted: {
         icon: <CancelIcon />,
-        text: "Не принято",
+        translationKey: "status.not_accepted",
     },
     redirected: {
         icon: <ExclamationMarkIcon />,
-        text: "Перенаправлено",
+        translationKey: "status.redirected",
     },
     in_anticipation: {
         icon: <LoadingIcon />,
-        text: "В ожидании",
+        translationKey: "status.in_anticipation",
     },
 };
 
@@ -59,14 +63,15 @@ const IconAndTextWrapper = styled(Box)(({ theme }) => ({
 }));
 
 const StatusCard: FC<StatusCardProps> = ({ variant, number }) => {
-    const { icon, text } = STATUS_VARIANTS[variant];
+    const { t } = useTranslation();
+    const { icon, translationKey } = STATUS_VARIANTS[variant];
 
     return (
         <CardContainer>
             <IconAndTextWrapper>
                 {icon}
                 <Typography variant="h6" sx={{ fontWeight: "bold" }}>
-                    {text}
+                    {t(translationKey)}
                 </Typography>
             </IconAndTextWrapper>
             <Typography

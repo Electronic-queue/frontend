@@ -16,6 +16,8 @@
         "surname": "Surname",
         "service": "Service",
         "iin": "IIN",
-        "serviceTime": "Service time"
+        "serviceTime": "Service time",
+        "redirect": "Redirected",
+        "accept": "Accept"
     }
 }
