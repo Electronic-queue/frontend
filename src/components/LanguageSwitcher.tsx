@@ -27,7 +27,7 @@ const SwitcherButton = styled(Button)<{ isActive: boolean }>(
         minWidth: 10,
         height: "35px",
         width: "35px",
-        borderRadius: "10px", // поправить !!!
+        borderRadius: theme.shape.borderRadius * 4,
         border: "none",
         color: isActive ? "white" : theme.palette.text.primary,
         fontSize: theme.typography.body1.fontSize,

@@ -4,9 +4,9 @@ import Typography from "@mui/material/Typography";
 import { styled } from "@mui/material/styles";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import { useTranslation } from "react-i18next";
-import CustomButton from "./Button";
-import ReusableModal from "./ModalPage";
-import CustomSearchInput from "./SearchInput";
+import CustomButton from "../components/Button";
+import ReusableModal from "../components/ModalPage";
+import CustomSearchInput from "../components/SearchInput";
 import SearchIcon from "@mui/icons-material/Search";
 interface ClientCardProps {
     clientData: {

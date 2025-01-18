@@ -2,8 +2,8 @@ import CustomButton from "../../components/Button";
 import { FC } from "react";
 import { styled, Box, Stack } from "@mui/material";
 import { useTranslation } from "react-i18next";
-import StatusCard from "../../components/StatusCard";
-import ClientCard from "../../components/ClientCard";
+import StatusCard from "../../widgets/StatusCard";
+import ClientCard from "../../widgets/ClientCard";
 import QueueCard from "src/widgets/QueueCard";
 
 const ButtonWrapper = styled(Box)(({ theme }) => ({
