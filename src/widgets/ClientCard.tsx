@@ -8,6 +8,7 @@ import CustomButton from "../components/Button";
 import ReusableModal from "../components/ModalPage";
 import CustomSearchInput from "../components/SearchInput";
 import SearchIcon from "@mui/icons-material/Search";
+import ReusableTable from "src/components/Table";
 interface ClientCardProps {
     clientData: {
         clientNumber: string;
@@ -71,6 +72,50 @@ const ValueText = styled(Typography)(({ theme }) => ({
     textAlign: "left",
 }));
 
+const columns = [
+    {
+        accessorKey: "id",
+        header: "№",
+    },
+    {
+        accessorKey: "service",
+        header: "Название услуги",
+    },
+    {
+        accessorKey: "details",
+        header: "Детали",
+        cell: ({ row }: { row: any }) => (
+            <CustomButton
+                variantType="primary"
+                sizeType="small"
+                onClick={() => handleSend(row.original)}
+            >
+                Отправить
+            </CustomButton>
+        ),
+    },
+];
+
+const handleSend = (row: any) => {
+    console.log("Отправлено для услуги:", row.service);
+};
+
+const data = [
+    { id: 1, service: "Выдача академической справки" },
+    { id: 2, service: "Выдача диплома и приложения к диплому" },
+    { id: 3, service: "Перевод студента на другой факультет" },
+    { id: 4, service: "Выдача справки об обучении" },
+    { id: 5, service: "Аннулирование регистрации на курс" },
+    { id: 6, service: "Оформление восстановления студента" },
+    { id: 7, service: "Обработка заявлений на пересдачу экзаменов" },
+    { id: 8, service: "Выдача справки об успеваемости" },
+    { id: 9, service: "Изменение личных данных студента" },
+    {
+        id: 10,
+        service: "Регистрация заявлений на участие в международных программах",
+    },
+];
+
 const ClientCard: FC<ClientCardProps> = ({
     clientData,
     serviceTime,
@@ -82,10 +127,19 @@ const ClientCard: FC<ClientCardProps> = ({
     const handleOpen = () => setIsOpen(true);
     const handleClose = () => setIsOpen(false);
     const [searchValue, setSearchValue] = useState("");
+    const [filteredData, setFilteredData] = useState(data);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setSearchValue(e.target.value);
-        console.log("Search query:", e.target.value);
+        const value = e.target.value;
+        setSearchValue(value);
+
+        const filtered = data.filter((row) =>
+            row.service.toLowerCase().includes(value.toLowerCase())
+        );
+        setFilteredData(filtered);
+    };
+    const handleRowClick = (row: any) => {
+        console.log("Row clicked:", row);
     };
     return (
         <CardContainer>
@@ -137,21 +191,37 @@ const ClientCard: FC<ClientCardProps> = ({
                         onClose={handleClose}
                         title="Перенаправление услуги"
                         width="796px"
-                        height="558px"
                         showCloseButton={false}
                     >
-                        <CustomSearchInput
-                            placeholder="Поиск услуги..."
-                            icon={<SearchIcon style={{ color: "#1976d2" }} />}
-                            value={searchValue}
-                            onChange={handleInputChange}
-                            width="684px"
-                            height="44px"
-                            borderColor="#1976d2"
-                            borderRadius="8px"
-                            backgroundColor="#f0f0f0"
-                            iconPosition="left"
-                        />
+                        <Box
+                            sx={{
+                                display: "flex",
+                                flexDirection: "column",
+                                gap: 2,
+                            }}
+                        >
+                            <CustomSearchInput
+                                placeholder="Поиск услуги..."
+                                icon={
+                                    <SearchIcon style={{ color: "#667085" }} />
+                                }
+                                value={searchValue}
+                                onChange={handleInputChange}
+                                width="684px"
+                                height="44px"
+                                borderColor="#d0d4df"
+                                borderRadius="8px"
+                                backgroundColor="#f0f0f0"
+                                iconPosition="left"
+                            />
+
+                            <ReusableTable
+                                data={filteredData}
+                                columns={columns}
+                                pageSize={5}
+                                onRowClick={handleRowClick}
+                            />
+                        </Box>
                     </ReusableModal>
                     <CustomButton
                         variantType="primary"
