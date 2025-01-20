@@ -8,7 +8,7 @@ import {
     Box,
     SelectChangeEvent,
 } from "@mui/material";
-import { styled, useTheme } from "@mui/material/styles";
+import { styled } from "@mui/material/styles";
 import { SelectTimeProps } from "../types/selectTimeTypes"; // Интерфейс пропсов, который можно создать отдельно
 
 const StyledFormControl = styled(FormControl)(({ theme }) => ({
