@@ -10,6 +10,7 @@ export interface ClientData {
 export interface ClientCardProps {
     clientData: ClientData;
     serviceTime: string;
+    onRedirect: () => void;
     onAccept: () => void;
 }
 

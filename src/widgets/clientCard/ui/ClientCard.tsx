@@ -71,7 +71,7 @@ const ClientCard: FC<ClientCardProps> = ({
 }) => {
     const { t } = useTranslation();
     const [isOpen, setIsOpen] = useState(false);
-    const handleOpen = () => setIsOpen(true);
+    const handleModalOpen = () => setIsOpen(true);
     const handleClose = () => setIsOpen(false);
     const handleSnackbarClose = () => setSnackbarOpen(false);
     const [searchValue, setSearchValue] = useState("");
@@ -139,7 +139,7 @@ const ClientCard: FC<ClientCardProps> = ({
                     <CustomButton
                         variantType="primary"
                         sizeType="small"
-                        onClick={handleOpen}
+                        onClick={handleModalOpen}
                     >
                         {t("queue.redirect")}
                     </CustomButton>

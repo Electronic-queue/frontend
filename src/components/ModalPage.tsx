@@ -55,7 +55,7 @@ const ReusableModal: FC<ReusableModalProps> = ({
                     sx={{
                         display: "flex",
                         flexDirection: "column",
-                        alignItems: "center",
+                        alignItems: "stretch",
                         width: "100%",
                         height: "100%",
                     }}
