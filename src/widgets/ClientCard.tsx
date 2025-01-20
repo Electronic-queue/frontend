@@ -9,6 +9,8 @@ import ReusableModal from "../components/ModalPage";
 import CustomSearchInput from "../components/SearchInput";
 import SearchIcon from "@mui/icons-material/Search";
 import ReusableTable from "src/components/Table";
+import Snackbar from "@mui/material/Snackbar";
+import Alert from "@mui/material/Alert";
 interface ClientCardProps {
     clientData: {
         clientNumber: string;
@@ -126,9 +128,11 @@ const ClientCard: FC<ClientCardProps> = ({
     const [isOpen, setIsOpen] = useState(false);
     const handleOpen = () => setIsOpen(true);
     const handleClose = () => setIsOpen(false);
+    const handleSnackbarClose = () => setSnackbarOpen(false);
     const [searchValue, setSearchValue] = useState("");
     const [filteredData, setFilteredData] = useState(data);
-
+    const [snackbarOpen, setSnackbarOpen] = useState(false);
+    const [alertMessage, setAlertMessage] = useState("");
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
         setSearchValue(value);
@@ -139,8 +143,15 @@ const ClientCard: FC<ClientCardProps> = ({
         setFilteredData(filtered);
     };
     const handleRowClick = (row: any) => {
-        console.log("Row clicked:", row);
+        setAlertMessage(
+            `Вы перенаправили пользователя в услугу: ${row.service}`
+        );
+
+        setSnackbarOpen(true);
+
+        handleClose();
     };
+
     return (
         <CardContainer>
             <ClientDetails>
@@ -232,6 +243,15 @@ const ClientCard: FC<ClientCardProps> = ({
                     </CustomButton>
                 </Box>
             </ActionPanel>
+            <Snackbar
+                open={snackbarOpen}
+                autoHideDuration={4000}
+                onClose={handleSnackbarClose}
+            >
+                <Alert onClose={handleSnackbarClose} severity="success">
+                    {alertMessage}
+                </Alert>
+            </Snackbar>
         </CardContainer>
     );
 };

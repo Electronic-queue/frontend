@@ -126,7 +126,7 @@ const ReusableTable: FC<ReusableTableProps<any>> = ({
                 }}
             >
                 <TablePagination
-                    rowsPerPageOptions={[5, 10, 25]}
+                    rowsPerPageOptions={[5, 10]}
                     component="div"
                     count={data.length}
                     rowsPerPage={rowsPerPage}
