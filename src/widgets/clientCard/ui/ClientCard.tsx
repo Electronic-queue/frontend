@@ -4,62 +4,23 @@ import Typography from "@mui/material/Typography";
 import { styled } from "@mui/material/styles";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import { useTranslation } from "react-i18next";
-import CustomButton from "../components/Button";
-import ReusableModal from "../components/ModalPage";
-import CustomSearchInput from "../components/SearchInput";
+import CustomButton from "../../../components/Button";
+import ReusableModal from "../../../components/ModalPage";
+import CustomSearchInput from "../../../components/SearchInput";
 import SearchIcon from "@mui/icons-material/Search";
 import ReusableTable from "src/components/Table";
 import Snackbar from "@mui/material/Snackbar";
 import Alert from "@mui/material/Alert";
-interface ClientCardProps {
-    clientData: {
-        clientNumber: string;
-        lastName: string;
-        firstName: string;
-        patronymic?: string;
-        service: string;
-        iin: string;
-    };
-    serviceTime: string;
-    onRedirect: () => void;
-    onAccept: () => void;
-}
-
-const CardContainer = styled(Box)(({ theme }) => ({
-    width: theme.spacing(140.5),
-    display: "flex",
-    justifyContent: "space-between",
-    padding: theme.spacing(4),
-    backgroundColor: theme.palette.background.paper,
-    borderRadius: theme.shape.borderRadius,
-    boxShadow: "2px 4px 10px rgba(0, 0, 0, 0.25)",
-}));
-
-const ClientDetails = styled(Box)(({ theme }) => ({
-    display: "flex",
-    flexDirection: "column",
-    gap: theme.spacing(1),
-}));
-
-const ActionPanel = styled(Box)(({}) => ({
-    display: "flex",
-    flexDirection: "column",
-    justifyContent: "space-between",
-    alignItems: "flex-end",
-}));
-
-const TimeWrapper = styled(Box)(({ theme }) => ({
-    display: "flex",
-    alignItems: "center",
-    gap: theme.spacing(1),
-}));
-
-const ClientInfoWrapper = styled(Box)(({ theme }) => ({
-    display: "grid",
-    gridTemplateColumns: "1fr 1fr",
-    gap: theme.spacing(5),
-    width: "100%",
-}));
+import data from "src/components/mock/servicesData.json";
+import {
+    CardContainer,
+    ClientDetails,
+    ActionPanel,
+    TimeWrapper,
+    ClientInfoWrapper,
+} from "../styles/clientCardStyles";
+import { ClientCardProps, ServiceData } from "../types/clientCardTypes";
+import theme from "src/styles/theme";
 
 const LabelText = styled(Typography)(({ theme }) => ({
     fontWeight: 600,
@@ -102,22 +63,6 @@ const handleSend = (row: any) => {
     console.log("Отправлено для услуги:", row.service);
 };
 
-const data = [
-    { id: 1, service: "Выдача академической справки" },
-    { id: 2, service: "Выдача диплома и приложения к диплому" },
-    { id: 3, service: "Перевод студента на другой факультет" },
-    { id: 4, service: "Выдача справки об обучении" },
-    { id: 5, service: "Аннулирование регистрации на курс" },
-    { id: 6, service: "Оформление восстановления студента" },
-    { id: 7, service: "Обработка заявлений на пересдачу экзаменов" },
-    { id: 8, service: "Выдача справки об успеваемости" },
-    { id: 9, service: "Изменение личных данных студента" },
-    {
-        id: 10,
-        service: "Регистрация заявлений на участие в международных программах",
-    },
-];
-
 const ClientCard: FC<ClientCardProps> = ({
     clientData,
     serviceTime,
@@ -130,9 +75,10 @@ const ClientCard: FC<ClientCardProps> = ({
     const handleClose = () => setIsOpen(false);
     const handleSnackbarClose = () => setSnackbarOpen(false);
     const [searchValue, setSearchValue] = useState("");
-    const [filteredData, setFilteredData] = useState(data);
+    const [filteredData, setFilteredData] = useState<ServiceData[]>(data);
     const [snackbarOpen, setSnackbarOpen] = useState(false);
     const [alertMessage, setAlertMessage] = useState("");
+
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
         setSearchValue(value);
@@ -201,14 +147,14 @@ const ClientCard: FC<ClientCardProps> = ({
                         open={isOpen}
                         onClose={handleClose}
                         title="Перенаправление услуги"
-                        width="796px"
+                        width={theme.spacing(99)}
                         showCloseButton={false}
                     >
                         <Box
                             sx={{
                                 display: "flex",
                                 flexDirection: "column",
-                                gap: 2,
+                                gap: theme.spacing(2),
                             }}
                         >
                             <CustomSearchInput
@@ -218,11 +164,11 @@ const ClientCard: FC<ClientCardProps> = ({
                                 }
                                 value={searchValue}
                                 onChange={handleInputChange}
-                                width="684px"
-                                height="44px"
-                                borderColor="#d0d4df"
-                                borderRadius="8px"
-                                backgroundColor="#f0f0f0"
+                                width={theme.spacing(87)}
+                                height={theme.spacing(6)}
+                                borderColor={theme.palette.lightBlueGray.main}
+                                borderRadius={theme.shape.borderRadius}
+                                backgroundColor={theme.palette.lightGray.main}
                                 iconPosition="left"
                             />
 

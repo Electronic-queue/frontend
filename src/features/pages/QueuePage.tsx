@@ -3,7 +3,7 @@ import { FC } from "react";
 import { styled, Box, Stack } from "@mui/material";
 import { useTranslation } from "react-i18next";
 import StatusCard from "../../widgets/StatusCard";
-import ClientCard from "../../widgets/ClientCard";
+import ClientCard from "../../widgets/clientCard/ui/ClientCard";
 import QueueCard from "src/widgets/QueueCard";
 
 const ButtonWrapper = styled(Box)(({ theme }) => ({
