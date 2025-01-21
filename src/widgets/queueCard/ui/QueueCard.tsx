@@ -3,13 +3,7 @@ import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import { styled } from "@mui/material/styles";
 import { useTranslation } from "react-i18next";
-
-interface QueueCardProps {
-    clientNumber: string;
-    service: string;
-    bookingTime: string;
-    expectedTime: string;
-}
+import { QueueCardProps } from "../types/queueCardTypes";
 
 const CardContainer = styled(Box)(({ theme }) => ({
     width: theme.spacing(33),

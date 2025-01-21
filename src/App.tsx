@@ -1,7 +1,7 @@
 import { Routes, Route } from "react-router-dom";
 import QueuePage from "./features/pages/QueuePage";
 import StatisticPage from "./features/pages/StatisticPage";
-import Header from "./widgets/Header";
+import Header from "src/widgets/header/ui/Header";
 import { FC } from "react";
 import Page from "./components/Page";
 

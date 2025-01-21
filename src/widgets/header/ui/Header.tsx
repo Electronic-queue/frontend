@@ -4,10 +4,10 @@ import { styled } from "@mui/material/styles";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
-import PageLinks from "../components/PageLinks";
+import PageLinks from "src/components/PageLinks";
 import { SULogo } from "src/assets";
 import { UserLogo } from "src/assets";
-import LanguageSwitcher from "../components/LanguageSwitcher";
+import LanguageSwitcher from "src/components/LanguageSwitcher";
 
 const HeaderContainer = styled(Stack)(({ theme }) => ({
     width: "100%",
