@@ -194,7 +194,11 @@ const ClientCard: FC<ClientCardProps> = ({
                 autoHideDuration={4000}
                 onClose={handleSnackbarClose}
             >
-                <Alert onClose={handleSnackbarClose} severity="success">
+                <Alert
+                    onClose={handleSnackbarClose}
+                    severity="success"
+                    sx={{ fontSize: "14px" }}
+                >
                     {alertMessage}
                 </Alert>
             </Snackbar>

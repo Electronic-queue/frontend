@@ -32,7 +32,6 @@ const StyledTableContainer = styled(TableContainer)(({ theme }) => ({
 }));
 
 const StyledHeaderCell = styled(TableCell)(({ theme }) => ({
-    // backgroundColor: theme.palette.primary.main,
     color: theme.palette.text.primary,
     fontSize: theme.typography.h6.fontSize,
     textAlign: "center",
@@ -41,6 +40,7 @@ const StyledBodyCell = styled(TableCell)(({ theme }) => ({
     textAlign: "center",
     fontSize: theme.typography.h6.fontSize,
 }));
+
 const ReusableTable: FC<ReusableTableProps<any>> = ({
     data,
     columns,
@@ -50,8 +50,14 @@ const ReusableTable: FC<ReusableTableProps<any>> = ({
     const [page, setPage] = React.useState(0);
     const [rowsPerPage, setRowsPerPage] = React.useState(pageSize);
 
+    const paginatedData = React.useMemo(() => {
+        const start = page * rowsPerPage;
+        const end = start + rowsPerPage;
+        return data.slice(start, end);
+    }, [data, page, rowsPerPage]);
+
     const tableInstance = useReactTable({
-        data,
+        data: paginatedData,
         columns,
         getCoreRowModel: getCoreRowModel(),
     });
@@ -66,11 +72,6 @@ const ReusableTable: FC<ReusableTableProps<any>> = ({
         setRowsPerPage(parseInt(event.target.value, 10));
         setPage(0);
     };
-
-    const paginatedData = data.slice(
-        page * rowsPerPage,
-        page * rowsPerPage + rowsPerPage
-    );
 
     return (
         <StyledTableContainer>
@@ -92,31 +93,25 @@ const ReusableTable: FC<ReusableTableProps<any>> = ({
                     ))}
                 </TableHead>
                 <TableBody>
-                    {paginatedData.map((row, index) => {
-                        const rowInstance =
-                            tableInstance.getRowModel().rows[index];
-                        return (
-                            <TableRow
-                                key={rowInstance?.id ?? index}
-                                hover
-                                onClick={() => onRowClick?.(row)}
-                                style={{
-                                    cursor: onRowClick ? "pointer" : "default",
-                                }}
-                            >
-                                {rowInstance
-                                    ?.getVisibleCells()
-                                    .map((cell) => (
-                                        <StyledBodyCell key={cell.id}>
-                                            {flexRender(
-                                                cell.column.columnDef.cell,
-                                                cell.getContext()
-                                            )}
-                                        </StyledBodyCell>
-                                    ))}
-                            </TableRow>
-                        );
-                    })}
+                    {tableInstance.getRowModel().rows.map((row) => (
+                        <TableRow
+                            key={row.id}
+                            hover
+                            onClick={() => onRowClick?.(row.original)}
+                            style={{
+                                cursor: onRowClick ? "pointer" : "default",
+                            }}
+                        >
+                            {row.getVisibleCells().map((cell) => (
+                                <StyledBodyCell key={cell.id}>
+                                    {flexRender(
+                                        cell.column.columnDef.cell,
+                                        cell.getContext()
+                                    )}
+                                </StyledBodyCell>
+                            ))}
+                        </TableRow>
+                    ))}
                 </TableBody>
             </MuiTable>
             <Box
