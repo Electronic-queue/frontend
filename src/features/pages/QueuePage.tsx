@@ -128,9 +128,10 @@ const QueuePage: FC = () => {
             <ReusableModal
                 open={isTimerModalOpen}
                 onClose={handleTimerModalClose}
-                title="Таймер"
+                title="Окно на паузе"
                 width={theme.spacing(99)}
                 showCloseButton={false}
+                ignoreBackdropClick={true}
             >
                 <Timer
                     initialTime={selectedTime}

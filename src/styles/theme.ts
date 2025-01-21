@@ -11,6 +11,9 @@ declare module "@mui/material/styles" {
         lightGray: {
             main: string;
         };
+        green: {
+            main: string;
+        };
     }
 
     interface PaletteOptions {
@@ -21,6 +24,9 @@ declare module "@mui/material/styles" {
             main: string;
         };
         lightGray?: {
+            main: string;
+        };
+        green?: {
             main: string;
         };
     }
@@ -52,6 +58,9 @@ const theme = createTheme({
         lightGray: {
             main: "#f0f0f0",
         },
+        green: {
+            main: "#39CB21",
+        },
     },
     typography: {
         fontFamily: `'Rubik', 'Arial', sans-serif`,
@@ -82,6 +91,10 @@ const theme = createTheme({
         body1: {
             fontSize: "12px",
             fontWeight: 400,
+        },
+        body2: {
+            fontSize: "48px",
+            fontWeight: 700,
         },
     },
 });

@@ -28,6 +28,7 @@ const StyledTableContainer = styled(TableContainer)(({ theme }) => ({
     maxWidth: "100%",
     backgroundColor: theme.palette.background.paper,
     borderRadius: theme.shape.borderRadius,
+    fontSize: theme.typography.h6.fontSize,
 }));
 
 const StyledHeaderCell = styled(TableCell)(({ theme }) => ({
@@ -38,6 +39,7 @@ const StyledHeaderCell = styled(TableCell)(({ theme }) => ({
 }));
 const StyledBodyCell = styled(TableCell)(({ theme }) => ({
     textAlign: "center",
+    fontSize: theme.typography.h6.fontSize,
 }));
 const ReusableTable: FC<ReusableTableProps<any>> = ({
     data,
@@ -134,6 +136,15 @@ const ReusableTable: FC<ReusableTableProps<any>> = ({
                     onPageChange={handleChangePage}
                     onRowsPerPageChange={handleChangeRowsPerPage}
                     labelRowsPerPage=""
+                    sx={{
+                        ".MuiTablePagination-selectLabel, .MuiTablePagination-displayedRows":
+                            {
+                                fontSize: "16px",
+                            },
+                        ".MuiTablePagination-select": {
+                            fontSize: "16px",
+                        },
+                    }}
                 />
             </Box>
         </StyledTableContainer>

@@ -1,26 +1,25 @@
 import React, { useEffect, useState } from "react";
-
-interface TimerProps {
-    initialTime: number; // Время в минутах
-    onResume: () => void; // Коллбэк для кнопки "Вернуться"
-}
+import { Box, Typography } from "@mui/material";
+import theme from "src/styles/theme";
+import { TimerProps } from "../types/timerTypes";
+import CustomButton from "src/components/Button";
 
 const Timer: React.FC<TimerProps> = ({ initialTime, onResume }) => {
-    const [timeLeft, setTimeLeft] = useState(initialTime * 60); // Конвертация в секунды
+    const [timeLeft, setTimeLeft] = useState(initialTime * 60);
     const [isCountingUp, setIsCountingUp] = useState(false);
 
     useEffect(() => {
         const timer = setInterval(() => {
             setTimeLeft((prev) => {
                 if (prev === 0 && !isCountingUp) {
-                    setIsCountingUp(true); // Начать прямой отсчёт
+                    setIsCountingUp(true);
                     return 1;
                 }
                 return isCountingUp ? prev + 1 : prev - 1;
             });
         }, 1000);
 
-        return () => clearInterval(timer); // Очистка таймера при размонтировании
+        return () => clearInterval(timer);
     }, [isCountingUp]);
 
     const formatTime = (seconds: number) => {
@@ -31,31 +30,65 @@ const Timer: React.FC<TimerProps> = ({ initialTime, onResume }) => {
         return `${mins}:${secs}`;
     };
 
+    const totalTime = initialTime * 60;
+    const progress = isCountingUp ? 100 : (timeLeft / totalTime) * 100;
+
+    const radius = 70;
+    const circumference = 2 * Math.PI * radius;
+    const strokeDashoffset = circumference - (progress / 100) * circumference;
+
     return (
-        <div style={{ textAlign: "center" }}>
-            <div
-                style={{
-                    fontSize: "48px",
-                    color: "green",
-                    marginBottom: "16px",
+        <Box textAlign="center">
+            <Box
+                component="svg"
+                width={180}
+                height={180}
+                sx={{ transform: "rotate(90deg)", margin: "0 auto" }}
+            >
+                <circle
+                    cx="100"
+                    cy="100"
+                    r={radius}
+                    fill="none"
+                    stroke={theme.palette.error.main}
+                    strokeWidth="8"
+                />
+                <circle
+                    cx="100"
+                    cy="100"
+                    r={radius}
+                    fill="none"
+                    stroke={theme.palette.green.main}
+                    strokeWidth="8"
+                    strokeDasharray={circumference}
+                    strokeDashoffset={strokeDashoffset}
+                    strokeLinecap="round"
+                    style={{ transition: "stroke-dashoffset 1s linear" }}
+                />
+            </Box>
+
+            <Typography
+                variant="body2"
+                sx={{
+                    color: isCountingUp
+                        ? theme.palette.error.main
+                        : theme.palette.green.main,
+                    marginTop: "-120px",
+                    marginRight: "20px",
                 }}
             >
                 {formatTime(timeLeft)}
-            </div>
-            <button
+            </Typography>
+
+            <CustomButton
                 onClick={onResume}
-                style={{
-                    padding: "8px 16px",
-                    background: "#1976d2",
-                    color: "white",
-                    border: "none",
-                    borderRadius: "4px",
-                    cursor: "pointer",
-                }}
+                variantType="primary"
+                sizeType="medium"
+                sx={{ mt: 8 }}
             >
                 Вернуться на работу
-            </button>
-        </div>
+            </CustomButton>
+        </Box>
     );
 };
 

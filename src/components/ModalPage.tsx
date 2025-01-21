@@ -1,4 +1,4 @@
-import React, { FC, ReactNode } from "react";
+import { FC, ReactNode } from "react";
 import Box from "@mui/material/Box";
 import Modal from "@mui/material/Modal";
 import Typography from "@mui/material/Typography";
@@ -12,6 +12,7 @@ interface ReusableModalProps {
     width?: string | number;
     height?: string | number;
     showCloseButton?: boolean;
+    ignoreBackdropClick?: boolean;
 }
 
 const StyledModalContent = styled(Box)<{
@@ -30,12 +31,14 @@ const StyledModalContent = styled(Box)<{
     padding: theme.spacing(4),
     outline: "none",
 }));
+
 const TitleText = styled(Typography)(({ theme }) => ({
     marginBottom: theme.spacing(2),
     fontSize: theme.typography.h2.fontSize,
     color: theme.palette.primary.main,
     fontWeight: 600,
 }));
+
 const ReusableModal: FC<ReusableModalProps> = ({
     open,
     onClose,
@@ -44,9 +47,18 @@ const ReusableModal: FC<ReusableModalProps> = ({
     width,
     height,
     showCloseButton = true,
+    ignoreBackdropClick = false,
 }) => {
     return (
-        <Modal open={open} onClose={onClose}>
+        <Modal
+            open={open}
+            onClose={(event, reason) => {
+                if (ignoreBackdropClick && reason === "backdropClick") {
+                    return;
+                }
+                onClose();
+            }}
+        >
             <StyledModalContent width={width} height={height}>
                 <Box sx={{ display: "flex", justifyContent: "center" }}>
                     <TitleText>{title}</TitleText>
