@@ -15,6 +15,7 @@ const initialState: AuthState = {
     error: null,
 };
 
+// Async thunk for login
 export const login = createAsyncThunk(
     "auth/login",
     async (
@@ -24,15 +25,12 @@ export const login = createAsyncThunk(
         try {
             const response = await axios.post(
                 "http://localhost:5000/api/auth/login",
-                {
-                    username,
-                    password,
-                }
+                { username, password }
             );
             return response.data.token;
         } catch (error: any) {
             return thunkAPI.rejectWithValue(
-                error.response.data.message || "Login failed"
+                error.response?.data?.message || "Login failed"
             );
         }
     }
@@ -42,6 +40,7 @@ const authSlice = createSlice({
     name: "auth",
     initialState,
     reducers: {
+        // Logout action
         logout: (state) => {
             state.token = null;
             state.isAuthenticated = false;
