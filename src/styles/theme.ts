@@ -14,6 +14,9 @@ declare module "@mui/material/styles" {
         green: {
             main: string;
         };
+        lightBlue: {
+            main: string;
+        };
     }
 
     interface PaletteOptions {
@@ -27,6 +30,9 @@ declare module "@mui/material/styles" {
             main: string;
         };
         green?: {
+            main: string;
+        };
+        lightBlue?: {
             main: string;
         };
     }
@@ -60,6 +66,9 @@ const theme = createTheme({
         },
         green: {
             main: "#39CB21",
+        },
+        lightBlue: {
+            main: "#f4f8fe",
         },
     },
     typography: {
