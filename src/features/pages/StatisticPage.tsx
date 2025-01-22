@@ -1,6 +1,7 @@
-import React, { FC, useState } from "react";
-import { styled, Typography } from "@mui/material";
+import { FC, useState } from "react";
+import { Box, styled, Typography } from "@mui/material";
 import Sidebar from "src/widgets/sideBar/ui/SideBar";
+import FilterComponent from "src/widgets/filterComponent/ui/FilterComponent";
 
 const HeadText = styled(Typography)(({ theme }) => ({
     color: theme.palette.primary.main,
@@ -23,11 +24,14 @@ const StatisticPage: FC = () => {
     return (
         <>
             <HeadText>Статистика: {reportName}</HeadText>
-            <Sidebar
-                title="Формирование отчетов"
-                items={items}
-                onSelect={(item) => setReportName(item)}
-            />
+            <Box sx={{ display: "flex", gap: 6 }}>
+                <Sidebar
+                    title="Формирование отчетов"
+                    items={items}
+                    onSelect={(item) => setReportName(item)}
+                />
+                <FilterComponent />
+            </Box>
         </>
     );
 };
