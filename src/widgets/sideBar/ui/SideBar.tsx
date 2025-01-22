@@ -28,7 +28,7 @@ const SidebarList = styled(List)(({}) => ({
 const SidebarListItem = styled(ListItemButton)(({ theme }) => ({
     marginBottom: theme.spacing(1),
     padding: theme.spacing(0.5),
-    borderRadius: "8px",
+    borderRadius: theme.shape.borderRadius,
     "&.Mui-selected": {
         backgroundColor: theme.palette.primary.main,
         color: theme.palette.primary.contrastText,
