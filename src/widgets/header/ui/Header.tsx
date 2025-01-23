@@ -8,7 +8,6 @@ import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import IconButton from "@mui/material/IconButton";
 import LogoutIcon from "@mui/icons-material/Logout";
-
 import { logout } from "src/store/authSlice";
 import PageLinks from "src/components/PageLinks";
 import { SULogo } from "src/assets";
@@ -56,7 +55,6 @@ const Header: FC = () => {
 
         dispatch(logout());
 
-        // Закрыть меню
         setAnchorEl(null);
 
         navigate("/login");

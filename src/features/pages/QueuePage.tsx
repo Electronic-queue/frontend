@@ -9,6 +9,7 @@ import ReusableModal from "src/components/ModalPage";
 import theme from "src/styles/theme";
 import SelectTime from "src/widgets/selectTiem/ui/SelectTime";
 import Timer from "src/widgets/timer/ui/Timer";
+import { useGetRecordListByManagerQuery } from "src/store/managerApi";
 
 const ButtonWrapper = styled(Box)(({ theme }) => ({
     marginBottom: theme.spacing(3),
@@ -51,6 +52,20 @@ const QueuePage: FC = () => {
     const [isPauseModalOpen, setIsPauseModalOpen] = useState(false);
     const [isTimerModalOpen, setIsTimerModalOpen] = useState(false);
 
+    const { data, error, isLoading } = useGetRecordListByManagerQuery();
+
+    if (isLoading) {
+        console.log("Загрузка данных...");
+    }
+
+    if (error) {
+        console.error("Ошибка при загрузке данных:", error);
+    }
+
+    if (data) {
+        console.log("Ответ от API:", data);
+    }
+
     const handlePauseModalOpen = () => setIsPauseModalOpen(true);
     const handlePauseModalClose = () => setIsPauseModalOpen(false);
     const handleTimerModalOpen = () => {
@@ -91,17 +106,30 @@ const QueuePage: FC = () => {
             />
 
             <Box sx={{ display: "flex", gap: 3, paddingBottom: "222px" }}>
-                {Array(4)
-                    .fill(null)
-                    .map((_, index) => (
-                        <QueueCard
-                            key={index}
-                            clientNumber="C34"
-                            service="Услуга 5"
-                            bookingTime="12:30"
-                            expectedTime="12:45"
-                        />
-                    ))}
+                <QueueCard
+                    clientNumber="C34"
+                    service="Услуга 5"
+                    bookingTime="12:30"
+                    expectedTime="12:45"
+                />
+                <QueueCard
+                    clientNumber="C34"
+                    service="Услуга 5"
+                    bookingTime="12:30"
+                    expectedTime="12:45"
+                />
+                <QueueCard
+                    clientNumber="C34"
+                    service="Услуга 5"
+                    bookingTime="12:30"
+                    expectedTime="12:45"
+                />
+                <QueueCard
+                    clientNumber="C34"
+                    service="Услуга 5"
+                    bookingTime="12:30"
+                    expectedTime="12:45"
+                />
             </Box>
 
             <ReusableModal
