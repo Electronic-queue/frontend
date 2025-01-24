@@ -2,21 +2,62 @@ import { Routes, Route } from "react-router-dom";
 import QueuePage from "./features/pages/QueuePage";
 import StatisticPage from "./features/pages/StatisticPage";
 import Header from "src/widgets/header/ui/Header";
+import LoginPage from "./features/pages/LoginPage";
 import { FC } from "react";
 import Page from "./components/Page";
+import MobilePage from "./features/pages/MobilePage";
+// import ProtectedRoute from "./components/ProtectedRoute";
+
+import "./app.css";
 
 const App: FC = () => {
     return (
         <>
             <Header />
-            <Page>
-                {/* // написать фильтры для ролей */}
-                <Routes>
-                    <Route path="/" element={<QueuePage />} />
-                    <Route path="/queue" element={<QueuePage />} />
-                    <Route path="/static" element={<StatisticPage />} />
-                </Routes>
-            </Page>
+            <Routes>
+                <Route path="/login" element={<LoginPage />} />
+                <Route
+                    path="/*"
+                    element={
+                        <Page>
+                            <Routes>
+                                <Route path="/" element={<MobilePage />} />
+
+                                {/* <Route
+                                    path="/manager/queue"
+                                    element={
+                                        <ProtectedRoute
+                                            allowedRoles={["manager"]}
+                                        >
+                                            <QueuePage />
+                                        </ProtectedRoute>
+                                    }
+                                /> */}
+                                <Route
+                                    path="/manager/queue"
+                                    element={<QueuePage />}
+                                />
+                                {/* 
+                                <Route
+                                    path="/manager/reports"
+                                    element={
+                                        <ProtectedRoute
+                                            allowedRoles={["manager"]}
+                                        >
+                                            <StatisticPage />
+                                        </ProtectedRoute>
+                                    }
+                                /> */}
+
+                                <Route
+                                    path="/manager/reports"
+                                    element={<StatisticPage />}
+                                />
+                            </Routes>
+                        </Page>
+                    }
+                />
+            </Routes>
         </>
     );
 };

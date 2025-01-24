@@ -9,6 +9,8 @@ import ReusableModal from "src/components/ModalPage";
 import theme from "src/styles/theme";
 import SelectTime from "src/widgets/selectTiem/ui/SelectTime";
 import Timer from "src/widgets/timer/ui/Timer";
+// import { useGetRecordListByManagerQuery } from "src/store/managerApi";
+import useQueueData from "src/hooks/useQueueData";
 
 const ButtonWrapper = styled(Box)(({ theme }) => ({
     marginBottom: theme.spacing(3),
@@ -51,6 +53,8 @@ const QueuePage: FC = () => {
     const [isPauseModalOpen, setIsPauseModalOpen] = useState(false);
     const [isTimerModalOpen, setIsTimerModalOpen] = useState(false);
 
+    // const { data, error, isLoading } = useGetRecordListByManagerQuery();
+
     const handlePauseModalOpen = () => setIsPauseModalOpen(true);
     const handlePauseModalClose = () => setIsPauseModalOpen(false);
     const handleTimerModalOpen = () => {
@@ -63,7 +67,7 @@ const QueuePage: FC = () => {
         setSelectedTime(time);
         console.log("Выбранное время:", time);
     };
-
+    const queueData = useQueueData();
     return (
         <>
             <ButtonWrapper>
@@ -91,17 +95,19 @@ const QueuePage: FC = () => {
             />
 
             <Box sx={{ display: "flex", gap: 3, paddingBottom: "222px" }}>
-                {Array(4)
-                    .fill(null)
-                    .map((_, index) => (
+                {queueData.length > 0 ? (
+                    queueData.map((item, index) => (
                         <QueueCard
                             key={index}
-                            clientNumber="C34"
-                            service="Услуга 5"
-                            bookingTime="12:30"
-                            expectedTime="12:45"
+                            clientNumber={item.clientNumber}
+                            service={item.service}
+                            bookingTime={item.bookingTime}
+                            expectedTime={item.expectedTime}
                         />
-                    ))}
+                    ))
+                ) : (
+                    <p>Загрузка...</p>
+                )}
             </Box>
 
             <ReusableModal

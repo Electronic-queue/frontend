@@ -1,7 +1,18 @@
 {
     "I18N_QUEUE_MANAGEMENT": "Управление очередью",
     "I18N_STATISTICS": "Статистика",
-
+    "I18N_login": "Войти",
+    "i18n_login": {
+        "username": "Логин",
+        "enterUsername": "Введите логин",
+        "password": "Пароль",
+        "enterPassword": "Введите пароль",
+        "login": "Войти",
+        "loading": "Загрузка...",
+        "forgotPassword": "Забыли пароль?",
+        "restoreAccess": "Восстановить доступ",
+        "title": "Авторизация"
+    },
     "status": {
         "accepted": "Приняты",
         "not_accepted": "Не приняты",

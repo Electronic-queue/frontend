@@ -17,6 +17,9 @@ declare module "@mui/material/styles" {
         lightBlue: {
             main: string;
         };
+        semiTransparentWhite: {
+            main: string;
+        };
     }
 
     interface PaletteOptions {
@@ -33,6 +36,9 @@ declare module "@mui/material/styles" {
             main: string;
         };
         lightBlue?: {
+            main: string;
+        };
+        semiTransparentWhite?: {
             main: string;
         };
     }
@@ -69,6 +75,9 @@ const theme = createTheme({
         },
         lightBlue: {
             main: "#f4f8fe",
+        },
+        semiTransparentWhite: {
+            main: "rgba(255, 255, 255, 0.8)",
         },
     },
     typography: {
