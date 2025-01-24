@@ -1,7 +1,18 @@
 {
     "I18N_QUEUE_MANAGEMENT": "Кезекті басқару",
     "I18N_STATISTICS": "Статистика",
-
+    "I18N_login": "Кіру",
+    "i18n_login": {
+        "username": "Логин",
+        "enterUsername": "Логинді енгізіңіз",
+        "password": "Құпиясөз",
+        "enterPassword": "Құпиясөзді енгізіңіз",
+        "login": "Кіру",
+        "loading": "Жүктелуде...",
+        "forgotPassword": "Құпиясөзді ұмыттыңыз ба?",
+        "restoreAccess": "Қолжетімділікті қалпына келтіру",
+        "title": "Аутентификация"
+    },
     "status": {
         "accepted": "Қабылданды",
         "not_accepted": "Қабылданбады",
@@ -17,7 +28,7 @@
         "service": "Қызмет",
         "iin": "ЖСН",
         "serviceTime": "Қызмет уақыты",
-        "redirect": "қайта бағыттау",
+        "redirect": "Қайта бағыттау",
         "accept": "Қабылдау",
         "rigistrationTime": "Жазу уақыты",
         "ExpectedTime": "Болжалды кездесу уақыты"

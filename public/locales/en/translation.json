@@ -1,10 +1,21 @@
 {
     "I18N_QUEUE_MANAGEMENT": "Queue management",
     "I18N_STATISTICS": "Statistics",
-
+    "I18N_login": "Login",
+    "i18n_login": {
+        "username": "Username",
+        "enterUsername": "Enter username",
+        "password": "Password",
+        "enterPassword": "Enter password",
+        "login": "Login",
+        "loading": "Loading...",
+        "forgotPassword": "Forgot password?",
+        "restoreAccess": "Restore access",
+        "title": "Authentication"
+    },
     "status": {
-        "accepted": "Accepteds",
-        "not_accepted": "Not accepteds",
+        "accepted": "Accepted",
+        "not_accepted": "Not accepted",
         "redirected": "Redirected",
         "in_anticipation": "In anticipation"
     },
@@ -17,7 +28,7 @@
         "service": "Service",
         "iin": "IIN",
         "serviceTime": "Service time",
-        "redirect": "Redirected",
+        "redirect": "Redirect",
         "accept": "Accept",
         "rigistrationTime": "Registration time",
         "ExpectedTime": "Expected time"
