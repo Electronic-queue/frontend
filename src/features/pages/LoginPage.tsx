@@ -9,7 +9,6 @@ import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import TextField from "@mui/material/TextField";
-import Button from "@mui/material/Button";
 import Link from "@mui/material/Link";
 import QueueBackground from "src/assets/queue1.png";
 import CustomButton from "src/components/Button";
@@ -64,7 +63,7 @@ const LoginPage: React.FC = () => {
 
     useEffect(() => {
         if (isAuthenticated) {
-            navigate("/");
+            navigate("/manager/queue");
         }
     }, [isAuthenticated, navigate]);
 

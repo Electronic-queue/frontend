@@ -69,16 +69,16 @@ const Header: FC = () => {
             <Stack direction="row" justifyContent="center" flexGrow={1}>
                 <LinksContainer>
                     <PageLinks
-                        onClick={() => navigate("/queue")}
+                        onClick={() => navigate("/manager/queue")}
                         link={{
-                            to: "/queue",
+                            to: "/manager/queue",
                             label: t("I18N_QUEUE_MANAGEMENT"),
                         }}
                     />
                     <PageLinks
-                        onClick={() => navigate("/static")}
+                        onClick={() => navigate("/manager/reports")}
                         link={{
-                            to: "/static",
+                            to: "/manager/reports",
                             label: t("I18N_STATISTICS"),
                         }}
                     />

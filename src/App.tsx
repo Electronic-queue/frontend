@@ -3,10 +3,10 @@ import QueuePage from "./features/pages/QueuePage";
 import StatisticPage from "./features/pages/StatisticPage";
 import Header from "src/widgets/header/ui/Header";
 import LoginPage from "./features/pages/LoginPage";
-// import ProtectedRoute from "./components/ProtectedRoute";
 import { FC } from "react";
 import Page from "./components/Page";
 import MobilePage from "./features/pages/MobilePage";
+// import ProtectedRoute from "./components/ProtectedRoute";
 
 import "./app.css";
 
@@ -21,39 +21,36 @@ const App: FC = () => {
                     element={
                         <Page>
                             <Routes>
+                                <Route path="/" element={<MobilePage />} />
+
+                                {/* <Route
+                                    path="/manager/queue"
+                                    element={
+                                        <ProtectedRoute
+                                            allowedRoles={["manager"]}
+                                        >
+                                            <QueuePage />
+                                        </ProtectedRoute>
+                                    }
+                                /> */}
                                 <Route
-                                    path="/mobile"
-                                    element={<MobilePage />}
+                                    path="/manager/queue"
+                                    element={<QueuePage />}
                                 />
-                                {/* <Route
-                                    path="/"
+                                {/* 
+                                <Route
+                                    path="/manager/reports"
                                     element={
-                                        <ProtectedRoute>
-                                            <QueuePage />
-                                        </ProtectedRoute>
-                                    }
-                                /> */}
-                                <Route path="/" element={<QueuePage />} />
-                                {/* <Route
-                                    path="/queue"
-                                    element={
-                                        <ProtectedRoute>
-                                            <QueuePage />
-                                        </ProtectedRoute>
-                                    }
-                                /> */}
-                                <Route path="/queue" element={<QueuePage />} />
-                                {/* <Route
-                                    path="/static"
-                                    element={
-                                        <ProtectedRoute>
+                                        <ProtectedRoute
+                                            allowedRoles={["manager"]}
+                                        >
                                             <StatisticPage />
                                         </ProtectedRoute>
                                     }
                                 /> */}
 
                                 <Route
-                                    path="/static"
+                                    path="/manager/reports"
                                     element={<StatisticPage />}
                                 />
                             </Routes>

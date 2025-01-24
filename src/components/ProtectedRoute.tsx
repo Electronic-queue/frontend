@@ -1,16 +1,30 @@
-import React from "react";
+import { FC, ReactNode } from "react";
 import { Navigate } from "react-router-dom";
-import { useSelector } from "react-redux";
-import { RootState } from "../store/store";
+import { jwtDecode } from "jwt-decode";
 
 interface ProtectedRouteProps {
-    children: React.ReactNode;
+    children: ReactNode;
+    allowedRoles: string[];
 }
 
-const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
-    const { isAuthenticated } = useSelector((state: RootState) => state.auth);
+const ProtectedRoute: FC<ProtectedRouteProps> = ({
+    children,
+    allowedRoles,
+}) => {
+    const token = localStorage.getItem("token");
 
-    return isAuthenticated ? <>{children}</> : <Navigate to="/login" />;
+    if (!token) {
+        return <Navigate to="/login" />;
+    }
+
+    const decodedToken: any = jwtDecode(token);
+    const userRole = decodedToken?.role;
+
+    if (allowedRoles.includes(userRole)) {
+        return <>{children}</>;
+    } else {
+        return <Navigate to="/" />;
+    }
 };
 
 export default ProtectedRoute;

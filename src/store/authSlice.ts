@@ -15,7 +15,6 @@ const initialState: AuthState = {
     error: null,
 };
 
-// Async thunk for login
 export const login = createAsyncThunk(
     "auth/login",
     async (
@@ -40,7 +39,6 @@ const authSlice = createSlice({
     name: "auth",
     initialState,
     reducers: {
-        // Logout action
         logout: (state) => {
             state.token = null;
             state.isAuthenticated = false;

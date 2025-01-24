@@ -1,17 +1,5 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-
-interface ManagerRecord {
-    recordId: number;
-    firstName: string;
-    lastName: string;
-    surname: string;
-    iin: string;
-    serviceId: number;
-    startTime: string;
-    endTime: string;
-    isCreatedByEmployee: boolean;
-    createdBy: number;
-}
+import { ManagerRecord } from "src/types/managerApiTypes";
 
 export const managerApi = createApi({
     reducerPath: "managerApi",
