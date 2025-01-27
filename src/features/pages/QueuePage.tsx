@@ -1,4 +1,4 @@
-import { FC, useState } from "react";
+import { FC, useContext, useState } from "react";
 import { styled, Box, Stack } from "@mui/material";
 import { useTranslation } from "react-i18next";
 import CustomButton from "../../components/Button";
@@ -11,6 +11,7 @@ import SelectTime from "src/widgets/selectTiem/ui/SelectTime";
 import Timer from "src/widgets/timer/ui/Timer";
 // import { useGetRecordListByManagerQuery } from "src/store/managerApi";
 import useQueueData from "src/hooks/useQueueData";
+import { MediaContext } from "../MediaProvider";
 
 const ButtonWrapper = styled(Box)(({ theme }) => ({
     marginBottom: theme.spacing(3),
@@ -48,6 +49,8 @@ const handleAccept = () => {
 const serviceTime = "03:00";
 
 const QueuePage: FC = () => {
+    const media = useContext(MediaContext);
+    const isMobile = media?.isMobile;
     const { t } = useTranslation();
     const [selectedTime, setSelectedTime] = useState<number>(1);
     const [isPauseModalOpen, setIsPauseModalOpen] = useState(false);
@@ -68,6 +71,7 @@ const QueuePage: FC = () => {
         console.log("Выбранное время:", time);
     };
     const queueData = useQueueData();
+    console.log(isMobile ? "Мобильное устройство" : "Десктоп");
     return (
         <>
             <ButtonWrapper>

@@ -7,23 +7,24 @@ import { FC } from "react";
 import Page from "./components/Page";
 import MobilePage from "./features/pages/MobilePage";
 // import ProtectedRoute from "./components/ProtectedRoute";
-
+import MediaProvider from "src/features/MediaProvider";
 import "./app.css";
 
 const App: FC = () => {
     return (
         <>
-            <Header />
-            <Routes>
-                <Route path="/login" element={<LoginPage />} />
-                <Route
-                    path="/*"
-                    element={
-                        <Page>
-                            <Routes>
-                                <Route path="/" element={<MobilePage />} />
+            <MediaProvider>
+                <Header />
+                <Routes>
+                    <Route path="/login" element={<LoginPage />} />
+                    <Route
+                        path="/*"
+                        element={
+                            <Page>
+                                <Routes>
+                                    <Route path="/" element={<MobilePage />} />
 
-                                {/* <Route
+                                    {/* <Route
                                     path="/manager/queue"
                                     element={
                                         <ProtectedRoute
@@ -33,11 +34,11 @@ const App: FC = () => {
                                         </ProtectedRoute>
                                     }
                                 /> */}
-                                <Route
-                                    path="/manager/queue"
-                                    element={<QueuePage />}
-                                />
-                                {/* 
+                                    <Route
+                                        path="/manager/queue"
+                                        element={<QueuePage />}
+                                    />
+                                    {/* 
                                 <Route
                                     path="/manager/reports"
                                     element={
@@ -49,15 +50,16 @@ const App: FC = () => {
                                     }
                                 /> */}
 
-                                <Route
-                                    path="/manager/reports"
-                                    element={<StatisticPage />}
-                                />
-                            </Routes>
-                        </Page>
-                    }
-                />
-            </Routes>
+                                    <Route
+                                        path="/manager/reports"
+                                        element={<StatisticPage />}
+                                    />
+                                </Routes>
+                            </Page>
+                        }
+                    />
+                </Routes>
+            </MediaProvider>
         </>
     );
 };
