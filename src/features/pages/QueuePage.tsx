@@ -98,7 +98,7 @@ const QueuePage: FC = () => {
                 onAccept={handleAccept}
             />
 
-            <Box sx={{ display: "flex", gap: 3, paddingBottom: "222px" }}>
+            <Box sx={{ display: "flex", gap: 3, paddingBottom: "25px" }}>
                 {queueData.length > 0 ? (
                     queueData.map((item, index) => (
                         <QueueCard
