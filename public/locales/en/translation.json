@@ -13,6 +13,17 @@
         "restoreAccess": "Restore access",
         "title": "Authentication"
     },
+    "i18n_register": {
+        "title": "Registration",
+        "iin": "Your IIN",
+        "firstName": "Your First Name",
+        "lastName": "Your Last Name",
+        "middleName": "Your Middle Name",
+        "submit": "Register",
+        "required": "This field is required",
+        "iinError": "IIN must consist of 12 digits"
+    },
+
     "status": {
         "accepted": "Accepted",
         "not_accepted": "Not accepted",

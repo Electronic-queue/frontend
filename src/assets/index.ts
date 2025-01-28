@@ -4,3 +4,4 @@ export { ReactComponent as ExclamationMarkIcon } from "./exclamation-mark-icon.s
 export { ReactComponent as LoadingIcon } from "./loading-icon.svg";
 export { ReactComponent as UserLogo } from "./user-logo-icon.svg";
 export { ReactComponent as SULogo } from "./su-logo.svg";
+export { ReactComponent as SULogoM } from "./su-logo-m.svg";
