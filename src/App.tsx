@@ -10,6 +10,7 @@ import ClientRegisterPage from "./features/pages/ClientRegisterPage";
 import QueuePage from "./features/pages/QueuePage";
 import StatisticPage from "./features/pages/StatisticPage";
 import "./app.css";
+import ServiceSelection from "./features/pages/ServiceSelectionPage";
 
 const App: FC = () => {
     const isMobile = useMediaQuery("(max-width: 768px)");
@@ -42,6 +43,7 @@ const App: FC = () => {
 const MobileRoutes: FC = () => (
     <Routes>
         <Route path="/" element={<ClientRegisterPage />} />
+        <Route path="/selection" element={<ServiceSelection />} />
     </Routes>
 );
 

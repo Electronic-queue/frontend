@@ -30,7 +30,7 @@
         "redirected": "Басқарылды",
         "in_anticipation": "Күтілуде"
     },
-    "queue": {
+    "i18n_queue": {
         "pause": "Терезені кідірту",
         "clientNumber": "Клиент нөмірі",
         "lastName": "Тегі",
@@ -42,6 +42,9 @@
         "redirect": "Қайта бағыттау",
         "accept": "Қабылдау",
         "rigistrationTime": "Жазу уақыты",
-        "ExpectedTime": "Болжалды кездесу уақыты"
+        "ExpectedTime": "Болжалды кездесу уақыты",
+        "chooseService": "Қызметті таңдаңыз",
+        "searchService": "Қызметті іздеу",
+        "signUp": "Тіркелу"
     }
 }

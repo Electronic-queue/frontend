@@ -29,7 +29,7 @@
         "redirected": "Перенаправлены",
         "in_anticipation": "В ожидании"
     },
-    "queue": {
+    "i18n_queue": {
         "pause": "Приостановить окно на паузу",
         "clientNumber": "Номер клиента",
         "lastName": "Фамилия",
@@ -41,6 +41,9 @@
         "redirect": "Перенаправить",
         "accept": "Принять",
         "rigistrationTime": "Время записи",
-        "ExpectedTime": "Ожидаемое время приема"
+        "ExpectedTime": "Ожидаемое время приема",
+        "chooseService": "Выбор услуги",
+        "searchService": "Поиск услуги",
+        "signUp": "Зарегистрироваться"
     }
 }

@@ -80,7 +80,7 @@ const QueuePage: FC = () => {
                     sizeType="medium"
                     onClick={handlePauseModalOpen}
                 >
-                    {t("queue.pause")}
+                    {t("i18n_queue.pause")}
                 </CustomButton>
             </ButtonWrapper>
 

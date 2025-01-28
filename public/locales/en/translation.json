@@ -30,7 +30,7 @@
         "redirected": "Redirected",
         "in_anticipation": "In anticipation"
     },
-    "queue": {
+    "i18n_queue": {
         "pause": "Pause the window",
         "clientNumber": "Client number",
         "lastName": "Last name",
@@ -42,6 +42,9 @@
         "redirect": "Redirect",
         "accept": "Accept",
         "rigistrationTime": "Registration time",
-        "ExpectedTime": "Expected time"
+        "ExpectedTime": "Expected time",
+        "chooseService": "Service selection",
+        "searchService": "Search for service",
+        "signUp": "Sign up"
     }
 }

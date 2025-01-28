@@ -40,7 +40,7 @@ const QueueCard: FC<QueueCardProps> = ({
         <CardContainer>
             <Header>
                 <Typography variant="h6" fontWeight="bold">
-                    {t("queue.clientNumber")}
+                    {t("i18n_queue.clientNumber")}
                 </Typography>
                 <Typography variant="h6" fontWeight="bold">
                     {clientNumber}
@@ -48,15 +48,15 @@ const QueueCard: FC<QueueCardProps> = ({
             </Header>
             <InfoBlock>
                 <Box display="flex" justifyContent="space-between">
-                    <Typography>{t("queue.service")}</Typography>
+                    <Typography>{t("i18n_queue.service")}</Typography>
                     <Typography fontWeight="bold">{service}</Typography>
                 </Box>
                 <Box display="flex" justifyContent="space-between">
-                    <Typography> {t("queue.rigistrationTime")}</Typography>
+                    <Typography> {t("i18n_queue.rigistrationTime")}</Typography>
                     <Typography fontWeight="bold">{bookingTime}</Typography>
                 </Box>
                 <Box display="flex" justifyContent="space-between">
-                    <Typography>{t("queue.ExpectedTime")}</Typography>
+                    <Typography>{t("i18n_queue.ExpectedTime")}</Typography>
                     <Typography fontWeight="bold">{expectedTime}</Typography>
                 </Box>
             </InfoBlock>
