@@ -1,0 +1,11 @@
+{
+    "mock": [
+        {
+            "id": 1,
+            "numberInLine": 33,
+            "window": 3,
+            "peopleAhead": 7,
+            "expectedTime": "12:22"
+        }
+    ]
+}

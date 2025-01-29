@@ -45,6 +45,10 @@
         "ExpectedTime": "Болжалды кездесу уақыты",
         "chooseService": "Қызметті таңдаңыз",
         "searchService": "Қызметті іздеу",
-        "signUp": "Тіркелу"
+        "signUp": "Тіркелу",
+        "number": "Сіздің нөміріңіз №",
+        "window": "Терезе",
+        "peopleAhead": "Алдыңғы адамдар",
+        "refuse": "Бас тарту"
     }
 }

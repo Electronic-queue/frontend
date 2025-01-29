@@ -45,6 +45,10 @@
         "ExpectedTime": "Expected time",
         "chooseService": "Service selection",
         "searchService": "Search for service",
-        "signUp": "Sign up"
+        "signUp": "Sign up",
+        "number": "Your number №",
+        "window": "Window",
+        "peopleAhead": "People ahead",
+        "refuse": "Refuse"
     }
 }
