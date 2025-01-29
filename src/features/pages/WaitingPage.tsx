@@ -5,6 +5,8 @@ import { SULogoM } from "src/assets";
 import theme from "src/styles/theme";
 import mockData from "src/components/mock/MockWaitingData.json";
 import CustomButton from "src/components/Button";
+import ReusableModal from "src/components/ModalPage";
+import { useState } from "react";
 
 const BackgroundContainer = styled(Box)(({ theme }) => ({
     display: "flex",
@@ -32,6 +34,9 @@ const InfoBlock = styled(Box)(({ theme }) => ({
 
 const WaitingPage = () => {
     const { t } = useTranslation();
+    const [isOpen, setIsOpen] = useState(false);
+    const handleModalOpen = () => setIsOpen(true);
+    const handleClose = () => setIsOpen(false);
     const numberInLine = mockData.mock[0].numberInLine;
     const peopleAhead = mockData.mock[0].peopleAhead;
     const expectedTime = mockData.mock[0].expectedTime;
@@ -89,11 +94,28 @@ const WaitingPage = () => {
                         type="submit"
                         color="primary"
                         fullWidth
+                        onClick={handleModalOpen}
                     >
                         {t("i18n_queue.refuse")}
                     </CustomButton>
                 </Box>
             </FormContainer>
+            <ReusableModal
+                open={isOpen}
+                onClose={handleClose}
+                title="Отказаться от очереди?"
+                width={450}
+                showCloseButton={false}
+            >
+                <Box display={"flex"} gap={2} justifyContent="center">
+                    <CustomButton variantType="primary" onClick={handleClose}>
+                        {t("i18n_queue.confirm")}
+                    </CustomButton>
+                    <CustomButton variantType="danger" onClick={handleClose}>
+                        {t("i18n_queue.cancel")}
+                    </CustomButton>
+                </Box>
+            </ReusableModal>
         </BackgroundContainer>
     );
 };

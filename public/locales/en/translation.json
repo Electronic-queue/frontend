@@ -49,6 +49,8 @@
         "number": "Your number №",
         "window": "Window",
         "peopleAhead": "People ahead",
-        "refuse": "Refuse"
+        "refuse": "Refuse",
+        "cancel": "Cancel",
+        "confirm": "Confirm"
     }
 }
