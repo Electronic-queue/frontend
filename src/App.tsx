@@ -13,6 +13,7 @@ import "./app.css";
 import ServiceSelection from "./features/pages/ServiceSelectionPage";
 import WaitingPage from "./features/pages/WaitingPage";
 import CallPage from "./features/pages/CallPage";
+import ServiceRating from "./features/pages/serviceRating";
 
 const App: FC = () => {
     const isMobile = useMediaQuery("(max-width: 768px)");
@@ -48,6 +49,7 @@ const MobileRoutes: FC = () => (
         <Route path="/selection" element={<ServiceSelection />} />
         <Route path="/wait" element={<WaitingPage />} />
         <Route path="/call" element={<CallPage />} />
+        <Route path="/rating" element={<ServiceRating />} />
     </Routes>
 );
 
