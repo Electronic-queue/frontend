@@ -51,6 +51,8 @@
         "peopleAhead": "People ahead",
         "refuse": "Refuse",
         "cancel": "Cancel",
-        "confirm": "Confirm"
+        "confirm": "Confirm",
+        "approachWindow": "Approach the window №",
+        "timeoutMessage": "You didn't make it in time, please register again"
     }
 }
