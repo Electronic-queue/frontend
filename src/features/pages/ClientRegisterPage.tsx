@@ -44,7 +44,7 @@ const ClientRegisterPage = () => {
 
     return (
         <BackgroundContainer>
-            <Box sx={{ paddingBottom: "46px" }}>
+            <Box sx={{ paddingBottom: theme.spacing(5) }}>
                 <SULogoM />
             </Box>
 
