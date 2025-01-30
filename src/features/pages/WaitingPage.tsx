@@ -14,7 +14,7 @@ const BackgroundContainer = styled(Box)(({ theme }) => ({
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: theme.palette.background.default,
-    paddingTop: "34px",
+    paddingTop: theme.spacing(5),
 }));
 
 const FormContainer = styled(Stack)(({ theme }) => ({
@@ -41,6 +41,11 @@ const WaitingPage = () => {
     const peopleAhead = mockData.mock[0].peopleAhead;
     const expectedTime = mockData.mock[0].expectedTime;
     const windowNumber = mockData.mock[0].window;
+
+    const handleConfirmRefuse = () => {
+        console.log("Клиент отказался от очереди");
+        setIsOpen(false);
+    };
     return (
         <BackgroundContainer>
             <Box sx={{ paddingBottom: theme.spacing(5) }}>
@@ -108,7 +113,10 @@ const WaitingPage = () => {
                 showCloseButton={false}
             >
                 <Box display={"flex"} gap={2} justifyContent="center">
-                    <CustomButton variantType="primary" onClick={handleClose}>
+                    <CustomButton
+                        variantType="primary"
+                        onClick={handleConfirmRefuse}
+                    >
                         {t("i18n_queue.confirm")}
                     </CustomButton>
                     <CustomButton variantType="danger" onClick={handleClose}>

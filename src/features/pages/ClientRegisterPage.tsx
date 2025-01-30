@@ -11,7 +11,7 @@ const BackgroundContainer = styled(Box)(({ theme }) => ({
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: theme.palette.background.default,
-    paddingTop: "34px",
+    paddingTop: theme.spacing(5),
 }));
 
 const FormContainer = styled(Stack)(({ theme }) => ({

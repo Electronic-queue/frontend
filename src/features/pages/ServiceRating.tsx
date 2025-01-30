@@ -13,7 +13,7 @@ const BackgroundContainer = styled(Box)(({ theme }) => ({
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: theme.palette.background.default,
-    paddingTop: "34px",
+    paddingTop: theme.spacing(5),
 }));
 
 const FormContainer = styled(Stack)(({ theme }) => ({
@@ -38,6 +38,12 @@ const ServiceRating = () => {
         }
     };
 
+    const handleSubmit = () => {
+        console.log(`Рейтинг: ${rating}`);
+        if (feedback.trim()) {
+            console.log(`Отзыв: ${feedback}`);
+        }
+    };
     return (
         <BackgroundContainer>
             <Box sx={{ paddingBottom: theme.spacing(5) }}>
@@ -76,6 +82,7 @@ const ServiceRating = () => {
                     variant="contained"
                     sx={{ mt: 2 }}
                     disabled={rating === 0}
+                    onClick={handleSubmit}
                 >
                     {t("i18n_queue.submit")}
                 </Button>

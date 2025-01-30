@@ -13,7 +13,7 @@ const BackgroundContainer = styled(Box)(({ theme }) => ({
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: theme.palette.background.default,
-    paddingTop: "34px",
+    paddingTop: theme.spacing(5),
 }));
 
 const FormContainer = styled(Stack)(({ theme }) => ({
@@ -46,14 +46,13 @@ const Timer: React.FC<TimerProps> = ({ onTimeout }) => {
         <BackgroundContainer>
             <Box
                 sx={{
-                    width: 120,
-                    height: 120,
+                    width: theme.spacing(15),
+                    height: theme.spacing(15),
                     borderRadius: "50%",
                     border: `8px solid ${theme.palette.error.main}`,
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    padding: "60px auto",
                 }}
             >
                 <Typography

@@ -22,7 +22,7 @@ const BackgroundContainer = styled(Box)(({ theme }) => ({
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: theme.palette.background.default,
-    paddingTop: "34px",
+    paddingTop: theme.spacing(5),
 }));
 
 const FormContainer = styled(Stack)(({ theme }) => ({
@@ -44,6 +44,14 @@ const ServiceSelection = () => {
     const filteredServices = MockServiceList.filter((service) =>
         service.name.toLowerCase().includes(search.toLowerCase())
     );
+
+    const handleSubmit = () => {
+        if (selectedService) {
+            console.log("Selected Service :", selectedService.id);
+        } else {
+            console.log("No service selected");
+        }
+    };
 
     return (
         <BackgroundContainer>
@@ -67,14 +75,12 @@ const ServiceSelection = () => {
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                     sx={{ mb: 2 }}
-                    slotProps={{
-                        input: {
-                            startAdornment: (
-                                <InputAdornment position="start">
-                                    <SearchIcon />
-                                </InputAdornment>
-                            ),
-                        },
+                    InputProps={{
+                        startAdornment: (
+                            <InputAdornment position="start">
+                                <SearchIcon />
+                            </InputAdornment>
+                        ),
                     }}
                 />
 
@@ -90,6 +96,7 @@ const ServiceSelection = () => {
                     variant="contained"
                     sx={{ mt: 2 }}
                     disabled={!selectedService}
+                    onClick={handleSubmit}
                 >
                     {t("i18n_queue.signUp")}
                 </Button>

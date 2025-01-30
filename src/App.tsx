@@ -13,7 +13,7 @@ import "./app.css";
 import ServiceSelection from "./features/pages/ServiceSelectionPage";
 import WaitingPage from "./features/pages/WaitingPage";
 import CallPage from "./features/pages/CallPage";
-import ServiceRating from "./features/pages/serviceRating";
+import ServiceRating from "./features/pages/ServiceRating";
 
 const App: FC = () => {
     const isMobile = useMediaQuery("(max-width: 768px)");
