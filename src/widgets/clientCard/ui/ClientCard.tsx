@@ -59,9 +59,7 @@ const columns = [
     },
 ];
 
-const handleSend = (row: any) => {
-    console.log("Отправлено для услуги:", row.service);
-};
+const handleSend = (row: any) => {};
 
 const ClientCard: FC<ClientCardProps> = ({
     clientData,

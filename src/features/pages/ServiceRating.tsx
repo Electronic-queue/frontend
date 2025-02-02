@@ -44,7 +44,7 @@ const ServiceRating = () => {
     };
 
     const handleSubmit = () => {
-        console.log(`Рейтинг: ${rating}`);
+        alert(`Рейтинг: ${rating}`);
         if (feedback.trim()) {
             alert("Not Implemented");
         }

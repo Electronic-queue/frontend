@@ -45,7 +45,6 @@ const WaitingPage = () => {
     const windowNumber = mockData.mock[0].window;
 
     const handleConfirmRefuse = () => {
-        console.log("Отказ от очереди подтвержден");
         setIsOpen(false);
     };
     return (

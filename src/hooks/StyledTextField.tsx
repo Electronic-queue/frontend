@@ -1,28 +1,11 @@
 import { TextField } from "@mui/material";
-import { Controller } from "react-hook-form";
+import { Controller, Control, RegisterOptions } from "react-hook-form";
 import { useTranslation } from "react-i18next";
-
-const useValidationRules = () => {
-    const { t } = useTranslation();
-
-    return {
-        required: (messageKey: string) => ({ required: t(messageKey) }),
-        pattern: (regex: RegExp, messageKey: string) => ({
-            pattern: { value: regex, message: t(messageKey) },
-        }),
-        minLength: (length: number, messageKey: string) => ({
-            minLength: { value: length, message: t(messageKey) },
-        }),
-        maxLength: (length: number, messageKey: string) => ({
-            maxLength: { value: length, message: t(messageKey) },
-        }),
-    };
-};
 
 interface StyledTextFieldProps {
     name: string;
-    control: any;
-    rules?: any;
+    control: Control<any>;
+    rules?: RegisterOptions;
     labelKey: string;
     fullWidth?: boolean;
     variant?: "outlined" | "filled" | "standard";
@@ -57,5 +40,4 @@ const StyledTextField: React.FC<StyledTextFieldProps> = ({
     );
 };
 
-export { useValidationRules };
 export default StyledTextField;

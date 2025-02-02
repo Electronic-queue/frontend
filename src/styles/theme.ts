@@ -20,6 +20,9 @@ declare module "@mui/material/styles" {
         semiTransparentWhite: {
             main: string;
         };
+        indigoBlue: {
+            main: string;
+        };
     }
 
     interface PaletteOptions {
@@ -39,6 +42,9 @@ declare module "@mui/material/styles" {
             main: string;
         };
         semiTransparentWhite?: {
+            main: string;
+        };
+        indigoBlue?: {
             main: string;
         };
     }
@@ -88,6 +94,7 @@ const theme = createTheme({
             primary: "#333333",
             secondary: "#666666",
         },
+
         gray: {
             main: "#f1e5e5",
         },
@@ -105,6 +112,9 @@ const theme = createTheme({
         },
         semiTransparentWhite: {
             main: "rgba(255, 255, 255, 0.8)",
+        },
+        indigoBlue: {
+            main: "#3f51b5",
         },
     },
     typography: {

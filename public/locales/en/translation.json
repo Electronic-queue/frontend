@@ -22,8 +22,8 @@
         "submit": "Register",
         "required": "This field is required",
         "iinError": "IIN must consist of 12 digits",
-        "maxLengthError": "Maximum length is 50 characters",
-        "minLengthError": "Minimum length is 2 characters"
+        "maxLengthError": "Maximum length is {{length}} characters",
+        "minLengthError": "Minimum length is {{length}} characters"
     },
 
     "status": {

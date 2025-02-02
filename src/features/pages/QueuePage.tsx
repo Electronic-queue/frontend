@@ -41,11 +41,11 @@ const clientData = {
 };
 
 const handleRedirect = () => {
-    console.log("Клиент перенаправлен");
+    alert("Клиент перенаправлен");
 };
 
 const handleAccept = () => {
-    console.log("Клиент принят");
+    alert("Клиент принят");
 };
 
 const serviceTime = "03:00";
@@ -70,10 +70,10 @@ const QueuePage: FC = () => {
 
     const handleTimeSelect = (time: number) => {
         setSelectedTime(time);
-        console.log("Выбранное время:", time);
+        alert("Выбранное время:", time);
     };
     const queueData = useQueueData();
-    console.log(isMobile ? "Мобильное устройство" : "Десктоп");
+
     return (
         <>
             <ButtonWrapper>

@@ -7,9 +7,8 @@ import { useTranslation } from "react-i18next";
 import { SULogoM } from "src/assets";
 import theme from "src/styles/theme";
 import CustomButton from "src/components/Button";
-import StyledTextField, {
-    useValidationRules,
-} from "src/components/StyledTextField";
+import StyledTextField from "src/hooks/StyledTextField";
+import { useValidationRules } from "src/hooks/useValidationRules";
 
 const BackgroundContainer = styled(Box)(({ theme }) => ({
     display: "flex",
@@ -42,12 +41,21 @@ const ClientRegisterPage = () => {
         control,
         handleSubmit,
         formState: { errors },
-    } = useForm<FormValues>();
+    } = useForm<FormValues>({
+        defaultValues: {
+            iin: "",
+            firstName: "",
+            lastName: "",
+            middleName: "",
+        },
+    });
 
     const onSubmit = (data: FormValues) => {
         alert("Not Implemented");
     };
+
     const { required, pattern, maxLength, minLength } = useValidationRules();
+
     return (
         <BackgroundContainer>
             <Box sx={{ paddingBottom: theme.spacing(5) }}>
@@ -80,8 +88,11 @@ const ClientRegisterPage = () => {
                         name="iin"
                         control={control}
                         rules={{
-                            ...required("i18n_register.required"),
-                            ...pattern(/^\d{12}$/, "i18n_register.iinError"),
+                            ...required,
+                            ...pattern(
+                                /^\d{12}$/,
+                                "ИИН должен содержать 12 цифр"
+                            ),
                         }}
                         labelKey="i18n_register.iin"
                     />
@@ -90,9 +101,9 @@ const ClientRegisterPage = () => {
                         name="firstName"
                         control={control}
                         rules={{
-                            ...required("i18n_register.required"),
-                            ...maxLength(40, "i18n_register.maxLengthError"),
-                            ...minLength(2, "i18n_register.minLengthError"),
+                            ...required,
+                            ...minLength(2),
+                            ...maxLength(40),
                         }}
                         labelKey="i18n_register.firstName"
                     />
@@ -100,9 +111,9 @@ const ClientRegisterPage = () => {
                         name="lastName"
                         control={control}
                         rules={{
-                            ...required("i18n_register.required"),
-                            ...maxLength(40, "i18n_register.maxLengthError"),
-                            ...minLength(2, "i18n_register.minLengthError"),
+                            ...required,
+                            ...minLength(2),
+                            ...maxLength(40),
                         }}
                         labelKey="i18n_register.lastName"
                     />
@@ -111,9 +122,8 @@ const ClientRegisterPage = () => {
                         name="middleName"
                         control={control}
                         rules={{
-                            ...required("i18n_register.required"),
-                            ...maxLength(40, "i18n_register.maxLengthError"),
-                            ...minLength(2, "i18n_register.minLengthError"),
+                            ...minLength(2),
+                            ...maxLength(40),
                         }}
                         labelKey="i18n_register.middleName"
                     />
@@ -125,7 +135,7 @@ const ClientRegisterPage = () => {
                         color="primary"
                         fullWidth
                     >
-                        {t("i18n_register.submit")}
+                        {t("Отправить")}
                     </CustomButton>
                 </Box>
             </FormContainer>

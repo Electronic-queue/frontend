@@ -34,7 +34,7 @@ const HeaderContainer = styled(Stack)(({ theme }) => ({
 
 const NotificationBadge = styled(Badge)(({ theme }) => ({
     "& .MuiBadge-badge": {
-        backgroundColor: "#3f51b5",
+        backgroundColor: theme.palette.indigoBlue.main,
         color: "white",
         fontSize: "0.7rem",
     },
@@ -55,7 +55,7 @@ const StyledNotificationCircle = styled(Stack)(({ theme }) => ({
     width: 40,
     height: 40,
     borderRadius: "50%",
-    backgroundColor: "#3f51b5",
+    backgroundColor: theme.palette.indigoBlue.main,
     color: "white",
     alignItems: "center",
     justifyContent: "center",

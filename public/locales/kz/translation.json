@@ -22,8 +22,8 @@
         "submit": "Тіркелу",
         "required": "Бұл өріс міндетті",
         "iinError": "ЖСН 12 цифрдан тұруы керек",
-        "maxLengthError": "Максималды ұзындығы 50 таңба",
-        "minLengthError": "Минималды ұзындығы 2 таңба"
+        "maxLengthError": "Максималды ұзындығы {{length}} символ",
+        "minLengthError": "Минималды ұзындығы {{length}} символ"
     },
 
     "status": {

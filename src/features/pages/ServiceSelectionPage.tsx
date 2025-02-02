@@ -45,9 +45,9 @@ const ServiceSelection = () => {
 
     const handleSubmit = () => {
         if (selectedService) {
-            console.log("Selected Service :", selectedService.id);
+            alert("Selected Service :", selectedService.id);
         } else {
-            console.log("No service selected");
+            alert("No service selected");
         }
     };
 
