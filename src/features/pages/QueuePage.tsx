@@ -1,5 +1,7 @@
 import { FC, useContext, useState } from "react";
-import { styled, Box, Stack } from "@mui/material";
+import Box from "@mui/material/Box";
+import Stack from "@mui/material/Stack";
+import { styled } from "@mui/material/styles";
 import { useTranslation } from "react-i18next";
 import CustomButton from "../../components/Button";
 import StatusCard from "../../widgets/statusCard/ui/StatusCard";
@@ -98,7 +100,13 @@ const QueuePage: FC = () => {
                 onAccept={handleAccept}
             />
 
-            <Box sx={{ display: "flex", gap: 3, paddingBottom: "25px" }}>
+            <Box
+                sx={{
+                    display: "flex",
+                    gap: 3,
+                    paddingBottom: theme.spacing(3),
+                }}
+            >
                 {queueData.length > 0 ? (
                     queueData.map((item, index) => (
                         <QueueCard

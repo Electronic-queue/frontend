@@ -1,11 +1,16 @@
 import { useState, ChangeEvent } from "react";
-import { Button, Typography, TextField, Rating } from "@mui/material";
-import { Box, Stack, styled } from "@mui/system";
+
+import Typography from "@mui/material/Typography";
+import Box from "@mui/material/Box";
+import Stack from "@mui/material/Stack";
+import { styled } from "@mui/material/styles";
+import TextField from "@mui/material/TextField";
+import Rating from "@mui/material/Rating";
 import { useTranslation } from "react-i18next";
 import { SULogoM } from "src/assets";
 import theme from "src/styles/theme";
-
-const MAX_FEEDBACK_LENGTH = 150;
+import { VALIDATION_RULES } from "src/config/validationConfig";
+import CustomButton from "src/components/Button";
 
 const BackgroundContainer = styled(Box)(({ theme }) => ({
     display: "flex",
@@ -22,7 +27,7 @@ const FormContainer = styled(Stack)(({ theme }) => ({
     padding: theme.spacing(4),
     backgroundColor: theme.palette.background.paper,
     borderRadius: theme.spacing(2),
-    boxShadow: "2px 4px 10px rgba(0, 0, 0, 0.25)",
+    boxShadow: theme.shadows[2],
     textAlign: "center",
 }));
 
@@ -33,7 +38,7 @@ const ServiceRating = () => {
 
     const handleFeedbackChange = (e: ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
-        if (value.length <= MAX_FEEDBACK_LENGTH) {
+        if (value.length <= VALIDATION_RULES.MAX_FEEDBACK_LENGTH) {
             setFeedback(value);
         }
     };
@@ -41,7 +46,7 @@ const ServiceRating = () => {
     const handleSubmit = () => {
         console.log(`Рейтинг: ${rating}`);
         if (feedback.trim()) {
-            console.log(`Отзыв: ${feedback}`);
+            alert("Not Implemented");
         }
     };
     return (
@@ -74,18 +79,18 @@ const ServiceRating = () => {
                     sx={{ marginBottom: 1 }}
                 />
                 <Typography variant="caption" color="textSecondary">
-                    {`${feedback.length}/${MAX_FEEDBACK_LENGTH} ${t("i18n_queue.characters")}`}
+                    {`${feedback.length}/${VALIDATION_RULES.MAX_FEEDBACK_LENGTH} ${t("i18n_queue.characters")}`}
                 </Typography>
 
-                <Button
+                <CustomButton
                     fullWidth
-                    variant="contained"
+                    variantType="primary"
                     sx={{ mt: 2 }}
                     disabled={rating === 0}
                     onClick={handleSubmit}
                 >
                     {t("i18n_queue.submit")}
-                </Button>
+                </CustomButton>
             </FormContainer>
         </BackgroundContainer>
     );

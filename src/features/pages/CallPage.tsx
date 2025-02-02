@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { Typography } from "@mui/material";
-import { Box, Stack, styled } from "@mui/system";
+import Stack from "@mui/material/Stack";
+import { styled } from "@mui/material/styles";
+import Box from "@mui/material/Box";
 import { useTranslation } from "react-i18next";
 import { SULogoM } from "src/assets";
 import CustomButton from "src/components/Button";
-import theme from "src/styles/theme";
 import mockData from "src/components/mock/MockWaitingData.json";
+import theme from "src/styles/theme";
 
 const BackgroundContainer = styled(Box)(({ theme }) => ({
     display: "flex",
@@ -22,8 +24,18 @@ const FormContainer = styled(Stack)(({ theme }) => ({
     padding: theme.spacing(4),
     backgroundColor: theme.palette.background.paper,
     borderRadius: theme.spacing(2),
-    boxShadow: "2px 4px 10px rgba(0, 0, 0, 0.25)",
+    boxShadow: theme.shadows[2],
     textAlign: "center",
+}));
+
+const TitleBox = styled(Box)(({ theme }) => ({
+    width: theme.spacing(15),
+    height: theme.spacing(15),
+    borderRadius: "50%",
+    border: `8px solid ${theme.palette.error.main}`,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
 }));
 
 interface TimerProps {
@@ -44,24 +56,14 @@ const Timer: React.FC<TimerProps> = ({ onTimeout }) => {
 
     return (
         <BackgroundContainer>
-            <Box
-                sx={{
-                    width: theme.spacing(15),
-                    height: theme.spacing(15),
-                    borderRadius: "50%",
-                    border: `8px solid ${theme.palette.error.main}`,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                }}
-            >
+            <TitleBox>
                 <Typography
                     variant="h1"
                     sx={{ color: theme.palette.error.main }}
                 >
                     {timeLeft}
                 </Typography>
-            </Box>
+            </TitleBox>
         </BackgroundContainer>
     );
 };

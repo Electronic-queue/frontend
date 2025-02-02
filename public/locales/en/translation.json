@@ -21,7 +21,9 @@
         "middleName": "Your Middle Name",
         "submit": "Register",
         "required": "This field is required",
-        "iinError": "IIN must consist of 12 digits"
+        "iinError": "IIN must consist of 12 digits",
+        "maxLengthError": "Maximum length is 50 characters",
+        "minLengthError": "Minimum length is 2 characters"
     },
 
     "status": {
@@ -57,6 +59,7 @@
         "rateService": "Rate the service",
         "leaveFeedback": "Leave feedback (optional)",
         "characters": "characters",
-        "submit": "Submit"
+        "submit": "Submit",
+        "refuseQueue": "Refuse from the queue"
     }
 }

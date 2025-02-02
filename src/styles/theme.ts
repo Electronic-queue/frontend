@@ -47,6 +47,33 @@ declare module "@mui/material/styles" {
 const theme = createTheme({
     // components: {"MuiAccordion": {"styleOverrides": {"": {"borderRadius": 8}}}}, // Пример переопределения стилей компонента
     shape: { borderRadius: 8 },
+    shadows: [
+        "none",
+        "2px 4px 10px rgba(0, 0, 0, 0.25)",
+        "0px 2px 4px rgba(0, 0, 0, 0.15)",
+        "0px 2px 7px rgba(0, 0, 0, 0.25)",
+        "0px 8px 24px rgba(0, 0, 0, 0.1)",
+        "0px 8px 24px rgba(0, 0, 0, 0.2)",
+        "2px 4px 10px rgba(0, 0, 0, 0.25)",
+        "none",
+        "none",
+        "none",
+        "none",
+        "none",
+        "none",
+        "none",
+        "none",
+        "none",
+        "none",
+        "none",
+        "none",
+        "none",
+        "none",
+        "none",
+        "none",
+        "none",
+        "none",
+    ],
     palette: {
         primary: {
             main: "#3A6CB4",

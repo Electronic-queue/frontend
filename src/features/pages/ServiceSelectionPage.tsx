@@ -1,13 +1,10 @@
 import { useState } from "react";
-import {
-    Box,
-    Stack,
-    Typography,
-    styled,
-    Paper,
-    TextField,
-    Button,
-} from "@mui/material";
+import Paper from "@mui/material/Paper";
+import Typography from "@mui/material/Typography";
+import Box from "@mui/material/Box";
+import Stack from "@mui/material/Stack";
+import { styled } from "@mui/material/styles";
+import TextField from "@mui/material/TextField";
 import { SULogoM } from "src/assets";
 import { useTranslation } from "react-i18next";
 import ServiceList, { Service } from "src/widgets/serviceList/ui/ServiceList";
@@ -15,6 +12,7 @@ import theme from "src/styles/theme";
 import SearchIcon from "@mui/icons-material/Search";
 import InputAdornment from "@mui/material/InputAdornment";
 import MockServiceList from "src/components/mock/MockServiceList.json";
+import CustomButton from "src/components/Button";
 
 const BackgroundContainer = styled(Box)(({ theme }) => ({
     display: "flex",
@@ -31,7 +29,7 @@ const FormContainer = styled(Stack)(({ theme }) => ({
     padding: theme.spacing(4),
     backgroundColor: theme.palette.background.paper,
     borderRadius: theme.spacing(2),
-    boxShadow: "2px 4px 10px rgba(0, 0, 0, 0.25)",
+    boxShadow: theme.shadows[2],
 }));
 
 const ServiceSelection = () => {
@@ -91,15 +89,15 @@ const ServiceSelection = () => {
                         onSelect={setSelectedService}
                     />
                 </Paper>
-                <Button
+                <CustomButton
                     fullWidth
-                    variant="contained"
+                    variantType="primary"
                     sx={{ mt: 2 }}
                     disabled={!selectedService}
                     onClick={handleSubmit}
                 >
                     {t("i18n_queue.signUp")}
-                </Button>
+                </CustomButton>
             </FormContainer>
         </BackgroundContainer>
     );

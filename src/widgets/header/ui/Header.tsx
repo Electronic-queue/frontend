@@ -23,7 +23,7 @@ const HeaderContainer = styled(Stack)(({ theme }) => ({
     backgroundColor: "white",
     alignItems: "center",
     borderBottom: "1px solid #F3F3FD",
-    boxShadow: "0px 2px 7px rgba(0, 0, 0, 0.25)",
+    boxShadow: theme.shadows[2],
     flexDirection: "row",
     padding: `${theme.spacing(2)} ${theme.spacing(6)}`,
     [theme.breakpoints.down("sm")]: {
@@ -49,6 +49,16 @@ const RightSection = styled(Stack)(({ theme }) => ({
     flexDirection: "row",
     gap: theme.spacing(2),
     justifyContent: "flex-end",
+}));
+
+const StyledNotificationCircle = styled(Stack)(({ theme }) => ({
+    width: 40,
+    height: 40,
+    borderRadius: "50%",
+    backgroundColor: "#3f51b5",
+    color: "white",
+    alignItems: "center",
+    justifyContent: "center",
 }));
 
 const Header: FC = () => {
@@ -156,20 +166,9 @@ const Header: FC = () => {
                         color="primary"
                     >
                         <IconButton onClick={handleNotificationClick}>
-                            <div
-                                style={{
-                                    width: 40,
-                                    height: 40,
-                                    borderRadius: "50%",
-                                    backgroundColor: "#3f51b5",
-                                    display: "flex",
-                                    alignItems: "center",
-                                    justifyContent: "center",
-                                    color: "white",
-                                }}
-                            >
+                            <StyledNotificationCircle>
                                 {notifications.length}
-                            </div>
+                            </StyledNotificationCircle>
                         </IconButton>
                     </NotificationBadge>
                 )}

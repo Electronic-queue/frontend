@@ -1,5 +1,7 @@
-import { Typography } from "@mui/material";
-import { Box, Stack, styled } from "@mui/system";
+import Typography from "@mui/material/Typography";
+import Box from "@mui/material/Box";
+import { styled } from "@mui/material/styles";
+import Stack from "@mui/material/Stack";
 import { useTranslation } from "react-i18next";
 import { SULogoM } from "src/assets";
 import theme from "src/styles/theme";
@@ -23,7 +25,7 @@ const FormContainer = styled(Stack)(({ theme }) => ({
     padding: theme.spacing(4),
     backgroundColor: theme.palette.background.paper,
     borderRadius: theme.spacing(2),
-    boxShadow: "2px 4px 10px rgba(0, 0, 0, 0.25)",
+    boxShadow: theme.shadows[2],
 }));
 
 const InfoBlock = styled(Box)(({ theme }) => ({
@@ -43,7 +45,7 @@ const WaitingPage = () => {
     const windowNumber = mockData.mock[0].window;
 
     const handleConfirmRefuse = () => {
-        console.log("Клиент отказался от очереди");
+        console.log("Отказ от очереди подтвержден");
         setIsOpen(false);
     };
     return (
@@ -108,7 +110,7 @@ const WaitingPage = () => {
             <ReusableModal
                 open={isOpen}
                 onClose={handleClose}
-                title="Отказаться от очереди?"
+                title={t("i18n_queue.refuseQueue")}
                 width={450}
                 showCloseButton={false}
             >

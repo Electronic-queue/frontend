@@ -13,7 +13,7 @@ const CardContainer = styled(Box)(({ theme }) => ({
     justifyContent: "space-between",
     backgroundColor: theme.palette.background.paper,
     borderRadius: theme.shape.borderRadius,
-    boxShadow: "2px 4px 10px rgba(0, 0, 0, 0.25)",
+    boxShadow: theme.shadows[6],
     padding: theme.spacing(3),
 }));
 

@@ -1,5 +1,6 @@
-import { styled } from "@mui/system";
+import { styled } from "@mui/material/styles";
 import { Box } from "@mui/material";
+
 export const CardContainer = styled(Box)(({ theme }) => ({
     width: theme.spacing(140.5),
     display: "flex",
@@ -7,7 +8,7 @@ export const CardContainer = styled(Box)(({ theme }) => ({
     padding: theme.spacing(4),
     backgroundColor: theme.palette.background.paper,
     borderRadius: theme.shape.borderRadius,
-    boxShadow: "2px 4px 10px rgba(0, 0, 0, 0.25)",
+    boxShadow: theme.shadows[2],
 }));
 
 export const ClientDetails = styled(Box)(({ theme }) => ({
