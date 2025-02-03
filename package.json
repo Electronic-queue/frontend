@@ -17,6 +17,7 @@
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
     "@fontsource/rubik": "^5.1.1",
+    "@microsoft/signalr": "^8.0.7",
     "@mui/icons-material": "^6.4.0",
     "@mui/lab": "^6.0.0-beta.24",
     "@mui/material": "^6.4.1",

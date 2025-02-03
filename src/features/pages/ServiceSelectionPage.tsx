@@ -11,8 +11,8 @@ import ServiceList, { Service } from "src/widgets/serviceList/ui/ServiceList";
 import theme from "src/styles/theme";
 import SearchIcon from "@mui/icons-material/Search";
 import InputAdornment from "@mui/material/InputAdornment";
-import MockServiceList from "src/components/mock/MockServiceList.json";
 import CustomButton from "src/components/Button";
+import { useGetServiceListQuery } from "src/store/managerApi";
 
 const BackgroundContainer = styled(Box)(({ theme }) => ({
     display: "flex",
@@ -35,19 +35,27 @@ const FormContainer = styled(Stack)(({ theme }) => ({
 const ServiceSelection = () => {
     const { t } = useTranslation();
     const [search, setSearch] = useState("");
+    const { data, error, isLoading } = useGetServiceListQuery();
     const [selectedService, setSelectedService] = useState<Service | null>(
         null
     );
 
-    const filteredServices = MockServiceList.filter((service) =>
+    const services: Service[] = Array.isArray(data?.value)
+        ? data.value.map((service: any) => ({
+              id: service.serviceId,
+              name: service.nameRu,
+          }))
+        : [];
+
+    const filteredServices = services.filter((service) =>
         service.name.toLowerCase().includes(search.toLowerCase())
     );
 
     const handleSubmit = () => {
         if (selectedService) {
-            alert("Selected Service :", selectedService.id);
+            alert(`Выбранная услуга: ${selectedService.id}`);
         } else {
-            alert("No service selected");
+            alert("Услуга не выбрана");
         }
     };
 
@@ -82,13 +90,22 @@ const ServiceSelection = () => {
                     }}
                 />
 
-                <Paper>
-                    <ServiceList
-                        services={filteredServices}
-                        selectedService={selectedService}
-                        onSelect={setSelectedService}
-                    />
-                </Paper>
+                {isLoading ? (
+                    <Typography>Загрузка...</Typography>
+                ) : error || !data?.isSuccess ? (
+                    <Typography color="error">
+                        Ошибка загрузки данных
+                    </Typography>
+                ) : (
+                    <Paper>
+                        <ServiceList
+                            services={filteredServices}
+                            selectedService={selectedService}
+                            onSelect={setSelectedService}
+                        />
+                    </Paper>
+                )}
+
                 <CustomButton
                     fullWidth
                     variantType="primary"
