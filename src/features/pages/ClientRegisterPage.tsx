@@ -91,7 +91,7 @@ const ClientRegisterPage = () => {
                             ...required,
                             ...pattern(
                                 /^\d{12}$/,
-                                "ИИН должен содержать 12 цифр"
+                                t("i18n_register.iinLengthError")
                             ),
                         }}
                         labelKey="i18n_register.iin"
@@ -135,7 +135,7 @@ const ClientRegisterPage = () => {
                         color="primary"
                         fullWidth
                     >
-                        {t("Отправить")}
+                        {t("i18n_register.submit")}
                     </CustomButton>
                 </Box>
             </FormContainer>

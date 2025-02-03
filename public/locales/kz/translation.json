@@ -23,7 +23,8 @@
         "required": "Бұл өріс міндетті",
         "iinError": "ЖСН 12 цифрдан тұруы керек",
         "maxLengthError": "Максималды ұзындығы {{length}} символ",
-        "minLengthError": "Минималды ұзындығы {{length}} символ"
+        "minLengthError": "Минималды ұзындығы {{length}} символ",
+        "iinLengthError": "ЖСН 12 цифрдан тұруы керек"
     },
 
     "status": {

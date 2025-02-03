@@ -23,7 +23,8 @@
         "required": "Это поле обязательно",
         "iinError": "ИИН должен состоять из 12 цифр",
         "minLengthError": "Минимальная длина {{length}} символа",
-        "maxLengthError": "Максимальная длина {{length}} символов"
+        "maxLengthError": "Максимальная длина {{length}} символов",
+        "iinLengthError": "ИИН должен содержать 12 цифр"
     },
     "status": {
         "accepted": "Приняты",

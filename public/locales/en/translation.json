@@ -23,7 +23,8 @@
         "required": "This field is required",
         "iinError": "IIN must consist of 12 digits",
         "maxLengthError": "Maximum length is {{length}} characters",
-        "minLengthError": "Minimum length is {{length}} characters"
+        "minLengthError": "Minimum length is {{length}} characters",
+        "iinLengthError": "IIN must consist of 12 digits"
     },
 
     "status": {
