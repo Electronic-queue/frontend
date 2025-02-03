@@ -13,13 +13,27 @@
         "restoreAccess": "Restore access",
         "title": "Authentication"
     },
+    "i18n_register": {
+        "title": "Registration",
+        "iin": "Your IIN",
+        "firstName": "Your First Name",
+        "lastName": "Your Last Name",
+        "middleName": "Your Middle Name",
+        "submit": "Register",
+        "required": "This field is required",
+        "iinError": "IIN must consist of 12 digits",
+        "maxLengthError": "Maximum length is {{length}} characters",
+        "minLengthError": "Minimum length is {{length}} characters",
+        "iinLengthError": "IIN must consist of 12 digits"
+    },
+
     "status": {
         "accepted": "Accepted",
         "not_accepted": "Not accepted",
         "redirected": "Redirected",
         "in_anticipation": "In anticipation"
     },
-    "queue": {
+    "i18n_queue": {
         "pause": "Pause the window",
         "clientNumber": "Client number",
         "lastName": "Last name",
@@ -31,6 +45,22 @@
         "redirect": "Redirect",
         "accept": "Accept",
         "rigistrationTime": "Registration time",
-        "ExpectedTime": "Expected time"
+        "ExpectedTime": "Expected time",
+        "chooseService": "Service selection",
+        "searchService": "Search for service",
+        "signUp": "Sign up",
+        "number": "Your number №",
+        "window": "Window",
+        "peopleAhead": "People ahead",
+        "refuse": "Refuse",
+        "cancel": "Cancel",
+        "confirm": "Confirm",
+        "approachWindow": "Approach the window №",
+        "timeoutMessage": "You didn't make it in time, please register again",
+        "rateService": "Rate the service",
+        "leaveFeedback": "Leave feedback (optional)",
+        "characters": "characters",
+        "submit": "Submit",
+        "refuseQueue": "Refuse from the queue"
     }
 }

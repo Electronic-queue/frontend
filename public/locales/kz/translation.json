@@ -13,13 +13,27 @@
         "restoreAccess": "Қолжетімділікті қалпына келтіру",
         "title": "Аутентификация"
     },
+    "i18n_register": {
+        "title": "Тіркеу",
+        "iin": "Сіздің ЖСН",
+        "firstName": "Сіздің атыңыз",
+        "lastName": "Сіздің тегіңіз",
+        "middleName": "Сіздің әкеңіздің аты",
+        "submit": "Тіркелу",
+        "required": "Бұл өріс міндетті",
+        "iinError": "ЖСН 12 цифрдан тұруы керек",
+        "maxLengthError": "Максималды ұзындығы {{length}} символ",
+        "minLengthError": "Минималды ұзындығы {{length}} символ",
+        "iinLengthError": "ЖСН 12 цифрдан тұруы керек"
+    },
+
     "status": {
         "accepted": "Қабылданды",
         "not_accepted": "Қабылданбады",
         "redirected": "Басқарылды",
         "in_anticipation": "Күтілуде"
     },
-    "queue": {
+    "i18n_queue": {
         "pause": "Терезені кідірту",
         "clientNumber": "Клиент нөмірі",
         "lastName": "Тегі",
@@ -31,6 +45,22 @@
         "redirect": "Қайта бағыттау",
         "accept": "Қабылдау",
         "rigistrationTime": "Жазу уақыты",
-        "ExpectedTime": "Болжалды кездесу уақыты"
+        "ExpectedTime": "Болжалды кездесу уақыты",
+        "chooseService": "Қызметті таңдаңыз",
+        "searchService": "Қызметті іздеу",
+        "signUp": "Тіркелу",
+        "number": "Сіздің нөміріңіз №",
+        "window": "Терезе",
+        "peopleAhead": "Алдыңғы адамдар",
+        "refuse": "Бас тарту",
+        "cancel": "Болдырмау",
+        "confirm": "Растау",
+        "approachWindow": "Терезеге жақындаңыз №",
+        "timeoutMessage": "Сіз үлгермедіңіз, қайтадан жазылыңыз",
+        "rateService": "Қызметті бағалау",
+        "leaveFeedback": "Пікір қалдыру (міндетті емес)",
+        "characters": "тәріздер",
+        "submit": "Жіберу",
+        "refuseQueue": "Кезектен бас тарту"
     }
 }

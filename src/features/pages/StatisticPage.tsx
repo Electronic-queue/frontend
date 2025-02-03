@@ -1,5 +1,7 @@
 import { FC, useState } from "react";
-import { Box, styled, Typography } from "@mui/material";
+import Typography from "@mui/material/Typography";
+import Box from "@mui/material/Box";
+import { styled } from "@mui/material/styles";
 import Sidebar from "src/widgets/sideBar/ui/SideBar";
 import FilterComponent from "src/widgets/filterComponent/ui/FilterComponent";
 

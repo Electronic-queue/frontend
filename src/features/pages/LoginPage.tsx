@@ -36,7 +36,7 @@ const BackgroundCard = styled(Box)(({ theme }) => ({
     maxHeight: "639px",
     backgroundColor: theme.palette.semiTransparentWhite.main,
     borderRadius: theme.spacing(2),
-    boxShadow: "0px 8px 24px rgba(0, 0, 0, 0.1)",
+    boxShadow: theme.shadows[4],
     backdropFilter: "blur(8px)",
     zIndex: 1,
 }));
@@ -46,7 +46,7 @@ const LoginCard = styled(Stack)(({ theme }) => ({
     maxWidth: "545px",
     backgroundColor: theme.palette.background.paper,
     borderRadius: theme.spacing(2),
-    boxShadow: "0px 8px 24px rgba(0, 0, 0, 0.2)",
+    boxShadow: theme.shadows[5],
     display: "flex",
     flexDirection: "column",
     alignItems: "center",

@@ -6,7 +6,7 @@ import Box from "@mui/material/Box";
 
 interface CustomButtonProps extends ButtonProps {
     variantType?: "primary" | "secondary" | "danger";
-    sizeType?: "small" | "medium" | "large"; // Связано с размером текста
+    sizeType?: "small" | "medium" | "large";
     icon?: React.ReactElement;
     disabled?: boolean;
 }
@@ -48,9 +48,9 @@ const StyledButton = styled(Button)<CustomButtonProps>(({
 
     return {
         ...variants[variantType || "primary"],
-        fontSize: fontSizes[sizeType || "medium"], // Подключаем размер текста
-        textTransform: "none", // Отключаем автоматический uppercase
-        padding: theme.spacing(1, 2), // Добавляем отступы
+        fontSize: fontSizes[sizeType || "medium"],
+        textTransform: "none",
+        padding: theme.spacing(1, 2),
     };
 });
 

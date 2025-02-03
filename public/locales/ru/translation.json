@@ -13,13 +13,26 @@
         "restoreAccess": "Восстановить доступ",
         "title": "Авторизация"
     },
+    "i18n_register": {
+        "title": "Регистрация",
+        "iin": "Ваш ИИН",
+        "firstName": "Ваше имя",
+        "lastName": "Ваша фамилия",
+        "middleName": "Ваше отчество",
+        "submit": "Зарегистрироваться",
+        "required": "Это поле обязательно",
+        "iinError": "ИИН должен состоять из 12 цифр",
+        "minLengthError": "Минимальная длина {{length}} символа",
+        "maxLengthError": "Максимальная длина {{length}} символов",
+        "iinLengthError": "ИИН должен содержать 12 цифр"
+    },
     "status": {
         "accepted": "Приняты",
         "not_accepted": "Не приняты",
         "redirected": "Перенаправлены",
         "in_anticipation": "В ожидании"
     },
-    "queue": {
+    "i18n_queue": {
         "pause": "Приостановить окно на паузу",
         "clientNumber": "Номер клиента",
         "lastName": "Фамилия",
@@ -31,6 +44,22 @@
         "redirect": "Перенаправить",
         "accept": "Принять",
         "rigistrationTime": "Время записи",
-        "ExpectedTime": "Ожидаемое время приема"
+        "ExpectedTime": "Ожидаемое время приема",
+        "chooseService": "Выбор услуги",
+        "searchService": "Поиск услуги",
+        "signUp": "Зарегистрироваться",
+        "number": "Ваш номер №",
+        "window": "Окно",
+        "peopleAhead": "Людей впереди",
+        "refuse": "Отказаться",
+        "cancel": "Отменить",
+        "confirm": "Подтвердить",
+        "approachWindow": "Подойдите к окну №",
+        "timeoutMessage": "Вы не успели подойти, запишитесь заново",
+        "rateService": "Оцените услугу",
+        "leaveFeedback": "Оставить отзыв (не обязательно)",
+        "characters": "символов",
+        "submit": "Отправить",
+        "refuseQueue": "Отказаться от очереди"
     }
 }

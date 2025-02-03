@@ -59,9 +59,7 @@ const columns = [
     },
 ];
 
-const handleSend = (row: any) => {
-    console.log("Отправлено для услуги:", row.service);
-};
+const handleSend = (row: any) => {};
 
 const ClientCard: FC<ClientCardProps> = ({
     clientData,
@@ -103,17 +101,26 @@ const ClientCard: FC<ClientCardProps> = ({
             <ClientDetails>
                 {[
                     {
-                        label: t("queue.clientNumber"),
+                        label: t("i18n_queue.clientNumber"),
                         value: clientData.clientNumber,
                     },
-                    { label: t("queue.lastName"), value: clientData.lastName },
                     {
-                        label: t("queue.firstName"),
+                        label: t("i18n_queue.lastName"),
+                        value: clientData.lastName,
+                    },
+                    {
+                        label: t("i18n_queue.firstName"),
                         value: clientData.firstName,
                     },
-                    { label: t("queue.surname"), value: clientData.patronymic },
-                    { label: t("queue.service"), value: clientData.service },
-                    { label: t("queue.iin"), value: clientData.iin },
+                    {
+                        label: t("i18n_queue.surname"),
+                        value: clientData.patronymic,
+                    },
+                    {
+                        label: t("i18n_queue.service"),
+                        value: clientData.service,
+                    },
+                    { label: t("i18n_queue.iin"), value: clientData.iin },
                 ].map(({ label, value }, index) => (
                     <ClientInfoWrapper key={index}>
                         <LabelText>{label}</LabelText>
@@ -127,7 +134,7 @@ const ClientCard: FC<ClientCardProps> = ({
                     <AccessTimeIcon color="inherit" />
                     <Box display="flex" gap={1}>
                         <Typography variant="h6" color="text" fontWeight="bold">
-                            {t("queue.serviceTime")}:
+                            {t("i18n_queue.serviceTime")}:
                         </Typography>
                         <Typography variant="h6" color="text">
                             {serviceTime}
@@ -141,7 +148,7 @@ const ClientCard: FC<ClientCardProps> = ({
                         sizeType="small"
                         onClick={handleModalOpen}
                     >
-                        {t("queue.redirect")}
+                        {t("i18n_queue.redirect")}
                     </CustomButton>
                     <ReusableModal
                         open={isOpen}
@@ -185,23 +192,10 @@ const ClientCard: FC<ClientCardProps> = ({
                         sizeType="small"
                         onClick={onAccept}
                     >
-                        {t("queue.accept")}
+                        {t("i18n_queue.accept")}
                     </CustomButton>
                 </Box>
             </ActionPanel>
-            <Snackbar
-                open={snackbarOpen}
-                autoHideDuration={4000}
-                onClose={handleSnackbarClose}
-            >
-                <Alert
-                    onClose={handleSnackbarClose}
-                    severity="success"
-                    sx={{ fontSize: "14px" }}
-                >
-                    {alertMessage}
-                </Alert>
-            </Snackbar>
         </CardContainer>
     );
 };

@@ -20,6 +20,9 @@ declare module "@mui/material/styles" {
         semiTransparentWhite: {
             main: string;
         };
+        indigoBlue: {
+            main: string;
+        };
     }
 
     interface PaletteOptions {
@@ -41,12 +44,42 @@ declare module "@mui/material/styles" {
         semiTransparentWhite?: {
             main: string;
         };
+        indigoBlue?: {
+            main: string;
+        };
     }
 }
 
 const theme = createTheme({
     // components: {"MuiAccordion": {"styleOverrides": {"": {"borderRadius": 8}}}}, // Пример переопределения стилей компонента
     shape: { borderRadius: 8 },
+    shadows: [
+        "none",
+        "2px 4px 10px rgba(0, 0, 0, 0.25)",
+        "0px 2px 4px rgba(0, 0, 0, 0.15)",
+        "0px 2px 7px rgba(0, 0, 0, 0.25)",
+        "0px 8px 24px rgba(0, 0, 0, 0.1)",
+        "0px 8px 24px rgba(0, 0, 0, 0.2)",
+        "2px 4px 10px rgba(0, 0, 0, 0.25)",
+        "none",
+        "none",
+        "none",
+        "none",
+        "none",
+        "none",
+        "none",
+        "none",
+        "none",
+        "none",
+        "none",
+        "none",
+        "none",
+        "none",
+        "none",
+        "none",
+        "none",
+        "none",
+    ],
     palette: {
         primary: {
             main: "#3A6CB4",
@@ -61,6 +94,7 @@ const theme = createTheme({
             primary: "#333333",
             secondary: "#666666",
         },
+
         gray: {
             main: "#f1e5e5",
         },
@@ -78,6 +112,9 @@ const theme = createTheme({
         },
         semiTransparentWhite: {
             main: "rgba(255, 255, 255, 0.8)",
+        },
+        indigoBlue: {
+            main: "#3f51b5",
         },
     },
     typography: {

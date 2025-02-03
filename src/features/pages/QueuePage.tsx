@@ -1,5 +1,7 @@
-import { FC, useState } from "react";
-import { styled, Box, Stack } from "@mui/material";
+import { FC, useContext, useState } from "react";
+import Box from "@mui/material/Box";
+import Stack from "@mui/material/Stack";
+import { styled } from "@mui/material/styles";
 import { useTranslation } from "react-i18next";
 import CustomButton from "../../components/Button";
 import StatusCard from "../../widgets/statusCard/ui/StatusCard";
@@ -11,6 +13,7 @@ import SelectTime from "src/widgets/selectTiem/ui/SelectTime";
 import Timer from "src/widgets/timer/ui/Timer";
 // import { useGetRecordListByManagerQuery } from "src/store/managerApi";
 import useQueueData from "src/hooks/useQueueData";
+import { MediaContext } from "../MediaProvider";
 
 const ButtonWrapper = styled(Box)(({ theme }) => ({
     marginBottom: theme.spacing(3),
@@ -38,16 +41,18 @@ const clientData = {
 };
 
 const handleRedirect = () => {
-    console.log("Клиент перенаправлен");
+    alert("Клиент перенаправлен");
 };
 
 const handleAccept = () => {
-    console.log("Клиент принят");
+    alert("Клиент принят");
 };
 
 const serviceTime = "03:00";
 
 const QueuePage: FC = () => {
+    const media = useContext(MediaContext);
+    const isMobile = media?.isMobile;
     const { t } = useTranslation();
     const [selectedTime, setSelectedTime] = useState<number>(1);
     const [isPauseModalOpen, setIsPauseModalOpen] = useState(false);
@@ -65,9 +70,10 @@ const QueuePage: FC = () => {
 
     const handleTimeSelect = (time: number) => {
         setSelectedTime(time);
-        console.log("Выбранное время:", time);
+        alert("Выбранное время:", time);
     };
     const queueData = useQueueData();
+
     return (
         <>
             <ButtonWrapper>
@@ -76,7 +82,7 @@ const QueuePage: FC = () => {
                     sizeType="medium"
                     onClick={handlePauseModalOpen}
                 >
-                    {t("queue.pause")}
+                    {t("i18n_queue.pause")}
                 </CustomButton>
             </ButtonWrapper>
 
@@ -94,7 +100,13 @@ const QueuePage: FC = () => {
                 onAccept={handleAccept}
             />
 
-            <Box sx={{ display: "flex", gap: 3, paddingBottom: "222px" }}>
+            <Box
+                sx={{
+                    display: "flex",
+                    gap: 3,
+                    paddingBottom: theme.spacing(3),
+                }}
+            >
                 {queueData.length > 0 ? (
                     queueData.map((item, index) => (
                         <QueueCard
