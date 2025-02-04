@@ -11,7 +11,15 @@
         "loading": "Loading...",
         "forgotPassword": "Forgot password?",
         "restoreAccess": "Restore access",
-        "title": "Authentication"
+        "title": "Authentication",
+        "restoreAccessTitle": "Restore Access",
+        "sendResetPasswordEmail": "Send Reset Password Email",
+        "resendEmail": "Resend Email",
+        "retry": "Retry in",
+        "notFoundEmail": "Didn't find the email? Check your spam",
+        "email": "Your Email",
+        "enterEmeil": "Enter your email",
+        "invalidEmail": "Invalid email format"
     },
     "i18n_register": {
         "title": "Registration",
