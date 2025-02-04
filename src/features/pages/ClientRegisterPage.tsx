@@ -9,6 +9,10 @@ import theme from "src/styles/theme";
 import CustomButton from "src/components/Button";
 import StyledTextField from "src/hooks/StyledTextField";
 import { useValidationRules } from "src/hooks/useValidationRules";
+import { useDispatch, useSelector } from "react-redux";
+import { setUserInfo } from "src/store/userSlice";
+import { RootState } from "src/store/store";
+import { useNavigate } from "react-router-dom";
 
 const BackgroundContainer = styled(Box)(({ theme }) => ({
     display: "flex",
@@ -37,12 +41,16 @@ interface FormValues {
 
 const ClientRegisterPage = () => {
     const { t } = useTranslation();
+    const dispatch = useDispatch();
+    const navigate = useNavigate();
+    const userInfo = useSelector((state: RootState) => state.user.userInfo);
+
     const {
         control,
         handleSubmit,
         formState: { errors },
     } = useForm<FormValues>({
-        defaultValues: {
+        defaultValues: userInfo || {
             iin: "",
             firstName: "",
             lastName: "",
@@ -50,11 +58,12 @@ const ClientRegisterPage = () => {
         },
     });
 
-    const onSubmit = (data: FormValues) => {
-        alert("Not Implemented");
-    };
-
     const { required, pattern, maxLength, minLength } = useValidationRules();
+
+    const onSubmit = (data: FormValues) => {
+        dispatch(setUserInfo(data)); // Сохраняем данные в Redux
+        navigate("/selection"); // Переход на выбор услуги
+    };
 
     return (
         <BackgroundContainer>
@@ -62,20 +71,14 @@ const ClientRegisterPage = () => {
                 <SULogoM />
             </Box>
 
-            <FormContainer
-                spacing={3}
-                as="form"
-                onSubmit={handleSubmit(onSubmit)}
-            >
-                <Box sx={{ display: "flex", justifyContent: "center" }}>
-                    <Typography
-                        variant="h4"
-                        component="h1"
-                        sx={{ marginBottom: 2 }}
-                    >
-                        {t("i18n_register.title")}
-                    </Typography>
-                </Box>
+            <FormContainer as="form" onSubmit={handleSubmit(onSubmit)}>
+                <Typography
+                    variant="h4"
+                    component="h1"
+                    sx={{ marginBottom: 2, textAlign: "center" }}
+                >
+                    {t("i18n_register.title")}
+                </Typography>
 
                 <Box
                     sx={{
@@ -107,6 +110,7 @@ const ClientRegisterPage = () => {
                         }}
                         labelKey="i18n_register.firstName"
                     />
+
                     <StyledTextField
                         name="lastName"
                         control={control}
@@ -121,13 +125,11 @@ const ClientRegisterPage = () => {
                     <StyledTextField
                         name="middleName"
                         control={control}
-                        rules={{
-                            ...minLength(2),
-                            ...maxLength(40),
-                        }}
+                        rules={{ ...minLength(2), ...maxLength(40) }}
                         labelKey="i18n_register.middleName"
                     />
                 </Box>
+
                 <Box sx={{ paddingTop: theme.spacing(5) }}>
                     <CustomButton
                         variantType="primary"

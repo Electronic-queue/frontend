@@ -1,7 +1,7 @@
 import * as signalR from "@microsoft/signalr";
 
 const connection = new signalR.HubConnectionBuilder()
-    .withUrl("https://localhost:7243") // URL вашего хаба
+    .withUrl("http://signalr.satbayevproject.kz/queueHub") // URL вашего хаба
     .withAutomaticReconnect() // Автоматическое переподключение
     .configureLogging(signalR.LogLevel.Information) // Логирование
     .build();

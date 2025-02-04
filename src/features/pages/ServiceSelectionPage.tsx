@@ -1,4 +1,7 @@
 import { useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { setServiceId } from "src/store/userSlice";
+import { RootState } from "src/store/store";
 import Paper from "@mui/material/Paper";
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
@@ -12,7 +15,11 @@ import theme from "src/styles/theme";
 import SearchIcon from "@mui/icons-material/Search";
 import InputAdornment from "@mui/material/InputAdornment";
 import CustomButton from "src/components/Button";
-import { useGetServiceListQuery } from "src/store/managerApi";
+import {
+    useGetServiceListQuery,
+    useCreateRecordMutation,
+} from "src/store/managerApi";
+import { useNavigate } from "react-router-dom";
 
 const BackgroundContainer = styled(Box)(({ theme }) => ({
     display: "flex",
@@ -33,12 +40,17 @@ const FormContainer = styled(Stack)(({ theme }) => ({
 }));
 
 const ServiceSelection = () => {
+    const dispatch = useDispatch();
+    const navigate = useNavigate();
     const { t } = useTranslation();
     const [search, setSearch] = useState("");
     const { data, error, isLoading } = useGetServiceListQuery();
+    const [createRecord] = useCreateRecordMutation();
     const [selectedService, setSelectedService] = useState<Service | null>(
         null
     );
+
+    const userInfo = useSelector((state: RootState) => state.user.userInfo);
 
     const services: Service[] = Array.isArray(data?.value)
         ? data.value.map((service: any) => ({
@@ -51,11 +63,32 @@ const ServiceSelection = () => {
         service.name.toLowerCase().includes(search.toLowerCase())
     );
 
-    const handleSubmit = () => {
-        if (selectedService) {
-            alert(`Выбранная услуга: ${selectedService.id}`);
-        } else {
+    const handleSubmit = async () => {
+        if (!selectedService) {
             alert("Услуга не выбрана");
+            return;
+        }
+
+        if (!userInfo) {
+            alert("Ошибка: данные пользователя отсутствуют");
+            return;
+        }
+
+        dispatch(setServiceId(selectedService.id));
+
+        try {
+            const response = await createRecord({
+                ...userInfo,
+                serviceId: selectedService.id,
+                surname: userInfo.middleName || "",
+                isCreatedByEmployee: true,
+                createdBy: 2,
+            }).unwrap();
+
+            console.log("Record created:", response);
+            navigate("/wait");
+        } catch (err) {
+            console.error("Failed to create record:", err);
         }
     };
 
@@ -65,15 +98,14 @@ const ServiceSelection = () => {
                 <SULogoM />
             </Box>
             <FormContainer>
-                <Box sx={{ display: "flex", justifyContent: "center" }}>
-                    <Typography
-                        variant="h4"
-                        component="h1"
-                        sx={{ marginBottom: 2 }}
-                    >
-                        {t("i18n_queue.chooseService")}
-                    </Typography>
-                </Box>
+                <Typography
+                    variant="h4"
+                    component="h1"
+                    sx={{ textAlign: "center", marginBottom: 2 }}
+                >
+                    {t("i18n_queue.chooseService")}
+                </Typography>
+
                 <TextField
                     fullWidth
                     variant="outlined"
@@ -92,7 +124,7 @@ const ServiceSelection = () => {
 
                 {isLoading ? (
                     <Typography>Загрузка...</Typography>
-                ) : error || !data?.isSuccess ? (
+                ) : error ? (
                     <Typography color="error">
                         Ошибка загрузки данных
                     </Typography>
