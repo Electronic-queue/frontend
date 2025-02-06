@@ -20,6 +20,7 @@ import {
     useCreateRecordMutation,
 } from "src/store/managerApi";
 import { useNavigate } from "react-router-dom";
+import { setToken } from "src/store/userAuthSlice";
 
 const BackgroundContainer = styled(Box)(({ theme }) => ({
     display: "flex",
@@ -85,7 +86,10 @@ const ServiceSelection = () => {
                 createdBy: 2,
             }).unwrap();
 
-            console.log("Record created:", response);
+            if (response.token) {
+                dispatch(setToken(response.token));
+            }
+
             navigate("/wait");
         } catch (err) {
             console.error("Failed to create record:", err);

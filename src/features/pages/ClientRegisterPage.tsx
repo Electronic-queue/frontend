@@ -61,8 +61,8 @@ const ClientRegisterPage = () => {
     const { required, pattern, maxLength, minLength } = useValidationRules();
 
     const onSubmit = (data: FormValues) => {
-        dispatch(setUserInfo(data)); // Сохраняем данные в Redux
-        navigate("/selection"); // Переход на выбор услуги
+        dispatch(setUserInfo(data));
+        navigate("/selection");
     };
 
     return (

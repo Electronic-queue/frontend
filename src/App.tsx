@@ -14,6 +14,7 @@ import ServiceSelection from "./features/pages/ServiceSelectionPage";
 import WaitingPage from "./features/pages/WaitingPage";
 import CallPage from "./features/pages/CallPage";
 import ServiceRating from "./features/pages/ServiceRating";
+import SignalRComponent from "./components/SignalRComponent";
 
 const App: FC = () => {
     const isMobile = useMediaQuery("(max-width: 768px)");
@@ -58,6 +59,7 @@ const DesktopRoutes: FC = () => (
         <Route path="/" element={<ClientRegisterPage />} />
         <Route path="/manager/queue" element={<QueuePage />} />
         <Route path="/manager/reports" element={<StatisticPage />} />
+        <Route path="/signal" element={<SignalRComponent />} />
     </Routes>
 );
 

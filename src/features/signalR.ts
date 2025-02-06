@@ -1,18 +1,21 @@
 import * as signalR from "@microsoft/signalr";
 
 const connection = new signalR.HubConnectionBuilder()
-    .withUrl("http://signalr.satbayevproject.kz/queueHub") // URL вашего хаба
-    .withAutomaticReconnect() // Автоматическое переподключение
-    .configureLogging(signalR.LogLevel.Information) // Логирование
+    .withUrl("http://signalr.satbayevproject.kz/queueHub", {
+        skipNegotiation: true,
+        transport: signalR.HttpTransportType.WebSockets,
+    })
+    .withAutomaticReconnect()
+    .configureLogging(signalR.LogLevel.Information)
     .build();
 
 export const startSignalR = async () => {
     try {
-        await connection.start();
-        console.log("SignalR Connected");
-    } catch (err) {
-        console.error("SignalR Connection Error:", err);
-        setTimeout(startSignalR, 5000); // Попробовать подключиться снова через 5 секунд
+        if (connection.state === signalR.HubConnectionState.Disconnected) {
+            await connection.start();
+        }
+    } catch (error) {
+        console.error(error);
     }
 };
 
