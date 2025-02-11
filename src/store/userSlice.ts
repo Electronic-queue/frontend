@@ -5,7 +5,7 @@ interface UserInfo {
     firstName: string;
     lastName: string;
     middleName?: string;
-    serviceId?: number; // Добавим поле для хранения выбранной услуги
+    serviceId?: number;
 }
 
 interface UserState {
