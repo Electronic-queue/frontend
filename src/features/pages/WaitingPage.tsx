@@ -140,19 +140,37 @@ const WaitingPage = () => {
             <ReusableModal
                 open={isOpen}
                 onClose={handleClose}
-                title={t("i18n_queue.refuseQueue")}
-                width={450}
+                width={340}
+                showCloseButton={false}
             >
-                <Box display="flex" gap={2} justifyContent="center">
-                    <CustomButton
-                        variantType="primary"
-                        onClick={handleConfirmRefuse}
-                    >
-                        {t("i18n_queue.confirm")}
-                    </CustomButton>
-                    <CustomButton variantType="danger" onClick={handleClose}>
-                        {t("i18n_queue.cancel")}
-                    </CustomButton>
+                <Box
+                    display="flex"
+                    sx={{
+                        flexDirection: "column",
+                        gap: theme.spacing(2),
+                        alignItems: "center",
+                        justifyContent: "center",
+                    }}
+                >
+                    <Box>
+                        <Typography variant="h4">
+                            {t("i18n_queue.refuseQueue")}
+                        </Typography>
+                    </Box>
+                    <Box sx={{ display: "flex", gap: theme.spacing(2) }}>
+                        <CustomButton
+                            variantType="primary"
+                            onClick={handleConfirmRefuse}
+                        >
+                            {t("i18n_queue.confirm")}
+                        </CustomButton>
+                        <CustomButton
+                            variantType="primary"
+                            onClick={handleClose}
+                        >
+                            {t("i18n_queue.cancel")}
+                        </CustomButton>
+                    </Box>
                 </Box>
             </ReusableModal>
         </BackgroundContainer>
