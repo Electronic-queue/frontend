@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { FC, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "../../store/store";
 import { login } from "../../store/authSlice";
@@ -93,7 +93,15 @@ const ModalInnerWrapper = styled(Box)(({ theme }) => ({
     gap: "20px",
 }));
 
-const LoginPage: React.FC = () => {
+const RestoreAccessText = styled(Typography)(({ theme }) => ({
+    cursor: "pointer",
+    color: theme.palette.primary.main,
+    ":hover": {
+        textDecoration: "underline",
+    },
+}));
+
+const LoginPage: FC = () => {
     const { t } = useTranslation();
     const [isOpen, setIsOpen] = useState(false);
     const handleModalOpen = () => setIsOpen(true);
@@ -230,19 +238,9 @@ const LoginPage: React.FC = () => {
                         <Typography>
                             {t("i18n_login.forgotPassword")}
                         </Typography>
-                        <Typography
-                            onClick={handleModalOpen}
-                            align="center"
-                            sx={{
-                                cursor: "pointer",
-                                color: theme.palette.primary.main,
-                                ":hover": {
-                                    textDecoration: "underline",
-                                },
-                            }}
-                        >
+                        <RestoreAccessText onClick={handleModalOpen}>
                             {t("i18n_login.restoreAccess")}
-                        </Typography>
+                        </RestoreAccessText>
                     </Stack>
                 </LoginCard>
             </LoginCardContainer>
