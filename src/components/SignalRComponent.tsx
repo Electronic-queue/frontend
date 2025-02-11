@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import connection, { startSignalR } from "src/features/signalR";
-
+import { apiBaseUrl } from "src/config/api.config";
 interface Notification {
     recordId: number;
     windowId: number;
@@ -8,7 +8,7 @@ interface Notification {
     expectedAcceptanceString: string;
 }
 
-const BASE_URL = "http://queue-main-api.satbayevproject.kz/api";
+const BASE_URL = apiBaseUrl;
 
 const SignalRComponent: React.FC = () => {
     const [notifications, setNotifications] = useState<Notification[]>([]);
