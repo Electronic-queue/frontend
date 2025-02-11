@@ -10,12 +10,11 @@ interface CustomButtonProps extends ButtonProps {
     icon?: React.ReactElement;
 }
 
-const StyledButton = styled(Button)<CustomButtonProps>(({
-    theme,
-    variantType,
-    sizeType,
-    disabled,
-}) => {
+const StyledButton = styled(
+    ({ sizeType, variantType, ...rest }: CustomButtonProps) => (
+        <Button {...rest} />
+    )
+)(({ theme, variantType, sizeType, disabled }) => {
     const variants = {
         primary: {
             backgroundColor: theme.palette.primary.main,
