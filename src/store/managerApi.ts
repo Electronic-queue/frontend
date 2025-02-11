@@ -42,9 +42,13 @@ export const managerApi = createApi({
                 params: {
                     "api-version": "1",
                 },
-                body: newRecord,
+                body: {
+                    ...newRecord,
+                    CreatedBy: 2,
+                },
             }),
         }),
+
         getRecordIdByToken: builder.query<
             { recordId: number; connectionId: string },
             void

@@ -15,6 +15,7 @@ import theme from "src/styles/theme";
 import SearchIcon from "@mui/icons-material/Search";
 import InputAdornment from "@mui/material/InputAdornment";
 import CustomButton from "src/components/Button";
+import Skeleton from "@mui/material/Skeleton";
 import {
     useGetServiceListQuery,
     useCreateRecordMutation,
@@ -81,18 +82,17 @@ const ServiceSelection = () => {
             const response = await createRecord({
                 ...userInfo,
                 serviceId: selectedService.id,
-                surname: userInfo.middleName || "",
-                isCreatedByEmployee: true,
-                createdBy: 2,
             }).unwrap();
 
             if (response.token) {
+                localStorage.setItem("token", response.token);
                 dispatch(setToken(response.token));
+                navigate("/wait");
+            } else {
+                alert("Ошибка: не получен токен");
             }
-
-            navigate("/wait");
-        } catch (err) {
-            console.error("Failed to create record:", err);
+        } catch (error) {
+            alert("Ошибка создания записи");
         }
     };
 
@@ -127,10 +127,21 @@ const ServiceSelection = () => {
                 />
 
                 {isLoading ? (
-                    <Typography>Загрузка...</Typography>
+                    <Paper sx={{ padding: 2 }}>
+                        <Skeleton variant="text" width="60%" height={32} />
+                        {Array.from({ length: 6 }).map((_, index) => (
+                            <Skeleton
+                                key={index}
+                                variant="rectangular"
+                                width="100%"
+                                height={18}
+                                sx={{ mt: 1 }}
+                            />
+                        ))}
+                    </Paper>
                 ) : error ? (
                     <Typography color="error">
-                        Ошибка загрузки данных
+                        {t("i18n_queue.loadingError")}
                     </Typography>
                 ) : (
                     <Paper>
