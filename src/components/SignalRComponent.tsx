@@ -1,41 +1,94 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
+import Typography from "@mui/material/Typography";
+import Box from "@mui/material/Box";
+import { styled } from "@mui/material/styles";
+import { useTranslation } from "react-i18next";
+import { SULogoM } from "src/assets";
+import theme from "src/styles/theme";
+import CustomButton from "src/components/Button";
+import ReusableModal from "src/components/ModalPage";
+import { useGetRecordIdByTokenQuery } from "src/store/managerApi";
 import connection, { startSignalR } from "src/features/signalR";
-import { apiBaseUrl } from "src/config/api.config";
-interface Notification {
-    recordId: number;
-    windowId: number;
-    clientNumber: number;
-    expectedAcceptanceString: string;
-}
+import { useDispatch } from "react-redux";
+import { setToken } from "src/store/userAuthSlice";
+import { useNavigate } from "react-router-dom";
 
-const BASE_URL = apiBaseUrl;
+const BackgroundContainer = styled(Box)(({ theme }) => ({
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: theme.palette.background.default,
+    paddingTop: theme.spacing(5),
+}));
 
-const SignalRComponent: React.FC = () => {
-    const [notifications, setNotifications] = useState<Notification[]>([]);
+const FormContainer = styled(Box)(({ theme }) => ({
+    width: "100%",
+    maxWidth: theme.spacing(50),
+    padding: theme.spacing(4),
+    backgroundColor: theme.palette.background.paper,
+    borderRadius: theme.spacing(2),
+    boxShadow: theme.shadows[2],
+}));
+
+const InfoBlock = styled(Box)(({ theme }) => ({
+    display: "flex",
+    flexDirection: "column",
+    gap: theme.spacing(3),
+}));
+
+const RefuceModal = styled(Box)(({ theme }) => ({
+    display: "flex",
+    flexDirection: "column",
+    gap: theme.spacing(2),
+    alignItems: "center",
+    justifyContent: "center",
+}));
+
+const WaitingPage = () => {
+    const { data, refetch, isFetching } = useGetRecordIdByTokenQuery();
+    const { t } = useTranslation();
+    const [isOpen, setIsOpen] = useState(false);
+    const [notifications, setNotifications] = useState<any[]>([]);
+    const navigate = useNavigate();
+    const dispatch = useDispatch();
+    const isMounted = useRef(true);
 
     useEffect(() => {
-        let isMounted = true;
+        isMounted.current = true;
+        console.log("📡 Запрашиваю данные из API...");
+        refetch();
 
-        const connect = async () => {
+        const connectSignalR = async () => {
             await startSignalR();
+            console.log("📡 SignalR: Подключаюсь...");
         };
 
-        connect();
+        connectSignalR();
 
-        const handleNewNotification = (
-            recordId: number,
-            windowId: number,
-            clientNumber: number,
-            expectedAcceptanceString: string
-        ) => {
-            if (isMounted) {
+        const handleNewNotification = (notification: any) => {
+            console.log("📩 Уведомление от SignalR:", notification);
+            if (!notification || typeof notification !== "object") {
+                console.error(
+                    "❌ Ошибка: пришло некорректное уведомление",
+                    notification
+                );
+                return;
+            }
+
+            const extracted = notification.recordId ?? notification;
+            console.log("📌 Извлечённые данные:", extracted);
+
+            if (isMounted.current) {
                 setNotifications((prev) => [
                     ...prev,
                     {
-                        recordId,
-                        windowId,
-                        clientNumber,
-                        expectedAcceptanceString,
+                        recordId: extracted.recordId ?? extracted.id ?? 0,
+                        windowId: extracted.windowId ?? 0,
+                        clientNumber: extracted.clientNumber ?? 0,
+                        expectedAcceptanceString: String(
+                            extracted.expectedAcceptanceTime ?? "Неизвестно"
+                        ),
                     },
                 ]);
             }
@@ -44,83 +97,121 @@ const SignalRComponent: React.FC = () => {
         connection.on("ReceiveRecordCreated", handleNewNotification);
 
         return () => {
-            isMounted = false;
+            isMounted.current = false;
             connection.off("ReceiveRecordCreated", handleNewNotification);
         };
     }, []);
 
-    const cancelRecord = async (recordId: number) => {
-        try {
-            await fetch(`${BASE_URL}/record/cancel/${recordId}`, {
-                method: "DELETE",
-            });
-            setNotifications((prev) =>
-                prev.filter((n) => n.recordId !== recordId)
-            );
-            alert(`Запись №${recordId} отменена.`);
-        } catch (err) {
-            alert("Не удалось отменить запись.");
-        }
+    const handleModalOpen = () => setIsOpen(true);
+    const handleClose = () => setIsOpen(false);
+    const handleConfirmRefuse = () => {
+        localStorage.removeItem("token");
+        dispatch(setToken(null));
+        navigate("/");
+        setIsOpen(false);
     };
 
+    if (isFetching) {
+        return (
+            <BackgroundContainer>
+                <Typography variant="h6">{t("i18n_queue.loading")}</Typography>
+            </BackgroundContainer>
+        );
+    }
+
     return (
-        <div>
-            <h2>Уведомления</h2>
-            <div
-                style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "1rem",
-                    marginTop: "2rem",
-                }}
-            >
-                {notifications.length === 0 ? (
-                    <p>Нет новых уведомлений</p>
-                ) : (
-                    notifications.map(
-                        ({
-                            recordId,
-                            windowId,
-                            clientNumber,
-                            expectedAcceptanceString,
-                        }) => (
-                            <div
-                                key={recordId}
-                                style={{
-                                    border: "1px solid #ccc",
-                                    padding: "16px",
-                                    borderRadius: "8px",
-                                    backgroundColor: "#f9f9f9",
-                                }}
+        <BackgroundContainer>
+            <Box sx={{ paddingBottom: theme.spacing(5) }}>
+                <SULogoM />
+            </Box>
+
+            <FormContainer>
+                <Box
+                    sx={{
+                        display: "flex",
+                        justifyContent: "center",
+                        marginBottom: theme.spacing(4),
+                    }}
+                >
+                    <Typography
+                        variant="h4"
+                        component="h1"
+                        sx={{ marginBottom: 2 }}
+                    >
+                        {t("i18n_queue.number")} {data?.recordId || "-"}
+                    </Typography>
+                </Box>
+
+                <InfoBlock>
+                    {notifications.length === 0 ? (
+                        <Typography variant="h6" color="textSecondary">
+                            {t("i18n_queue.noNotifications")}
+                        </Typography>
+                    ) : (
+                        notifications.map((notif, index) => (
+                            <Box
+                                key={index}
+                                display="flex"
+                                flexDirection="column"
+                                gap={1}
                             >
-                                <h2>Ваш номер № {recordId}</h2>
-                                <p>Окно: {windowId}</p>
-                                <p>До вас в очереди: {clientNumber}</p>
-                                <p>
-                                    Ожидаемое время приёма:{" "}
-                                    {expectedAcceptanceString}
-                                </p>
-                                <button
-                                    style={{
-                                        marginTop: "12px",
-                                        padding: "8px 16px",
-                                        backgroundColor: "#ff4d4d",
-                                        color: "#fff",
-                                        border: "none",
-                                        borderRadius: "4px",
-                                        cursor: "pointer",
-                                    }}
-                                    onClick={() => cancelRecord(recordId)}
-                                >
-                                    Отказаться
-                                </button>
-                            </div>
-                        )
-                    )
-                )}
-            </div>
-        </div>
+                                <Typography variant="h5">
+                                    {t("i18n_queue.window")}: {notif.windowId}
+                                </Typography>
+                                <Typography variant="h5">
+                                    {t("i18n_queue.clientNumber")}:{" "}
+                                    {notif.clientNumber}
+                                </Typography>
+                                <Typography variant="h5">
+                                    {t("i18n_queue.expectedTime")}:{" "}
+                                    {notif.expectedAcceptanceString}
+                                </Typography>
+                            </Box>
+                        ))
+                    )}
+                </InfoBlock>
+
+                <Box sx={{ paddingTop: theme.spacing(5) }}>
+                    <CustomButton
+                        variantType="danger"
+                        fullWidth
+                        onClick={handleModalOpen}
+                    >
+                        {t("i18n_queue.refuse")}
+                    </CustomButton>
+                </Box>
+            </FormContainer>
+
+            <ReusableModal
+                open={isOpen}
+                onClose={handleClose}
+                width={340}
+                showCloseButton={false}
+            >
+                <RefuceModal>
+                    <Box>
+                        <Typography variant="h4">
+                            {t("i18n_queue.refuseQueue")}
+                        </Typography>
+                    </Box>
+                    <Box sx={{ display: "flex", gap: theme.spacing(2) }}>
+                        <CustomButton
+                            variantType="primary"
+                            onClick={handleConfirmRefuse}
+                        >
+                            {t("i18n_queue.confirm")}
+                        </CustomButton>
+                        <CustomButton
+                            variantType="primary"
+                            onClick={handleClose}
+                        >
+                            {t("i18n_queue.cancel")}
+                        </CustomButton>
+                    </Box>
+                </RefuceModal>
+            </ReusableModal>
+        </BackgroundContainer>
     );
 };
 
-export default SignalRComponent;
+export default WaitingPage;

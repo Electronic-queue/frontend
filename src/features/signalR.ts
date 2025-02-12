@@ -2,8 +2,9 @@ import * as signalR from "@microsoft/signalr";
 import { signalRBaseUrl } from "src/config/api.config";
 
 const connection = new signalR.HubConnectionBuilder()
-    .withUrl(`${signalRBaseUrl}`, {
+    .withUrl(signalRBaseUrl, {
         transport: signalR.HttpTransportType.WebSockets,
+        withCredentials: false,
     })
     .withAutomaticReconnect()
     .configureLogging(signalR.LogLevel.Information)
@@ -17,11 +18,13 @@ export const startSignalR = async () => {
         }
     } catch (error) {
         console.error("❌ Ошибка подключения к SignalR:", error);
+        setTimeout(startSignalR, 5000); // 👈 Повторная попытка через 5 сек
     }
 };
 
-connection.onclose((error) => {
+connection.onclose(async (error) => {
     console.error("❌ Соединение с SignalR разорвано:", error);
+    await startSignalR(); // 👈 Авто-переподключение
 });
 
 connection.onreconnected((connectionId) => {

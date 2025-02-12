@@ -7,11 +7,16 @@ import { SULogoM } from "src/assets";
 import theme from "src/styles/theme";
 import CustomButton from "src/components/Button";
 import ReusableModal from "src/components/ModalPage";
-import { useGetRecordIdByTokenQuery } from "src/store/managerApi";
+import {
+    useGetRecordIdByTokenQuery,
+    useGetClientRecordByIdQuery,
+} from "src/store/managerApi";
 import connection, { startSignalR } from "src/features/signalR";
 import { useDispatch } from "react-redux";
 import { setToken } from "src/store/userAuthSlice";
 import { useNavigate } from "react-router-dom";
+import CircularProgress from "@mui/material/CircularProgress";
+import Skeleton from "@mui/material/Skeleton";
 
 const BackgroundContainer = styled(Box)(({ theme }) => ({
     display: "flex",
@@ -45,47 +50,57 @@ const RefuceModal = styled(Box)(({ theme }) => ({
     justifyContent: "center",
 }));
 
+interface ClientRecord {
+    recordId: number;
+    windowId: number;
+    clientNumber: string;
+    expectedAcceptanceTime: string;
+}
+
 const WaitingPage = () => {
-    const { data, refetch, isFetching } = useGetRecordIdByTokenQuery();
     const { t } = useTranslation();
-    const [isOpen, setIsOpen] = useState(false);
-    const [notifications, setNotifications] = useState<any[]>([]);
     const navigate = useNavigate();
+    const dispatch = useDispatch();
+
+    const {
+        data: tokenData,
+        refetch: refetchRecordId,
+        isFetching: isFetchingRecordId,
+    } = useGetRecordIdByTokenQuery();
+    const recordId = tokenData?.recordId;
+
+    const { data: clientRecord, refetch: refetchClientRecord } =
+        useGetClientRecordByIdQuery(recordId ?? 0, {
+            skip: !recordId,
+        });
+
+    const [recordData, setRecordData] = useState<ClientRecord | null>(null);
 
     useEffect(() => {
-        refetch();
+        refetchRecordId();
     }, []);
 
     useEffect(() => {
-        startSignalR();
-        const handleNewNotification = (
-            recordId: number,
-            windowId: number,
-            clientNumber: number,
-            expectedAcceptanceString: string
-        ) => {
-            setNotifications((prev) => {
-                if (recordId === data?.recordId) {
-                    return [
-                        {
-                            recordId,
-                            windowId,
-                            clientNumber,
-                            expectedAcceptanceString,
-                        },
-                    ];
-                }
-                return prev;
-            });
-        };
+        if (!recordData && clientRecord) {
+            setRecordData(clientRecord);
+        }
+    }, [clientRecord, recordData]);
 
-        connection.on("ReceiveRecordCreated", handleNewNotification);
+    useEffect(() => {
+        startSignalR();
+
+        connection.on("ReceiveRecordCreated", (newRecord: ClientRecord) => {
+            if (newRecord.recordId === recordId) {
+                setRecordData(newRecord);
+            }
+        });
 
         return () => {
-            connection.off("ReceiveRecordCreated", handleNewNotification);
+            connection.off("ReceiveRecordCreated");
         };
-    }, [data?.recordId]);
-    const dispatch = useDispatch();
+    }, [recordId]);
+
+    const [isOpen, setIsOpen] = useState(false);
     const handleModalOpen = () => setIsOpen(true);
     const handleClose = () => setIsOpen(false);
     const handleConfirmRefuse = () => {
@@ -95,10 +110,20 @@ const WaitingPage = () => {
         setIsOpen(false);
     };
 
-    if (isFetching) {
+    if (isFetchingRecordId) {
         return (
             <BackgroundContainer>
-                <Typography variant="h6">{t("i18n_queue.loading")}</Typography>
+                <Skeleton variant="rectangular" width={350} height={430} />
+            </BackgroundContainer>
+        );
+    }
+
+    if (!recordId) {
+        return (
+            <BackgroundContainer>
+                <Typography variant="h6">
+                    {t("i18n_queue.noNotifications")}
+                </Typography>
             </BackgroundContainer>
         );
     }
@@ -122,36 +147,43 @@ const WaitingPage = () => {
                         component="h1"
                         sx={{ marginBottom: 2 }}
                     >
-                        {t("i18n_queue.number")} {data?.recordId || "-"}
+                        {t("i18n_queue.number")} {recordData?.recordId || "-"}
                     </Typography>
                 </Box>
 
                 <InfoBlock>
-                    {notifications.length === 0 ? (
-                        <Typography variant="h6" color="textSecondary">
-                            {t("i18n_queue.noNotifications")}
-                        </Typography>
+                    {recordData ? (
+                        <>
+                            <Typography variant="h6">
+                                {t("i18n_queue.window")}: {recordData.windowId}
+                            </Typography>
+                            <Typography variant="h6">
+                                {t("i18n_queue.peopleAhead")}:
+                                {recordData.clientNumber}
+                            </Typography>
+                            <Typography variant="h6">
+                                {t("i18n_queue.expectedTime")}:
+                                {recordData.expectedAcceptanceTime}
+                            </Typography>
+                        </>
                     ) : (
-                        notifications.map((notif, index) => (
-                            <Box
-                                key={index}
-                                display="flex"
-                                flexDirection="column"
-                                gap={1}
-                            >
-                                <Typography variant="h5">
-                                    {t("i18n_queue.window")}: {notif.windowId}
-                                </Typography>
-                                <Typography variant="h5">
-                                    {t("i18n_queue.clientNumber")}:
-                                    {notif.clientNumber}
-                                </Typography>
-                                <Typography variant="h5">
-                                    {t("i18n_queue.expectedTime")}:
-                                    {notif.expectedAcceptanceString}
-                                </Typography>
-                            </Box>
-                        ))
+                        <>
+                            <Skeleton
+                                variant="rectangular"
+                                width="100%"
+                                height={30}
+                            />
+                            <Skeleton
+                                variant="rectangular"
+                                width="100%"
+                                height={30}
+                            />
+                            <Skeleton
+                                variant="rectangular"
+                                width="100%"
+                                height={30}
+                            />
+                        </>
                     )}
                 </InfoBlock>
 

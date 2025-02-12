@@ -1,6 +1,5 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import { RootState } from "src/store/store"; // Adjust path based on your project structure
-
+import { RootState } from "src/store/store";
 import { ManagerRecord } from "src/types/managerApiTypes";
 import { apiBaseUrl } from "src/config/api.config";
 
@@ -49,6 +48,20 @@ export const managerApi = createApi({
             }),
         }),
 
+        getRecordById: builder.query<any, number>({
+            query: (recordId) => ({
+                url: `Record/${recordId}`,
+                params: { "api-version": "1" },
+            }),
+        }),
+
+        getClientRecordById: builder.query<any, number>({
+            query: (recordId) => ({
+                url: `Record/GetClientRecord/${recordId}`,
+                params: { "api-version": "1" },
+            }),
+        }),
+
         getRecordIdByToken: builder.query<
             { recordId: number; connectionId: string },
             void
@@ -66,4 +79,6 @@ export const {
     useGetServiceListQuery,
     useCreateRecordMutation,
     useGetRecordIdByTokenQuery,
+    useGetRecordByIdQuery,
+    useGetClientRecordByIdQuery, // <-- Экспортируем новый запрос
 } = managerApi;
