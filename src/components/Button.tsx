@@ -8,14 +8,13 @@ interface CustomButtonProps extends ButtonProps {
     variantType?: "primary" | "secondary" | "danger";
     sizeType?: "small" | "medium" | "large";
     icon?: React.ReactElement;
-    disabled?: boolean;
 }
 
-const StyledButton = styled(Button)<CustomButtonProps>(({
-    theme,
-    variantType,
-    sizeType,
-}) => {
+const StyledButton = styled(
+    ({ sizeType, variantType, ...rest }: CustomButtonProps) => (
+        <Button {...rest} />
+    )
+)(({ theme, variantType, sizeType, disabled }) => {
     const variants = {
         primary: {
             backgroundColor: theme.palette.primary.main,
@@ -38,6 +37,14 @@ const StyledButton = styled(Button)<CustomButtonProps>(({
                 backgroundColor: theme.palette.error.dark,
             },
         },
+        disabled: {
+            backgroundColor: theme.palette.grey[400],
+            color: theme.palette.common.black,
+            cursor: "not-allowed",
+            "&:hover": {
+                backgroundColor: theme.palette.grey[400],
+            },
+        },
     };
 
     const fontSizes = {
@@ -47,7 +54,7 @@ const StyledButton = styled(Button)<CustomButtonProps>(({
     };
 
     return {
-        ...variants[variantType || "primary"],
+        ...(disabled ? variants.disabled : variants[variantType || "primary"]),
         fontSize: fontSizes[sizeType || "medium"],
         textTransform: "none",
         padding: theme.spacing(1, 2),

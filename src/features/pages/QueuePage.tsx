@@ -13,7 +13,6 @@ import SelectTime from "src/widgets/selectTiem/ui/SelectTime";
 import Timer from "src/widgets/timer/ui/Timer";
 // import { useGetRecordListByManagerQuery } from "src/store/managerApi";
 import useQueueData from "src/hooks/useQueueData";
-import { MediaContext } from "../MediaProvider";
 
 const ButtonWrapper = styled(Box)(({ theme }) => ({
     marginBottom: theme.spacing(3),
@@ -51,8 +50,6 @@ const handleAccept = () => {
 const serviceTime = "03:00";
 
 const QueuePage: FC = () => {
-    const media = useContext(MediaContext);
-    const isMobile = media?.isMobile;
     const { t } = useTranslation();
     const [selectedTime, setSelectedTime] = useState<number>(1);
     const [isPauseModalOpen, setIsPauseModalOpen] = useState(false);
@@ -70,7 +67,7 @@ const QueuePage: FC = () => {
 
     const handleTimeSelect = (time: number) => {
         setSelectedTime(time);
-        alert("Выбранное время:", time);
+        alert(`Выбранное время: ${time}`);
     };
     const queueData = useQueueData();
 

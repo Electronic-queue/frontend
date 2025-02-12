@@ -11,7 +11,15 @@
         "loading": "Загрузка...",
         "forgotPassword": "Забыли пароль?",
         "restoreAccess": "Восстановить доступ",
-        "title": "Авторизация"
+        "title": "Авторизация",
+        "restoreAccessTitle": "Восстановление доступа",
+        "sendResetPasswordEmail": "Выслать письмо для сброса пароля",
+        "resendEmail": "Выслать письмо повторно",
+        "retry": "Повторите попытку через",
+        "notFoundEmail": "Не нашли письмо? Проверьте спам",
+        "email": "Ваша эл.почта",
+        "enterEmeil": "Введите эл-почту",
+        "invalidEmail": "Неверный формат эл-почты"
     },
     "i18n_register": {
         "title": "Регистрация",
@@ -60,6 +68,9 @@
         "leaveFeedback": "Оставить отзыв (не обязательно)",
         "characters": "символов",
         "submit": "Отправить",
-        "refuseQueue": "Отказаться от очереди"
+        "refuseQueue": "Отказаться от очереди",
+        "expectedTime": "Ожидаемое время приема",
+        "loadingError": "Ошибка загрузки данных",
+        "noNotifications": "У вас нет записи в очереди"
     }
 }
