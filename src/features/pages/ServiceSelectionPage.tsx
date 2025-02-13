@@ -22,6 +22,7 @@ import {
 } from "src/store/managerApi";
 import { useNavigate } from "react-router-dom";
 import { setToken } from "src/store/userAuthSlice";
+import i18n from "src/i18n";
 
 const BackgroundContainer = styled(Box)(({ theme }) => ({
     display: "flex",
@@ -45,6 +46,7 @@ const ServiceSelection = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const { t } = useTranslation();
+    const currentLanguage = i18n.language || "ru";
     const [search, setSearch] = useState("");
     const { data, error, isLoading } = useGetServiceListQuery();
     const [createRecord] = useCreateRecordMutation();
@@ -57,7 +59,12 @@ const ServiceSelection = () => {
     const services: Service[] = Array.isArray(data?.value)
         ? data.value.map((service: any) => ({
               id: service.serviceId,
-              name: service.nameRu,
+              name:
+                  currentLanguage === "kz"
+                      ? service.nameKk
+                      : currentLanguage === "en"
+                        ? service.nameEn
+                        : service.nameRu,
           }))
         : [];
 
