@@ -15,7 +15,6 @@ import connection, { startSignalR } from "src/features/signalR";
 import { useDispatch } from "react-redux";
 import { setToken } from "src/store/userAuthSlice";
 import { useNavigate } from "react-router-dom";
-import CircularProgress from "@mui/material/CircularProgress";
 import Skeleton from "@mui/material/Skeleton";
 
 const BackgroundContainer = styled(Box)(({ theme }) => ({
@@ -69,20 +68,21 @@ const WaitingPage = () => {
     } = useGetRecordIdByTokenQuery();
     const recordId = tokenData?.recordId;
 
-    const { data: clientRecord, refetch: refetchClientRecord } =
-        useGetClientRecordByIdQuery(recordId ?? 0, {
-            skip: !recordId,
-        });
+    const { data: clientRecord } = useGetClientRecordByIdQuery(recordId ?? 0, {
+        skip: !recordId,
+    });
 
     const [recordData, setRecordData] = useState<ClientRecord | null>(null);
+    const [isOpen, setIsOpen] = useState(false);
 
     useEffect(() => {
         refetchRecordId();
     }, []);
 
     useEffect(() => {
-        if (!recordData && clientRecord) {
+        if (clientRecord && clientRecord.recordId !== recordData?.recordId) {
             setRecordData(clientRecord);
+            console.log("Client Record Data:", clientRecord);
         }
     }, [clientRecord, recordData]);
 
@@ -90,17 +90,32 @@ const WaitingPage = () => {
         startSignalR();
 
         connection.on("ReceiveRecordCreated", (newRecord: ClientRecord) => {
+            console.log("ReceiveRecordCreated:", newRecord);
             if (newRecord.recordId === recordId) {
                 setRecordData(newRecord);
+                console.log("New Record Created:", newRecord);
+            }
+        });
+
+        connection.on("RecieveUpdateRecord", (queueList) => {
+            console.log("ReceiveUpdateRecord:", queueList);
+            if (!recordId) return;
+            const updatedItem = queueList.find(
+                (item: { recordId: number }) => item.recordId === recordId
+            );
+            if (updatedItem) {
+                setRecordData(updatedItem);
+                console.log("Updated Record:", updatedItem);
             }
         });
 
         return () => {
             connection.off("ReceiveRecordCreated");
+            connection.off("ReceiveUpdateRecord");
+            console.log("SignalR connection cleaned up.");
         };
     }, [recordId]);
 
-    const [isOpen, setIsOpen] = useState(false);
     const handleModalOpen = () => setIsOpen(true);
     const handleClose = () => setIsOpen(false);
     const handleConfirmRefuse = () => {
@@ -133,7 +148,6 @@ const WaitingPage = () => {
             <Box sx={{ paddingBottom: theme.spacing(5) }}>
                 <SULogoM />
             </Box>
-
             <FormContainer>
                 <Box
                     sx={{
@@ -197,7 +211,6 @@ const WaitingPage = () => {
                     </CustomButton>
                 </Box>
             </FormContainer>
-
             <ReusableModal
                 open={isOpen}
                 onClose={handleClose}
