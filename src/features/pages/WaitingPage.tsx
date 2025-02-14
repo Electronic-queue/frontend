@@ -90,7 +90,6 @@ const WaitingPage = () => {
         startSignalR();
 
         connection.on("ReceiveRecordCreated", (newRecord: ClientRecord) => {
-            1;
             if (newRecord.recordId === recordId) {
                 setRecordData(newRecord);
 
