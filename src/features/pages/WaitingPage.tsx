@@ -51,7 +51,7 @@ const RefuceModal = styled(Box)(({ theme }) => ({
 
 interface ClientRecord {
     recordId: number;
-    windowId: number;
+    windowNumber: number;
     clientNumber: string;
     expectedAcceptanceTime: string;
 }
@@ -169,7 +169,8 @@ const WaitingPage = () => {
                     {recordData ? (
                         <>
                             <Typography variant="h6">
-                                {t("i18n_queue.window")}: {recordData.windowId}
+                                {t("i18n_queue.window")}:
+                                {recordData.windowNumber}
                             </Typography>
                             <Typography variant="h6">
                                 {t("i18n_queue.peopleAhead")}:
