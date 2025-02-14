@@ -56,28 +56,21 @@ const WaitingPage = () => {
 
     useEffect(() => {
         isMounted.current = true;
-        console.log("📡 Запрашиваю данные из API...");
+
         refetch();
 
         const connectSignalR = async () => {
             await startSignalR();
-            console.log("📡 SignalR: Подключаюсь...");
         };
 
         connectSignalR();
 
         const handleNewNotification = (notification: any) => {
-            console.log("📩 Уведомление от SignalR:", notification);
             if (!notification || typeof notification !== "object") {
-                console.error(
-                    "❌ Ошибка: пришло некорректное уведомление",
-                    notification
-                );
                 return;
             }
 
             const extracted = notification.recordId ?? notification;
-            console.log("📌 Извлечённые данные:", extracted);
 
             if (isMounted.current) {
                 setNotifications((prev) => [
