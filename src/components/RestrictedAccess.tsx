@@ -2,10 +2,12 @@ import { FC } from "react";
 import { styled } from "@mui/system";
 import { PhoneIcon } from "src/assets";
 import theme from "src/styles/theme";
+import Stack from "@mui/material/Stack";
+
 import { Typography } from "@mui/material";
 import { useTranslation } from "react-i18next";
 
-const Container = styled("div")({
+const Container = styled(Stack)({
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
@@ -17,7 +19,7 @@ const Message = styled(Typography)({
     fontSize: theme.typography.h4.fontSize,
     fontWeight: "bold",
     textAlign: "center",
-    color: "#333",
+    color: theme.palette.text.primary,
 });
 
 const RestrictedAccess: FC = () => {
