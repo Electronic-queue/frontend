@@ -2,18 +2,17 @@ import { FC } from "react";
 import { Link as RouterLink, useLocation } from "react-router-dom";
 import { Typography } from "@mui/material";
 import { styled } from "@mui/material";
+import theme from "src/styles/theme";
 
-const StyledLink = styled(RouterLink)(
-    ({ theme, isActive }: { theme: any; isActive: boolean }) => ({
-        textDecoration: "none",
-        color: isActive
-            ? theme.palette.primary.main
-            : theme.palette.text.primary,
-        "&:hover": {
-            color: theme.palette.secondary.main,
-        },
-    })
-);
+const StyledLink = styled(RouterLink, {
+    shouldForwardProp: (prop) => prop !== "isActive",
+})(({ theme, isActive }: { theme: any; isActive: boolean }) => ({
+    textDecoration: "none",
+    color: isActive ? theme.palette.primary.main : theme.palette.text.primary,
+    "&:hover": {
+        color: theme.palette.secondary.main,
+    },
+}));
 
 interface IPageLink {
     to: string;
@@ -30,10 +29,13 @@ const PageLinks: FC<IPageLinksProps> = ({ link, onClick }) => {
     const isActive = location.pathname === link.to;
 
     return (
-        <Typography //вместо этого использовать link from mui (component link from react-router-dom)
+        <Typography
             variant="h6"
             onClick={() => onClick(link.to)}
-            sx={{ fontSize: "16px", fontFamily: "Rubik, Arial, sans-serif" }}
+            sx={{
+                fontSize: theme.typography.h6.fontSize,
+                fontFamily: "Rubik, Arial, sans-serif",
+            }}
         >
             <StyledLink to={link.to} isActive={isActive} theme={undefined}>
                 {link.label}
