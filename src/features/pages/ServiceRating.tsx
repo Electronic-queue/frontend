@@ -150,7 +150,7 @@ const ServiceRating = () => {
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={handleCloseDialog} autoFocus>
-                        {t("i18n_queue.rateService")}
+                        {t("i18n_queue.complete")}
                     </Button>
                 </DialogActions>
             </Dialog>
