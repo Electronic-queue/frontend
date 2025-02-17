@@ -34,7 +34,6 @@ const PageLinks: FC<IPageLinksProps> = ({ link, onClick }) => {
             onClick={() => onClick(link.to)}
             sx={{
                 fontSize: theme.typography.h6.fontSize,
-                fontFamily: "Rubik, Arial, sans-serif",
             }}
         >
             <StyledLink to={link.to} isActive={isActive} theme={undefined}>

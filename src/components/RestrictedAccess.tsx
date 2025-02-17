@@ -13,7 +13,8 @@ const Container = styled(Stack)({
     alignItems: "center",
     height: "100vh",
     paddingLeft: "30%",
-    width: theme.spacing(115),
+    width: "100%",
+    maxWidth: "900px",
 });
 
 const Message = styled(Typography)({
@@ -24,8 +25,8 @@ const Message = styled(Typography)({
 });
 
 const IconWrapper = styled(Stack)({
-    width: theme.spacing(42),
-    height: theme.spacing(42),
+    width: "330px",
+    height: "330px",
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
@@ -38,10 +39,7 @@ const RestrictedAccess: FC = () => {
         <Container>
             <Message>{t("i18n_queue.mobileOnly")}</Message>
             <IconWrapper>
-                <PhoneIcon
-                    width={theme.spacing(41.25)}
-                    height={theme.spacing(41.25)}
-                />
+                <PhoneIcon width={330} height={330} />
             </IconWrapper>
         </Container>
     );
