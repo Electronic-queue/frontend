@@ -47,21 +47,18 @@ export const managerApi = createApi({
                 },
             }),
         }),
-
         getRecordById: builder.query<any, number>({
             query: (recordId) => ({
                 url: `Record/${recordId}`,
                 params: { "api-version": "1" },
             }),
         }),
-
         getClientRecordById: builder.query<any, number>({
             query: (recordId) => ({
                 url: `Record/GetClientRecord/${recordId}`,
                 params: { "api-version": "1" },
             }),
         }),
-
         getRecordIdByToken: builder.query<
             { recordId: number; connectionId: string },
             void
@@ -69,6 +66,16 @@ export const managerApi = createApi({
             query: () => ({
                 url: `Record/getrecordidbytoken`,
                 params: { "api-version": "1" },
+            }),
+        }),
+        updateQueueItem: builder.mutation<any, { id: number }>({
+            query: ({ id }) => ({
+                url: `QueueItem/update`,
+                method: "POST",
+                params: {
+                    id,
+                    "api-version": "1",
+                },
             }),
         }),
     }),
@@ -80,5 +87,6 @@ export const {
     useCreateRecordMutation,
     useGetRecordIdByTokenQuery,
     useGetRecordByIdQuery,
-    useGetClientRecordByIdQuery, // <-- Экспортируем новый запрос
+    useGetClientRecordByIdQuery,
+    useUpdateQueueItemMutation,
 } = managerApi;

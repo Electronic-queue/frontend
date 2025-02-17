@@ -10,6 +10,7 @@ import ReusableModal from "src/components/ModalPage";
 import {
     useGetRecordIdByTokenQuery,
     useGetClientRecordByIdQuery,
+    useUpdateQueueItemMutation,
 } from "src/store/managerApi";
 import connection, { startSignalR } from "src/features/signalR";
 import { useDispatch } from "react-redux";
@@ -75,6 +76,7 @@ const WaitingPage = () => {
 
     const [recordData, setRecordData] = useState<ClientRecord | null>(null);
     const [isOpen, setIsOpen] = useState(false);
+    const [updateQueueItem] = useUpdateQueueItemMutation();
 
     useEffect(() => {
         refetchRecordId();
@@ -90,6 +92,8 @@ const WaitingPage = () => {
         startSignalR();
 
         connection.on("ReceiveRecordCreated", (newRecord: ClientRecord) => {
+            console.log("Received new record from SignalR:", newRecord);
+
             if (newRecord.recordId === recordId) {
                 setRecordData(newRecord);
 
@@ -100,11 +104,15 @@ const WaitingPage = () => {
         });
 
         connection.on("RecieveUpdateRecord", (queueList) => {
+            console.log("Received updated queue list from SignalR:", queueList);
+
             if (!recordId) return;
             const updatedItem = queueList.find(
                 (item: { recordId: number }) => item.recordId === recordId
             );
+
             if (updatedItem) {
+                console.log("Matching record found:", updatedItem);
                 setRecordData(updatedItem);
 
                 if (updatedItem.clientNumber === "0") {
@@ -121,7 +129,17 @@ const WaitingPage = () => {
 
     const handleModalOpen = () => setIsOpen(true);
     const handleClose = () => setIsOpen(false);
-    const handleConfirmRefuse = () => {
+
+    const handleConfirmRefuse = async () => {
+        if (!recordId) return;
+
+        try {
+            await updateQueueItem({ id: recordId }).unwrap();
+            console.log(`Запись с ID ${recordId} успешно обновлена.`);
+        } catch (error) {
+            console.error("Ошибка при обновлении записи:", error);
+        }
+
         localStorage.removeItem("token");
         dispatch(setToken(null));
         navigate("/");
