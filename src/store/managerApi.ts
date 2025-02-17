@@ -78,6 +78,19 @@ export const managerApi = createApi({
                 },
             }),
         }),
+        createReview: builder.mutation<
+            any,
+            { recordId: number; rating: number; content: string }
+        >({
+            query: (review) => ({
+                url: `Review/create`,
+                method: "POST",
+                params: {
+                    "api-version": "1",
+                },
+                body: review,
+            }),
+        }),
     }),
 });
 
@@ -89,4 +102,5 @@ export const {
     useGetRecordByIdQuery,
     useGetClientRecordByIdQuery,
     useUpdateQueueItemMutation,
+    useCreateReviewMutation,
 } = managerApi;

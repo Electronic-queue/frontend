@@ -73,6 +73,7 @@
         "expectedTime": "Expected time",
         "loadingError": "Error loading data",
         "noNotifications": "You have no queue registration",
-        "mobileOnly": "This page is only accessible via phone"
+        "mobileOnly": "This page is only accessible via phone",
+        "reviewSubmitted": "Review successfully submitted"
     }
 }
