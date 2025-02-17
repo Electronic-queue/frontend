@@ -9,19 +9,27 @@ import { useTranslation } from "react-i18next";
 const Container = styled(Stack)({
     display: "flex",
     justifyContent: "center",
-    flexDirection: "row",
     alignItems: "center",
     height: "100vh",
-    paddingLeft: "30%",
     width: "100%",
-    maxWidth: "900px",
+});
+
+const ContentWrapper = styled(Stack)({
+    display: "flex",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    width: "100%",
+    maxWidth: "600px",
+    textAlign: "center",
+    gap: theme.spacing(1),
 });
 
 const Message = styled(Typography)({
     fontSize: theme.typography.h4.fontSize,
     fontWeight: "bold",
-    textAlign: "center",
     color: theme.palette.text.primary,
+    width: "255px",
 });
 
 const IconWrapper = styled(Stack)({
@@ -37,10 +45,12 @@ const RestrictedAccess: FC = () => {
     const { t } = useTranslation();
     return (
         <Container>
-            <Message>{t("i18n_queue.mobileOnly")}</Message>
-            <IconWrapper>
-                <PhoneIcon width={330} height={330} />
-            </IconWrapper>
+            <ContentWrapper>
+                <Message>{t("i18n_queue.mobileOnly")}</Message>
+                <IconWrapper>
+                    <PhoneIcon width={330} height={330} />
+                </IconWrapper>
+            </ContentWrapper>
         </Container>
     );
 };
