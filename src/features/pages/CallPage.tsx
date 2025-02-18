@@ -88,9 +88,9 @@ const CallPage = () => {
         connection.on("ReceiveRecordCreated", (newRecord) => {
             if (
                 newRecord.recordId === recordData?.recordId &&
-                newRecord.clientNumber === "-1"
+                newRecord.clientNumber === -1
             ) {
-                navigate("/rating");
+                navigate("/progress");
             }
         });
 
@@ -99,14 +99,21 @@ const CallPage = () => {
                 (item: { recordId: number }) =>
                     item.recordId === recordData?.recordId
             );
-            if (updatedItem && updatedItem.clientNumber === "-1") {
-                navigate("/rating");
+            if (updatedItem && updatedItem.clientNumber === -1) {
+                navigate("/progress");
+            }
+        });
+
+        connection.on("RecieveAcceptRecord", (recordAccept) => {
+            if (recordAccept.recordId === recordData?.recordId) {
+                navigate("/progress");
             }
         });
 
         return () => {
             connection.off("ReceiveRecordCreated");
-            connection.off("ReceiveUpdateRecord");
+            connection.off("RecieveUpdateRecord");
+            connection.off("RecieveAcceptRecord");
         };
     }, [navigate, recordData, isRecordLoading]);
 

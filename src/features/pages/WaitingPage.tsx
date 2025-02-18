@@ -10,6 +10,7 @@ import ReusableModal from "src/components/ModalPage";
 import {
     useGetRecordIdByTokenQuery,
     useGetClientRecordByIdQuery,
+    useUpdateQueueItemMutation,
 } from "src/store/managerApi";
 import connection, { startSignalR } from "src/features/signalR";
 import { useDispatch } from "react-redux";
@@ -52,7 +53,7 @@ const RefuceModal = styled(Box)(({ theme }) => ({
 interface ClientRecord {
     recordId: number;
     windowNumber: number;
-    clientNumber: string;
+    clientNumber: number;
     expectedAcceptanceTime: string;
 }
 
@@ -75,6 +76,7 @@ const WaitingPage = () => {
 
     const [recordData, setRecordData] = useState<ClientRecord | null>(null);
     const [isOpen, setIsOpen] = useState(false);
+    const [updateQueueItem] = useUpdateQueueItemMutation();
 
     useEffect(() => {
         refetchRecordId();
@@ -93,7 +95,7 @@ const WaitingPage = () => {
             if (newRecord.recordId === recordId) {
                 setRecordData(newRecord);
 
-                if (newRecord.clientNumber === "0") {
+                if (newRecord.clientNumber === 0) {
                     navigate("/call");
                 }
             }
@@ -104,10 +106,11 @@ const WaitingPage = () => {
             const updatedItem = queueList.find(
                 (item: { recordId: number }) => item.recordId === recordId
             );
+
             if (updatedItem) {
                 setRecordData(updatedItem);
 
-                if (updatedItem.clientNumber === "0") {
+                if (updatedItem.clientNumber === 0) {
                     navigate("/call");
                 }
             }
@@ -121,7 +124,16 @@ const WaitingPage = () => {
 
     const handleModalOpen = () => setIsOpen(true);
     const handleClose = () => setIsOpen(false);
-    const handleConfirmRefuse = () => {
+
+    const handleConfirmRefuse = async () => {
+        if (!recordId) return;
+
+        try {
+            await updateQueueItem({ id: recordId }).unwrap();
+        } catch (error) {
+            console.error("Ошибка при обновлении записи:", error);
+        }
+
         localStorage.removeItem("token");
         dispatch(setToken(null));
         navigate("/");
