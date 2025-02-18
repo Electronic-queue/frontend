@@ -146,7 +146,7 @@ const CallPage = () => {
         try {
             await updateQueueItem({ id: recordId }).unwrap();
         } catch (error) {
-            console.error("Ошибка при обновлении записи:", error);
+            alert(error);
         }
         localStorage.removeItem("token");
         dispatch(setToken(null));
@@ -158,7 +158,7 @@ const CallPage = () => {
         try {
             await updateQueueItem({ id: recordId }).unwrap();
         } catch (error) {
-            console.error("Ошибка при обновлении записи:", error);
+            alert(error);
         }
         localStorage.removeItem("token");
         dispatch(setToken(null));

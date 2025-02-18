@@ -16,13 +16,11 @@ export const startSignalR = async () => {
             await connection.start();
         }
     } catch (error) {
-        console.error("❌ Ошибка подключения к SignalR:", error);
         setTimeout(startSignalR, 5000);
     }
 };
 
 connection.onclose(async (error) => {
-    console.error("❌ Соединение с SignalR разорвано:", error);
     await startSignalR();
 });
 

@@ -131,7 +131,7 @@ const WaitingPage = () => {
         try {
             await updateQueueItem({ id: recordId }).unwrap();
         } catch (error) {
-            console.error("Ошибка при обновлении записи:", error);
+            alert(error);
         }
 
         localStorage.removeItem("token");
