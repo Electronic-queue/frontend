@@ -12,6 +12,7 @@ import theme from "src/styles/theme";
 import { useNavigate } from "react-router-dom";
 import connection, { startSignalR } from "src/features/signalR";
 import {
+    useGetClientRecordByIdQuery,
     useGetRecordIdByTokenQuery,
     useUpdateQueueItemMutation,
 } from "src/store/managerApi";
@@ -91,10 +92,16 @@ const CallPage = () => {
     const dispatch = useDispatch();
     const [expired, setExpired] = useState(false);
     const [isOpen, setIsOpen] = useState(false);
-    const windowNumber = mockData.mock[0].window;
+
     const { data: tokenData } = useGetRecordIdByTokenQuery();
     const recordId = tokenData?.recordId ? Number(tokenData.recordId) : null;
     const [updateQueueItem] = useUpdateQueueItemMutation();
+
+    const { data: clientRecord } = useGetClientRecordByIdQuery(recordId ?? 0, {
+        skip: !recordId,
+    });
+
+    const windowNumber = clientRecord?.windowNumber ?? "-";
 
     useEffect(() => {
         startSignalR();
