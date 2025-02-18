@@ -6,11 +6,17 @@ import Box from "@mui/material/Box";
 import { useTranslation } from "react-i18next";
 import { SULogoM } from "src/assets";
 import CustomButton from "src/components/Button";
+import ReusableModal from "src/components/ModalPage";
 import mockData from "src/components/mock/MockWaitingData.json";
 import theme from "src/styles/theme";
 import { useNavigate } from "react-router-dom";
 import connection, { startSignalR } from "src/features/signalR";
-import { useGetRecordIdByTokenQuery } from "src/store/managerApi";
+import {
+    useGetRecordIdByTokenQuery,
+    useUpdateQueueItemMutation,
+} from "src/store/managerApi";
+import { useDispatch } from "react-redux";
+import { setToken } from "src/store/userAuthSlice";
 
 const BackgroundContainer = styled(Box)(({ theme }) => ({
     display: "flex",
@@ -37,6 +43,14 @@ const TitleBox = styled(Box)(({ theme }) => ({
     borderRadius: "50%",
     border: `8px solid ${theme.palette.error.main}`,
     display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+}));
+
+const RefuseModal = styled(Box)(({ theme }) => ({
+    display: "flex",
+    flexDirection: "column",
+    gap: theme.spacing(2),
     alignItems: "center",
     justifyContent: "center",
 }));
@@ -74,48 +88,60 @@ const Timer: React.FC<TimerProps> = ({ onTimeout }) => {
 const CallPage = () => {
     const { t } = useTranslation();
     const navigate = useNavigate();
+    const dispatch = useDispatch();
     const [expired, setExpired] = useState(false);
+    const [isOpen, setIsOpen] = useState(false);
     const windowNumber = mockData.mock[0].window;
-
-    const { data: recordData, isLoading: isRecordLoading } =
-        useGetRecordIdByTokenQuery();
+    const { data: tokenData } = useGetRecordIdByTokenQuery();
+    const recordId = tokenData?.recordId ? Number(tokenData.recordId) : null;
+    const [updateQueueItem] = useUpdateQueueItemMutation();
 
     useEffect(() => {
-        if (isRecordLoading) return;
-
         startSignalR();
-
         connection.on("ReceiveRecordCreated", (newRecord) => {
             if (
-                newRecord.recordId === recordData?.recordId &&
+                newRecord.recordId === recordId &&
                 newRecord.clientNumber === -1
             ) {
                 navigate("/progress");
             }
         });
-
         connection.on("RecieveUpdateRecord", (queueList) => {
             const updatedItem = queueList.find(
-                (item: { recordId: number }) =>
-                    item.recordId === recordData?.recordId
+                (item: { recordId: number | null }) =>
+                    item.recordId === recordId
             );
             if (updatedItem && updatedItem.clientNumber === -1) {
                 navigate("/progress");
             }
         });
-
         connection.on("RecieveAcceptRecord", (recordAccept) => {
-            if (recordAccept.recordId === recordData?.recordId) {
+            if (recordAccept.recordId === recordId) {
                 navigate("/progress");
             }
         });
-
         return () => {
             connection.off("ReceiveRecordCreated");
             connection.off("RecieveUpdateRecord");
             connection.off("RecieveAcceptRecord");
         };
-    }, [navigate, recordData, isRecordLoading]);
+    }, [recordId, navigate]);
+
+    const handleModalOpen = () => setIsOpen(true);
+    const handleClose = () => setIsOpen(false);
+
+    const handleConfirmRefuse = async () => {
+        if (!recordId) return;
+        try {
+            await updateQueueItem({ id: recordId }).unwrap();
+        } catch (error) {
+            console.error("Ошибка при обновлении записи:", error);
+        }
+        localStorage.removeItem("token");
+        dispatch(setToken(null));
+        navigate("/");
+        setIsOpen(false);
+    };
 
     return (
         <BackgroundContainer>
@@ -132,8 +158,8 @@ const CallPage = () => {
                         <Box sx={{ paddingTop: theme.spacing(5) }}>
                             <CustomButton
                                 variantType="danger"
-                                color="primary"
                                 fullWidth
+                                onClick={handleModalOpen}
                             >
                                 {t("i18n_queue.refuse")}
                             </CustomButton>
@@ -148,6 +174,34 @@ const CallPage = () => {
                     </Typography>
                 )}
             </FormContainer>
+            <ReusableModal
+                open={isOpen}
+                onClose={handleClose}
+                width={340}
+                showCloseButton={false}
+            >
+                <RefuseModal>
+                    <Box>
+                        <Typography variant="h4">
+                            {t("i18n_queue.refuseQueue")}
+                        </Typography>
+                    </Box>
+                    <Box sx={{ display: "flex", gap: theme.spacing(2) }}>
+                        <CustomButton
+                            variantType="primary"
+                            onClick={handleConfirmRefuse}
+                        >
+                            {t("i18n_queue.confirm")}
+                        </CustomButton>
+                        <CustomButton
+                            variantType="primary"
+                            onClick={handleClose}
+                        >
+                            {t("i18n_queue.cancel")}
+                        </CustomButton>
+                    </Box>
+                </RefuseModal>
+            </ReusableModal>
         </BackgroundContainer>
     );
 };
