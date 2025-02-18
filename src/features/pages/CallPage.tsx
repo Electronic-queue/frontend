@@ -60,7 +60,7 @@ interface TimerProps {
 }
 
 const Timer: React.FC<TimerProps> = ({ onTimeout }) => {
-    const [timeLeft, setTimeLeft] = useState(60);
+    const [timeLeft, setTimeLeft] = useState(30);
 
     useEffect(() => {
         if (timeLeft === 0) {
@@ -130,6 +130,10 @@ const CallPage = () => {
     const handleModalOpen = () => setIsOpen(true);
     const handleClose = () => setIsOpen(false);
 
+    const handleNavige = () => {
+        navigate("/");
+    };
+
     const handleConfirmRefuse = async () => {
         if (!recordId) return;
         try {
@@ -140,6 +144,18 @@ const CallPage = () => {
         localStorage.removeItem("token");
         dispatch(setToken(null));
         navigate("/");
+        setIsOpen(false);
+    };
+    const handleAvtomaticConfirmRefuse = async () => {
+        if (!recordId) return;
+        try {
+            await updateQueueItem({ id: recordId }).unwrap();
+        } catch (error) {
+            console.error("Ошибка при обновлении записи:", error);
+        }
+        localStorage.removeItem("token");
+        dispatch(setToken(null));
+
         setIsOpen(false);
     };
 
@@ -154,7 +170,12 @@ const CallPage = () => {
                         <Typography variant="h4" sx={{ marginBottom: 2 }}>
                             {t("i18n_queue.approachWindow")} {windowNumber}
                         </Typography>
-                        <Timer onTimeout={() => setExpired(true)} />
+                        <Timer
+                            onTimeout={() => {
+                                setExpired(true);
+                                handleAvtomaticConfirmRefuse();
+                            }}
+                        />
                         <Box sx={{ paddingTop: theme.spacing(5) }}>
                             <CustomButton
                                 variantType="danger"
@@ -166,14 +187,29 @@ const CallPage = () => {
                         </Box>
                     </>
                 ) : (
-                    <Typography
-                        variant="h5"
-                        sx={{ color: theme.palette.error.main }}
+                    <Box
+                        sx={{
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: theme.spacing(2),
+                        }}
                     >
-                        {t("i18n_queue.timeoutMessage")}
-                    </Typography>
+                        <Typography
+                            variant="h5"
+                            sx={{ color: theme.palette.error.main }}
+                        >
+                            {t("i18n_queue.timeoutMessage")}
+                        </Typography>
+                        <CustomButton
+                            variantType="primary"
+                            sizeType="medium"
+                            onClick={handleNavige}
+                        >
+                            {t("i18n_queue.signUp")}
+                        </CustomButton>
+                    </Box>
                 )}
-            </FormContainer>
+            </FormContainer>{" "}
             <ReusableModal
                 open={isOpen}
                 onClose={handleClose}

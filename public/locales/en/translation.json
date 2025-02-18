@@ -64,7 +64,7 @@
         "cancel": "Cancel",
         "confirm": "Confirm",
         "approachWindow": "Approach the window №",
-        "timeoutMessage": "You didn't make it in time, please register again",
+        "timeoutMessage": "You didn't make it in time, your queue record has been deleted. Please register again.",
         "rateService": "Rate the service",
         "leaveFeedback": "Leave feedback (optional)",
         "characters": "characters",
