@@ -72,6 +72,7 @@
         "refuseQueue": "Refuse from the queue",
         "expectedTime": "Expected time",
         "loadingError": "Error loading data",
-        "noNotifications": "You have no queue registration"
+        "noNotifications": "You have no queue registration",
+        "mobileOnly": "This page is only accessible via phone"
     }
 }

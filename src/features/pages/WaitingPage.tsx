@@ -66,7 +66,8 @@ const WaitingPage = () => {
         refetch: refetchRecordId,
         isFetching: isFetchingRecordId,
     } = useGetRecordIdByTokenQuery();
-    const recordId = tokenData?.recordId;
+
+    const recordId = tokenData?.recordId ? Number(tokenData.recordId) : null;
 
     const { data: clientRecord } = useGetClientRecordByIdQuery(recordId ?? 0, {
         skip: !recordId,
@@ -82,7 +83,6 @@ const WaitingPage = () => {
     useEffect(() => {
         if (clientRecord && clientRecord.recordId !== recordData?.recordId) {
             setRecordData(clientRecord);
-            console.log("Client Record Data:", clientRecord);
         }
     }, [clientRecord, recordData]);
 
@@ -90,31 +90,34 @@ const WaitingPage = () => {
         startSignalR();
 
         connection.on("ReceiveRecordCreated", (newRecord: ClientRecord) => {
-            console.log("ReceiveRecordCreated:", newRecord);
             if (newRecord.recordId === recordId) {
                 setRecordData(newRecord);
-                console.log("New Record Created:", newRecord);
+
+                if (newRecord.clientNumber === "0") {
+                    navigate("/call");
+                }
             }
         });
 
         connection.on("RecieveUpdateRecord", (queueList) => {
-            console.log("ReceiveUpdateRecord:", queueList);
             if (!recordId) return;
             const updatedItem = queueList.find(
                 (item: { recordId: number }) => item.recordId === recordId
             );
             if (updatedItem) {
                 setRecordData(updatedItem);
-                console.log("Updated Record:", updatedItem);
+
+                if (updatedItem.clientNumber === "0") {
+                    navigate("/call");
+                }
             }
         });
 
         return () => {
             connection.off("ReceiveRecordCreated");
             connection.off("ReceiveUpdateRecord");
-            console.log("SignalR connection cleaned up.");
         };
-    }, [recordId]);
+    }, [recordId, navigate]);
 
     const handleModalOpen = () => setIsOpen(true);
     const handleClose = () => setIsOpen(false);

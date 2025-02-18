@@ -8,6 +8,9 @@ import { SULogoM } from "src/assets";
 import CustomButton from "src/components/Button";
 import mockData from "src/components/mock/MockWaitingData.json";
 import theme from "src/styles/theme";
+import { useNavigate } from "react-router-dom";
+import connection, { startSignalR } from "src/features/signalR";
+import { useGetRecordIdByTokenQuery } from "src/store/managerApi";
 
 const BackgroundContainer = styled(Box)(({ theme }) => ({
     display: "flex",
@@ -70,8 +73,42 @@ const Timer: React.FC<TimerProps> = ({ onTimeout }) => {
 
 const CallPage = () => {
     const { t } = useTranslation();
+    const navigate = useNavigate();
     const [expired, setExpired] = useState(false);
     const windowNumber = mockData.mock[0].window;
+
+    const { data: recordData, isLoading: isRecordLoading } =
+        useGetRecordIdByTokenQuery();
+
+    useEffect(() => {
+        if (isRecordLoading) return;
+
+        startSignalR();
+
+        connection.on("ReceiveRecordCreated", (newRecord) => {
+            if (
+                newRecord.recordId === recordData?.recordId &&
+                newRecord.clientNumber === "-1"
+            ) {
+                navigate("/rating");
+            }
+        });
+
+        connection.on("RecieveUpdateRecord", (queueList) => {
+            const updatedItem = queueList.find(
+                (item: { recordId: number }) =>
+                    item.recordId === recordData?.recordId
+            );
+            if (updatedItem && updatedItem.clientNumber === "-1") {
+                navigate("/rating");
+            }
+        });
+
+        return () => {
+            connection.off("ReceiveRecordCreated");
+            connection.off("ReceiveUpdateRecord");
+        };
+    }, [navigate, recordData, isRecordLoading]);
 
     return (
         <BackgroundContainer>

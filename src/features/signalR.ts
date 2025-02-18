@@ -14,21 +14,18 @@ export const startSignalR = async () => {
     try {
         if (connection.state === signalR.HubConnectionState.Disconnected) {
             await connection.start();
-            console.log("✅ SignalR подключен");
         }
     } catch (error) {
         console.error("❌ Ошибка подключения к SignalR:", error);
-        setTimeout(startSignalR, 5000); // 👈 Повторная попытка через 5 сек
+        setTimeout(startSignalR, 5000);
     }
 };
 
 connection.onclose(async (error) => {
     console.error("❌ Соединение с SignalR разорвано:", error);
-    await startSignalR(); // 👈 Авто-переподключение
+    await startSignalR();
 });
 
-connection.onreconnected((connectionId) => {
-    console.log("🔄 SignalR переподключен, новый ID:", connectionId);
-});
+connection.onreconnected((connectionId) => {});
 
 export default connection;
