@@ -53,7 +53,7 @@ const RefuceModal = styled(Box)(({ theme }) => ({
 interface ClientRecord {
     recordId: number;
     windowNumber: number;
-    clientNumber: string;
+    clientNumber: number;
     expectedAcceptanceTime: string;
 }
 
@@ -92,30 +92,25 @@ const WaitingPage = () => {
         startSignalR();
 
         connection.on("ReceiveRecordCreated", (newRecord: ClientRecord) => {
-            console.log("Received new record from SignalR:", newRecord);
-
             if (newRecord.recordId === recordId) {
                 setRecordData(newRecord);
 
-                if (newRecord.clientNumber === "0") {
+                if (newRecord.clientNumber === 0) {
                     navigate("/call");
                 }
             }
         });
 
         connection.on("RecieveUpdateRecord", (queueList) => {
-            console.log("Received updated queue list from SignalR:", queueList);
-
             if (!recordId) return;
             const updatedItem = queueList.find(
                 (item: { recordId: number }) => item.recordId === recordId
             );
 
             if (updatedItem) {
-                console.log("Matching record found:", updatedItem);
                 setRecordData(updatedItem);
 
-                if (updatedItem.clientNumber === "0") {
+                if (updatedItem.clientNumber === 0) {
                     navigate("/call");
                 }
             }
@@ -135,7 +130,6 @@ const WaitingPage = () => {
 
         try {
             await updateQueueItem({ id: recordId }).unwrap();
-            console.log(`Запись с ID ${recordId} успешно обновлена.`);
         } catch (error) {
             console.error("Ошибка при обновлении записи:", error);
         }
