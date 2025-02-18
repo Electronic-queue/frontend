@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
@@ -45,6 +46,13 @@ const ClientRegisterPage = () => {
     const navigate = useNavigate();
     const userInfo = useSelector((state: RootState) => state.user.userInfo);
 
+    useEffect(() => {
+        const token = localStorage.getItem("token");
+        if (token) {
+            navigate("/wait");
+        }
+    }, [navigate]);
+
     const {
         control,
         handleSubmit,
@@ -62,6 +70,7 @@ const ClientRegisterPage = () => {
 
     const onSubmit = (data: FormValues) => {
         dispatch(setUserInfo(data));
+
         navigate("/selection");
     };
 
