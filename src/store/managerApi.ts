@@ -21,7 +21,7 @@ export const managerApi = createApi({
             query: () => ({
                 url: `Manager/recordListByManager`,
                 params: {
-                    managerId: 3,
+                    managerId: 6,
                     "api-version": "1",
                 },
             }),
@@ -78,6 +78,14 @@ export const managerApi = createApi({
                 },
             }),
         }),
+
+        getServiceById: builder.query<any, number>({
+            query: (serviceId) => ({
+                url: `Service/${serviceId}`,
+                params: { "api-version": "1" },
+            }),
+        }),
+
         createReview: builder.mutation<
             any,
             { recordId: number; rating: number; content: string }
@@ -103,4 +111,5 @@ export const {
     useGetClientRecordByIdQuery,
     useUpdateQueueItemMutation,
     useCreateReviewMutation,
+    useGetServiceByIdQuery,
 } = managerApi;

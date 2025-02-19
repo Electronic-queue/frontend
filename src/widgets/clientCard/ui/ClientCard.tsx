@@ -137,7 +137,7 @@ const ClientCard: FC<ClientCardProps> = ({
                             {t("i18n_queue.serviceTime")}:
                         </Typography>
                         <Typography variant="h6" color="text">
-                            {serviceTime}
+                            {serviceTime} минут
                         </Typography>
                     </Box>
                 </TimeWrapper>

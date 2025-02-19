@@ -1,4 +1,4 @@
-import { FC, useContext, useState } from "react";
+import { FC, useState } from "react";
 import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
 import { styled } from "@mui/material/styles";
@@ -11,7 +11,10 @@ import ReusableModal from "src/components/ModalPage";
 import theme from "src/styles/theme";
 import SelectTime from "src/widgets/selectTiem/ui/SelectTime";
 import Timer from "src/widgets/timer/ui/Timer";
-// import { useGetRecordListByManagerQuery } from "src/store/managerApi";
+import {
+    useGetRecordListByManagerQuery,
+    useGetServiceByIdQuery,
+} from "src/store/managerApi";
 import useQueueData from "src/hooks/useQueueData";
 
 const ButtonWrapper = styled(Box)(({ theme }) => ({
@@ -30,32 +33,51 @@ const StatusCardWrapper = styled(Stack)(({ theme }) => ({
     marginBottom: theme.spacing(6),
 }));
 
-const clientData = {
-    clientNumber: "A21",
-    lastName: "Каримов",
-    firstName: "Айдархан",
-    patronymic: "Нурсултанович",
-    service: "Услуга 2",
-    iin: "070501060888",
-};
-
-const handleRedirect = () => {
-    alert("Клиент перенаправлен");
-};
-
-const handleAccept = () => {
-    alert("Клиент принят");
-};
-
-const serviceTime = "03:00";
-
 const QueuePage: FC = () => {
     const { t } = useTranslation();
     const [selectedTime, setSelectedTime] = useState<number>(1);
     const [isPauseModalOpen, setIsPauseModalOpen] = useState(false);
     const [isTimerModalOpen, setIsTimerModalOpen] = useState(false);
 
-    // const { data, error, isLoading } = useGetRecordListByManagerQuery();
+    const { data, error, isLoading } = useGetRecordListByManagerQuery();
+
+    const firstClient = data?.length ? data[0] : null;
+    const serviceId = firstClient?.serviceId;
+
+    const {
+        data: serviceData,
+        error: serviceError,
+        isLoading: isServiceLoading,
+    } = useGetServiceByIdQuery(serviceId ?? 0, {
+        skip: !serviceId,
+    });
+
+    const serviceName = isServiceLoading
+        ? "Загрузка услуги..."
+        : serviceError
+          ? "Ошибка загрузки услуги"
+          : serviceData?.value?.nameRu || "Неизвестная услуга";
+
+    const clientData = firstClient
+        ? {
+              clientNumber: `${firstClient.recordId}`,
+              lastName: firstClient.lastName,
+              firstName: firstClient.firstName,
+              patronymic: firstClient.surname || "",
+              service: serviceName,
+              iin: firstClient.iin,
+          }
+        : null;
+
+    const serviceTime = serviceData?.value?.averageExecutionTime;
+
+    const handleRedirect = () => {
+        alert("Клиент перенаправлен");
+    };
+
+    const handleAccept = () => {
+        alert("Клиент принят");
+    };
 
     const handlePauseModalOpen = () => setIsPauseModalOpen(true);
     const handlePauseModalClose = () => setIsPauseModalOpen(false);
@@ -69,6 +91,7 @@ const QueuePage: FC = () => {
         setSelectedTime(time);
         alert(`Выбранное время: ${time}`);
     };
+
     const queueData = useQueueData();
 
     return (
@@ -90,12 +113,20 @@ const QueuePage: FC = () => {
                 <StatusCard variant="in_anticipation" number={8} />
             </StatusCardWrapper>
 
-            <ClientCard
-                clientData={clientData}
-                serviceTime={serviceTime}
-                onRedirect={handleRedirect}
-                onAccept={handleAccept}
-            />
+            {isLoading ? (
+                <p>Загрузка...</p>
+            ) : error ? (
+                <p>Ошибка загрузки данных</p>
+            ) : firstClient ? (
+                <ClientCard
+                    clientData={clientData!}
+                    serviceTime={serviceTime}
+                    onRedirect={handleRedirect}
+                    onAccept={handleAccept}
+                />
+            ) : (
+                <p>Нет данных</p>
+            )}
 
             <Box
                 sx={{
