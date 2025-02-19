@@ -1,6 +1,6 @@
 export interface QueueCardProps {
-    clientNumber: string;
+    clientNumber: number;
     service: string;
-    bookingTime: string;
-    expectedTime: string;
+    bookingTime?: string;
+    expectedTime?: string;
 }

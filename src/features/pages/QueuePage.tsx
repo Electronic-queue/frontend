@@ -39,9 +39,13 @@ const QueuePage: FC = () => {
     const [isPauseModalOpen, setIsPauseModalOpen] = useState(false);
     const [isTimerModalOpen, setIsTimerModalOpen] = useState(false);
 
-    const { data, error, isLoading } = useGetRecordListByManagerQuery();
+    const {
+        data: listOfClientsData,
+        error,
+        isLoading,
+    } = useGetRecordListByManagerQuery();
 
-    const firstClient = data?.length ? data[0] : null;
+    const firstClient = listOfClientsData?.length ? listOfClientsData[0] : null;
     const serviceId = firstClient?.serviceId;
 
     const {
@@ -92,8 +96,6 @@ const QueuePage: FC = () => {
         alert(`Выбранное время: ${time}`);
     };
 
-    const queueData = useQueueData();
-
     return (
         <>
             <ButtonWrapper>
@@ -127,7 +129,6 @@ const QueuePage: FC = () => {
             ) : (
                 <p>Нет данных</p>
             )}
-
             <Box
                 sx={{
                     display: "flex",
@@ -135,18 +136,31 @@ const QueuePage: FC = () => {
                     paddingBottom: theme.spacing(3),
                 }}
             >
-                {queueData.length > 0 ? (
-                    queueData.map((item, index) => (
-                        <QueueCard
-                            key={index}
-                            clientNumber={item.clientNumber}
-                            service={item.service}
-                            bookingTime={item.bookingTime}
-                            expectedTime={item.expectedTime}
-                        />
-                    ))
+                {Array.isArray(listOfClientsData) &&
+                listOfClientsData.length > 1 ? (
+                    listOfClientsData.slice(1, 5).map((item) => {
+                        const { data: serviceData } = useGetServiceByIdQuery(
+                            item.serviceId,
+                            {
+                                skip: !item.serviceId,
+                            }
+                        );
+
+                        const serviceName =
+                            serviceData?.value?.nameRu || "Неизвестная услуга";
+
+                        return (
+                            <QueueCard
+                                key={item.recordId}
+                                clientNumber={item.recordId}
+                                service={serviceName}
+                                // bookingTime={item.bookingTime || "Нет данных"}
+                                // expectedTime={item.expectedTime || "Нет данных"}
+                            />
+                        );
+                    })
                 ) : (
-                    <p>Загрузка...</p>
+                    <p>Нет данных</p>
                 )}
             </Box>
 
