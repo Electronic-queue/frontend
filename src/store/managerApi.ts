@@ -97,6 +97,27 @@ export const managerApi = createApi({
             }),
         }),
 
+        callNext: builder.mutation<any, { managerId: number }>({
+            query: ({ managerId }) => ({
+                url: `Manager/callnext`,
+                method: "POST",
+                params: {
+                    managerId,
+                    "api-version": "1",
+                },
+            }),
+        }),
+        completeClient: builder.mutation<any, { managerId: number }>({
+            query: ({ managerId }) => ({
+                url: `Manager/completeclient`,
+                method: "POST",
+                params: {
+                    managerId,
+                    "api-version": "1",
+                },
+            }),
+        }),
+
         createReview: builder.mutation<
             any,
             { recordId: number; rating: number; content: string }
@@ -124,4 +145,6 @@ export const {
     useCreateReviewMutation,
     useGetServiceByIdQuery,
     useAcceptClientMutation,
+    useCallNextMutation,
+    useCompleteClientMutation,
 } = managerApi;

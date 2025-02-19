@@ -12,6 +12,8 @@ export interface ClientCardProps {
     serviceTime: string;
     onRedirect: () => void;
     onAccept: () => void;
+    onComplete: () => void;
+    callNext: () => void;
 }
 
 export interface ServiceData {

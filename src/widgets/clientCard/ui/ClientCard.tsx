@@ -64,8 +64,9 @@ const handleSend = (row: any) => {};
 const ClientCard: FC<ClientCardProps> = ({
     clientData,
     serviceTime,
-
     onAccept,
+    onComplete,
+    callNext,
 }) => {
     const { t } = useTranslation();
     const [isOpen, setIsOpen] = useState(false);
@@ -193,6 +194,20 @@ const ClientCard: FC<ClientCardProps> = ({
                         onClick={onAccept}
                     >
                         {t("i18n_queue.accept")}
+                    </CustomButton>
+                    <CustomButton
+                        variantType="primary"
+                        sizeType="small"
+                        onClick={onComplete}
+                    >
+                        Завершить
+                    </CustomButton>
+                    <CustomButton
+                        variantType="primary"
+                        sizeType="small"
+                        onClick={callNext}
+                    >
+                        Начать очередь
                     </CustomButton>
                 </Box>
             </ActionPanel>

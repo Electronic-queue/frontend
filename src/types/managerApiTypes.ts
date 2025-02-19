@@ -1,4 +1,7 @@
 export interface ManagerRecord {
+    createdOn: string;
+    expectedAcceptanceTime: string | undefined;
+    serviceNameRu: string;
     recordId: number;
     firstName: string;
     lastName: string;

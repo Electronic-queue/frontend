@@ -1,4 +1,4 @@
-import { FC, useState, useEffect } from "react";
+import { FC, useState } from "react";
 import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
 import { styled } from "@mui/material/styles";
@@ -12,6 +12,9 @@ import theme from "src/styles/theme";
 import SelectTime from "src/widgets/selectTiem/ui/SelectTime";
 import Timer from "src/widgets/timer/ui/Timer";
 import {
+    useAcceptClientMutation,
+    useCallNextMutation,
+    useCompleteClientMutation,
     useGetRecordListByManagerQuery,
     useGetServiceByIdQuery,
 } from "src/store/managerApi";
@@ -37,25 +40,48 @@ const QueuePage: FC = () => {
     const [selectedTime, setSelectedTime] = useState<number>(1);
     const [isPauseModalOpen, setIsPauseModalOpen] = useState(false);
     const [isTimerModalOpen, setIsTimerModalOpen] = useState(false);
-    const [servicesMap, setServicesMap] = useState<Map<number, string>>(
-        new Map()
-    );
-
+    const [acceptClient] = useAcceptClientMutation();
+    const [callNext] = useCallNextMutation();
+    const [completeClient] = useCompleteClientMutation();
     const {
         data: listOfClientsData,
-        error,
-        isLoading,
+        error: listOfClientsError,
+        isLoading: isListOfClientsLoading,
     } = useGetRecordListByManagerQuery();
+
     const firstClient = listOfClientsData?.[0] || null;
     const serviceId = firstClient?.serviceId;
 
-    // Запрос первой услуги (основного клиента)
     const {
         data: serviceData,
         error: serviceError,
         isLoading: isServiceLoading,
     } = useGetServiceByIdQuery(serviceId ?? 0, { skip: !serviceId });
+    const handleAcceptClient = async () => {
+        try {
+            await acceptClient({ managerId: 6 }).unwrap();
+            alert("Клиент принят!");
+        } catch (err) {
+            console.error("Ошибка принятия клиента:", err);
+        }
+    };
+    const handleCallNextClient = async () => {
+        try {
+            await callNext({ managerId: 6 }).unwrap();
+            alert("Первый клиент принят!");
+        } catch (err) {
+            console.error("Ошибка принятия клиента:", err);
+        }
+    };
 
+    const handleСompleteClient = async () => {
+        try {
+            await completeClient({ managerId: 6 }).unwrap();
+            alert(" Услуга завершена!");
+        } catch (err) {
+            console.error("Ошибка заверщение клиента:", err);
+        }
+    };
     const serviceName = isServiceLoading
         ? "Загрузка услуги..."
         : serviceError
@@ -76,7 +102,6 @@ const QueuePage: FC = () => {
     const serviceTime = serviceData?.value?.averageExecutionTime;
 
     const handleRedirect = () => alert("Клиент перенаправлен");
-    const handleAccept = () => alert("Клиент принят");
 
     const handlePauseModalOpen = () => setIsPauseModalOpen(true);
     const handlePauseModalClose = () => setIsPauseModalOpen(false);
@@ -110,16 +135,18 @@ const QueuePage: FC = () => {
                 <StatusCard variant="in_anticipation" number={8} />
             </StatusCardWrapper>
 
-            {isLoading ? (
+            {isListOfClientsLoading ? (
                 <p>Загрузка...</p>
-            ) : error ? (
+            ) : listOfClientsError ? (
                 <p>Ошибка загрузки данных</p>
             ) : firstClient ? (
                 <ClientCard
                     clientData={clientData!}
                     serviceTime={serviceTime}
                     onRedirect={handleRedirect}
-                    onAccept={handleAccept}
+                    onAccept={handleAcceptClient}
+                    callNext={handleCallNextClient}
+                    onComplete={handleСompleteClient}
                 />
             ) : (
                 <p>Нет данных</p>
