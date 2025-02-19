@@ -47,7 +47,9 @@ const QueuePage: FC = () => {
         data: listOfClientsData,
         error: listOfClientsError,
         isLoading: isListOfClientsLoading,
+        refetch: refetchClients,
     } = useGetRecordListByManagerQuery();
+    console.log(listOfClientsData);
 
     const firstClient = listOfClientsData?.[0] || null;
     const serviceId = firstClient?.serviceId;
@@ -61,6 +63,7 @@ const QueuePage: FC = () => {
         try {
             await acceptClient({ managerId: 6 }).unwrap();
             alert("Клиент принят!");
+            refetchClients();
         } catch (err) {
             console.error("Ошибка принятия клиента:", err);
         }
@@ -69,6 +72,7 @@ const QueuePage: FC = () => {
         try {
             await callNext({ managerId: 6 }).unwrap();
             alert("Первый клиент принят!");
+            refetchClients();
         } catch (err) {
             console.error("Ошибка принятия клиента:", err);
         }
@@ -78,6 +82,7 @@ const QueuePage: FC = () => {
         try {
             await completeClient({ managerId: 6 }).unwrap();
             alert(" Услуга завершена!");
+            refetchClients();
         } catch (err) {
             console.error("Ошибка заверщение клиента:", err);
         }
