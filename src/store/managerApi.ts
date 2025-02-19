@@ -86,6 +86,17 @@ export const managerApi = createApi({
             }),
         }),
 
+        acceptClient: builder.mutation<any, { managerId: number }>({
+            query: ({ managerId }) => ({
+                url: `Manager/acceptclient`,
+                method: "POST",
+                params: {
+                    managerId,
+                    "api-version": "1",
+                },
+            }),
+        }),
+
         createReview: builder.mutation<
             any,
             { recordId: number; rating: number; content: string }
@@ -112,4 +123,5 @@ export const {
     useUpdateQueueItemMutation,
     useCreateReviewMutation,
     useGetServiceByIdQuery,
+    useAcceptClientMutation,
 } = managerApi;

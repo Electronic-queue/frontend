@@ -1,4 +1,4 @@
-import { FC, useState } from "react";
+import { FC, useState, useEffect } from "react";
 import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
 import { styled } from "@mui/material/styles";
@@ -15,7 +15,6 @@ import {
     useGetRecordListByManagerQuery,
     useGetServiceByIdQuery,
 } from "src/store/managerApi";
-import useQueueData from "src/hooks/useQueueData";
 
 const ButtonWrapper = styled(Box)(({ theme }) => ({
     marginBottom: theme.spacing(3),
@@ -38,23 +37,24 @@ const QueuePage: FC = () => {
     const [selectedTime, setSelectedTime] = useState<number>(1);
     const [isPauseModalOpen, setIsPauseModalOpen] = useState(false);
     const [isTimerModalOpen, setIsTimerModalOpen] = useState(false);
+    const [servicesMap, setServicesMap] = useState<Map<number, string>>(
+        new Map()
+    );
 
     const {
         data: listOfClientsData,
         error,
         isLoading,
     } = useGetRecordListByManagerQuery();
-
-    const firstClient = listOfClientsData?.length ? listOfClientsData[0] : null;
+    const firstClient = listOfClientsData?.[0] || null;
     const serviceId = firstClient?.serviceId;
 
+    // Запрос первой услуги (основного клиента)
     const {
         data: serviceData,
         error: serviceError,
         isLoading: isServiceLoading,
-    } = useGetServiceByIdQuery(serviceId ?? 0, {
-        skip: !serviceId,
-    });
+    } = useGetServiceByIdQuery(serviceId ?? 0, { skip: !serviceId });
 
     const serviceName = isServiceLoading
         ? "Загрузка услуги..."
@@ -75,13 +75,8 @@ const QueuePage: FC = () => {
 
     const serviceTime = serviceData?.value?.averageExecutionTime;
 
-    const handleRedirect = () => {
-        alert("Клиент перенаправлен");
-    };
-
-    const handleAccept = () => {
-        alert("Клиент принят");
-    };
+    const handleRedirect = () => alert("Клиент перенаправлен");
+    const handleAccept = () => alert("Клиент принят");
 
     const handlePauseModalOpen = () => setIsPauseModalOpen(true);
     const handlePauseModalClose = () => setIsPauseModalOpen(false);
@@ -129,6 +124,7 @@ const QueuePage: FC = () => {
             ) : (
                 <p>Нет данных</p>
             )}
+
             <Box
                 sx={{
                     display: "flex",
@@ -138,27 +134,20 @@ const QueuePage: FC = () => {
             >
                 {Array.isArray(listOfClientsData) &&
                 listOfClientsData.length > 1 ? (
-                    listOfClientsData.slice(1, 5).map((item) => {
-                        const { data: serviceData } = useGetServiceByIdQuery(
-                            item.serviceId,
-                            {
-                                skip: !item.serviceId,
-                            }
-                        );
-
-                        const serviceName =
-                            serviceData?.value?.nameRu || "Неизвестная услуга";
-
-                        return (
-                            <QueueCard
-                                key={item.recordId}
-                                clientNumber={item.recordId}
-                                service={serviceName}
-                                // bookingTime={item.bookingTime || "Нет данных"}
-                                // expectedTime={item.expectedTime || "Нет данных"}
-                            />
-                        );
-                    })
+                    listOfClientsData.slice(1, 5).map((item) => (
+                        <QueueCard
+                            key={item.recordId}
+                            clientNumber={item.recordId}
+                            service={item.serviceNameRu}
+                            bookingTime={new Date(
+                                item.createdOn ?? ""
+                            ).toLocaleTimeString([], {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                            })}
+                            expectedTime={item.expectedAcceptanceTime}
+                        />
+                    ))
                 ) : (
                     <p>Нет данных</p>
                 )}
