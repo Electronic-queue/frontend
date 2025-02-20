@@ -1,4 +1,4 @@
-import { FC, useState } from "react";
+import { FC, useState, useEffect } from "react";
 import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
 import { styled } from "@mui/material/styles";
@@ -61,8 +61,15 @@ const QueuePage: FC = () => {
         refetch: refetchClients,
     } = useGetRecordListByManagerQuery();
 
-    console.log("Список клиентов:", listOfClientsData);
-    console.log("Ошибка запроса:", listOfClientsError);
+    useEffect(() => {
+        if (listOfClientsData.length === 0) {
+            const interval = setInterval(() => {
+                refetchClients();
+            }, 30000);
+
+            return () => clearInterval(interval);
+        }
+    }, [listOfClientsData, refetchClients]);
 
     const firstClient = listOfClientsData?.[0] || null;
     const serviceId = firstClient?.serviceId;
@@ -118,11 +125,8 @@ const QueuePage: FC = () => {
               iin: firstClient.iin,
           }
         : null;
-
     const serviceTime = serviceData?.value?.averageExecutionTime;
-
     const handleRedirect = () => alert("Клиент перенаправлен");
-
     const handlePauseModalOpen = () => setIsPauseModalOpen(true);
     const handlePauseModalClose = () => setIsPauseModalOpen(false);
     const handleTimerModalOpen = () => {
