@@ -43,13 +43,17 @@ const QueuePage: FC = () => {
     const [acceptClient] = useAcceptClientMutation();
     const [callNext] = useCallNextMutation();
     const [completeClient] = useCompleteClientMutation();
+    const managerId: number = 6;
+
     const {
-        data: listOfClientsData,
+        data: listOfClientsData = [], // Гарантируем, что data всегда массив
         error: listOfClientsError,
         isLoading: isListOfClientsLoading,
         refetch: refetchClients,
     } = useGetRecordListByManagerQuery();
-    console.log(listOfClientsData);
+
+    console.log("Список клиентов:", listOfClientsData);
+    console.log("Ошибка запроса:", listOfClientsError);
 
     const firstClient = listOfClientsData?.[0] || null;
     const serviceId = firstClient?.serviceId;
@@ -59,17 +63,19 @@ const QueuePage: FC = () => {
         error: serviceError,
         isLoading: isServiceLoading,
     } = useGetServiceByIdQuery(serviceId ?? 0, { skip: !serviceId });
+
     const handleAcceptClient = async () => {
         try {
-            await acceptClient({ managerId: 6 }).unwrap();
+            await acceptClient({ managerId }).unwrap();
             alert("Клиент принят!");
         } catch (err) {
             console.error("Ошибка принятия клиента:", err);
         }
     };
+
     const handleCallNextClient = async () => {
         try {
-            await callNext({ managerId: 6 }).unwrap();
+            await callNext({ managerId }).unwrap();
             alert("Первый клиент принят!");
             refetchClients();
         } catch (err) {
@@ -79,13 +85,14 @@ const QueuePage: FC = () => {
 
     const handleСompleteClient = async () => {
         try {
-            await completeClient({ managerId: 6 }).unwrap();
+            await completeClient({ managerId }).unwrap();
             alert(" Услуга завершена!");
             refetchClients();
         } catch (err) {
-            console.error("Ошибка заверщение клиента:", err);
+            console.error("Ошибка завершения клиента:", err);
         }
     };
+
     const serviceName = isServiceLoading
         ? "Загрузка услуги..."
         : serviceError
@@ -119,14 +126,13 @@ const QueuePage: FC = () => {
         setSelectedTime(time);
         alert(`Выбранное время: ${time}`);
     };
-
     return (
         <>
             <ButtonWrapper>
                 <CustomButton
                     variantType="primary"
                     sizeType="medium"
-                    onClick={handlePauseModalOpen}
+                    onClick={() => setIsPauseModalOpen(true)}
                 >
                     {t("i18n_queue.pause")}
                 </CustomButton>
@@ -142,7 +148,12 @@ const QueuePage: FC = () => {
             {isListOfClientsLoading ? (
                 <p>Загрузка...</p>
             ) : listOfClientsError ? (
-                <p>Ошибка загрузки данных</p>
+                <p>
+                    {"status" in listOfClientsError &&
+                    listOfClientsError.status === 404
+                        ? "Данных не найдено. Возможно, в очереди нет клиентов."
+                        : "Ошибка загрузки данных"}
+                </p>
             ) : firstClient ? (
                 <ClientCard
                     clientData={clientData!}
@@ -153,7 +164,7 @@ const QueuePage: FC = () => {
                     onComplete={handleСompleteClient}
                 />
             ) : (
-                <p>Нет данных</p>
+                <p>Очередь пуста</p>
             )}
 
             <Box
@@ -186,19 +197,24 @@ const QueuePage: FC = () => {
 
             <ReusableModal
                 open={isPauseModalOpen}
-                onClose={handlePauseModalClose}
+                onClose={() => setIsPauseModalOpen(false)}
                 title="Остановка окна"
                 width={theme.spacing(99)}
                 showCloseButton={false}
             >
                 <Box sx={{ display: "flex", justifyContent: "center" }}>
-                    <SelectTime onTimeSelect={handleTimeSelect} />
+                    <SelectTime
+                        onTimeSelect={(time) => setSelectedTime(time)}
+                    />
                 </Box>
                 <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
                     <CustomButton
                         variantType="primary"
                         sizeType="medium"
-                        onClick={handleTimerModalOpen}
+                        onClick={() => {
+                            setIsPauseModalOpen(false);
+                            setIsTimerModalOpen(true);
+                        }}
                     >
                         Поставить окно на паузу
                     </CustomButton>
@@ -207,7 +223,7 @@ const QueuePage: FC = () => {
 
             <ReusableModal
                 open={isTimerModalOpen}
-                onClose={handleTimerModalClose}
+                onClose={() => setIsTimerModalOpen(false)}
                 title="Окно на паузе"
                 width={theme.spacing(99)}
                 showCloseButton={false}
@@ -215,7 +231,7 @@ const QueuePage: FC = () => {
             >
                 <Timer
                     initialTime={selectedTime}
-                    onResume={handleTimerModalClose}
+                    onResume={() => setIsTimerModalOpen(false)}
                 />
             </ReusableModal>
         </>
