@@ -35,6 +35,15 @@ const StatusCardWrapper = styled(Stack)(({ theme }) => ({
     marginBottom: theme.spacing(6),
 }));
 
+const clientData1 = {
+    clientNumber: "-",
+    lastName: "-",
+    firstName: "-",
+    patronymic: "-",
+    service: "-",
+    iin: "-",
+};
+const serviceTime1 = "0";
 const QueuePage: FC = () => {
     const { t } = useTranslation();
     const [selectedTime, setSelectedTime] = useState<number>(1);
@@ -46,7 +55,7 @@ const QueuePage: FC = () => {
     const managerId: number = 6;
 
     const {
-        data: listOfClientsData = [], // Гарантируем, что data всегда массив
+        data: listOfClientsData = [],
         error: listOfClientsError,
         isLoading: isListOfClientsLoading,
         refetch: refetchClients,
@@ -150,9 +159,18 @@ const QueuePage: FC = () => {
             ) : listOfClientsError ? (
                 <p>
                     {"status" in listOfClientsError &&
-                    listOfClientsError.status === 404
-                        ? "Данных не найдено. Возможно, в очереди нет клиентов."
-                        : "Ошибка загрузки данных"}
+                    listOfClientsError.status === 404 ? (
+                        <ClientCard
+                            clientData={clientData1}
+                            serviceTime={serviceTime1}
+                            onRedirect={handleRedirect}
+                            onAccept={handleAcceptClient}
+                            callNext={handleCallNextClient}
+                            onComplete={handleСompleteClient}
+                        />
+                    ) : (
+                        "Ошибка загрузки данных"
+                    )}
                 </p>
             ) : firstClient ? (
                 <ClientCard
@@ -164,7 +182,14 @@ const QueuePage: FC = () => {
                     onComplete={handleСompleteClient}
                 />
             ) : (
-                <p>Очередь пуста</p>
+                <ClientCard
+                    clientData={clientData1}
+                    serviceTime={serviceTime}
+                    onRedirect={handleRedirect}
+                    onAccept={handleAcceptClient}
+                    callNext={handleCallNextClient}
+                    onComplete={handleСompleteClient}
+                />
             )}
 
             <Box
