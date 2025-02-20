@@ -76,6 +76,12 @@
         "mobileOnly": "This page is only accessible via phone",
         "reviewSubmitted": "Review successfully submitted!",
         "reviewError": "An error occurred while submitting the review!",
-        "complete": "Complete"
+        "complete": "Complete",
+        "minut": "Minuts",
+        "searchServicePlaceholder": "Search for service...",
+        "redirectService": "Redirect service",
+        "serviceName": "Service name",
+        "details": "Details",
+        "callNext": "Call next"
     }
 }

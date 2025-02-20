@@ -75,6 +75,12 @@
         "mobileOnly": "Эта страница доступна только через телефон",
         "reviewSubmitted": "Отзыв успешно отправлен!",
         "reviewError": "Произошла ошибка при отправке отзыва!",
-        "complete": "Завершить"
+        "complete": "Завершить",
+        "minut": "Минут",
+        "searchServicePlaceholder": "Поиск услуги...",
+        "redirectService": "Перенаправление услуги",
+        "serviceName": "Название услуги",
+        "details": "Детали",
+        "callNext": "Вызвать следующего"
     }
 }

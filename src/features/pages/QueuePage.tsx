@@ -84,9 +84,7 @@ const QueuePage: FC = () => {
         try {
             await acceptClient({ managerId }).unwrap();
             alert("Клиент принят!");
-        } catch (err) {
-            console.error("Ошибка принятия клиента:", err);
-        }
+        } catch (err) {}
     };
 
     const handleCallNextClient = async () => {
@@ -94,9 +92,7 @@ const QueuePage: FC = () => {
             await callNext({ managerId }).unwrap();
             alert("Первый клиент принят!");
             refetchClients();
-        } catch (err) {
-            console.error("Ошибка принятия клиента:", err);
-        }
+        } catch (err) {}
     };
 
     const handleСompleteClient = async () => {
@@ -104,9 +100,7 @@ const QueuePage: FC = () => {
             await completeClient({ managerId }).unwrap();
             alert(" Услуга завершена!");
             refetchClients();
-        } catch (err) {
-            console.error("Ошибка завершения клиента:", err);
-        }
+        } catch (err) {}
     };
 
     const serviceName = isServiceLoading
@@ -137,7 +131,6 @@ const QueuePage: FC = () => {
 
     const handleTimeSelect = (time: number) => {
         setSelectedTime(time);
-        alert(`Выбранное время: ${time}`);
     };
     return (
         <>

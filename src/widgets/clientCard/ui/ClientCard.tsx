@@ -35,30 +35,6 @@ const ValueText = styled(Typography)(({ theme }) => ({
     textAlign: "left",
 }));
 
-const columns = [
-    {
-        accessorKey: "id",
-        header: "№",
-    },
-    {
-        accessorKey: "service",
-        header: "Название услуги",
-    },
-    {
-        accessorKey: "details",
-        header: "Детали",
-        cell: ({ row }: { row: any }) => (
-            <CustomButton
-                variantType="primary"
-                sizeType="small"
-                onClick={() => handleSend(row.original)}
-            >
-                Отправить
-            </CustomButton>
-        ),
-    },
-];
-
 const handleSend = (row: any) => {};
 
 const ClientCard: FC<ClientCardProps> = ({
@@ -96,6 +72,29 @@ const ClientCard: FC<ClientCardProps> = ({
 
         handleClose();
     };
+    const columns = [
+        {
+            accessorKey: "id",
+            header: "№",
+        },
+        {
+            accessorKey: "service",
+            header: `${t("i18n_queue.serviceName")}`,
+        },
+        {
+            accessorKey: "details",
+            header: `${t("i18n_queue.details")}`,
+            cell: ({ row }: { row: any }) => (
+                <CustomButton
+                    variantType="primary"
+                    sizeType="small"
+                    onClick={() => handleSend(row.original)}
+                >
+                    {t("i18n_queue.submit")}
+                </CustomButton>
+            ),
+        },
+    ];
 
     return (
         <CardContainer>
@@ -138,7 +137,7 @@ const ClientCard: FC<ClientCardProps> = ({
                             {t("i18n_queue.serviceTime")}:
                         </Typography>
                         <Typography variant="h6" color="text">
-                            {serviceTime} минут
+                            {serviceTime} {t("i18n_queue.minut")}
                         </Typography>
                     </Box>
                 </TimeWrapper>
@@ -154,7 +153,7 @@ const ClientCard: FC<ClientCardProps> = ({
                     <ReusableModal
                         open={isOpen}
                         onClose={handleClose}
-                        title="Перенаправление услуги"
+                        title={t("i18n_queue.redirectService")}
                         width={theme.spacing(99)}
                         showCloseButton={false}
                     >
@@ -166,7 +165,9 @@ const ClientCard: FC<ClientCardProps> = ({
                             }}
                         >
                             <CustomSearchInput
-                                placeholder="Поиск услуги..."
+                                placeholder={t(
+                                    "i18n_queue.searchServicePlaceholder"
+                                )}
                                 icon={
                                     <SearchIcon style={{ color: "#667085" }} />
                                 }
@@ -200,14 +201,14 @@ const ClientCard: FC<ClientCardProps> = ({
                         sizeType="small"
                         onClick={onComplete}
                     >
-                        Завершить
+                        {t("i18n_queue.complete")}
                     </CustomButton>
                     <CustomButton
                         variantType="primary"
                         sizeType="small"
                         onClick={callNext}
                     >
-                        Начать очередь
+                        {t("i18n_queue.callNext")}
                     </CustomButton>
                 </Box>
             </ActionPanel>
