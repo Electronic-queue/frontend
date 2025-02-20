@@ -63,7 +63,6 @@ const QueuePage: FC = () => {
         try {
             await acceptClient({ managerId: 6 }).unwrap();
             alert("Клиент принят!");
-            refetchClients();
         } catch (err) {
             console.error("Ошибка принятия клиента:", err);
         }
