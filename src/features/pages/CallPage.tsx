@@ -122,7 +122,7 @@ const CallPage = () => {
                 navigate("/progress");
             }
         });
-        connection.on("RecieveAcceptRecord", (recordAccept) => {
+        connection.on("RecieveUpdateRecord", (recordAccept) => {
             if (recordAccept.recordId === recordId) {
                 navigate("/progress");
             }
