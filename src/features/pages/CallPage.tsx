@@ -7,7 +7,6 @@ import { useTranslation } from "react-i18next";
 import { SULogoM } from "src/assets";
 import CustomButton from "src/components/Button";
 import ReusableModal from "src/components/ModalPage";
-import mockData from "src/components/mock/MockWaitingData.json";
 import theme from "src/styles/theme";
 import { useNavigate } from "react-router-dom";
 import connection, { startSignalR } from "src/features/signalR";
