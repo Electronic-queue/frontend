@@ -1,9 +1,9 @@
 import { FC, useEffect, useState } from "react";
-import React from "react"; // Для использования React.memo
 import Button, { ButtonProps } from "@mui/material/Button";
 import Stack from "@mui/material/Stack";
 import i18n from "../i18n";
 import { styled } from "@mui/material/styles";
+import React from "react";
 
 const languages = [
     { code: "en", label: "EN" },
@@ -12,30 +12,31 @@ const languages = [
 ];
 
 const SwitcherBox = styled(Stack)(({ theme }) => ({
-    display: "flex",
     flexDirection: "row",
-    gap: theme.spacing(0.2),
-    width: theme.spacing(15),
+    gap: theme.spacing(0.5),
+    width: "fit-content",
     alignItems: "center",
     backgroundColor: theme.palette.gray.main,
     borderRadius: theme.shape.borderRadius * 4,
-    paddingLeft: theme.spacing(0.5),
+    padding: theme.spacing(1, 2),
 }));
 
 const SwitcherButton = styled(
     ({ isActive, ...rest }: { isActive: boolean } & ButtonProps) => (
-        <Button {...rest} />
+        <Button {...rest} data-active={isActive} />
     )
 )(({ theme, isActive }) => ({
     minWidth: 10,
     height: "35px",
     width: "35px",
-    borderRadius: theme.shape.borderRadius * 4,
+    borderRadius: theme.shape.borderRadius * 3,
     border: "none",
     color: isActive ? "white" : theme.palette.text.primary,
     fontSize: theme.typography.body1.fontSize,
     fontWeight: "bold",
 }));
+
+const MemoizedSwitcherButton = React.memo(SwitcherButton);
 
 const LanguageSwitcher: FC = () => {
     const [currentLanguage, setCurrentLanguage] = useState<string>(
@@ -43,15 +44,9 @@ const LanguageSwitcher: FC = () => {
     );
 
     useEffect(() => {
-        const onLanguageChanged = (lng: string) => {
-            setCurrentLanguage(lng);
-        };
-
+        const onLanguageChanged = (lng: string) => setCurrentLanguage(lng);
         i18n.on("languageChanged", onLanguageChanged);
-
-        return () => {
-            i18n.off("languageChanged", onLanguageChanged);
-        };
+        return () => i18n.off("languageChanged", onLanguageChanged);
     }, []);
 
     const changeLanguage = (language: string) => {
@@ -61,7 +56,7 @@ const LanguageSwitcher: FC = () => {
     return (
         <SwitcherBox>
             {languages.map(({ code, label }) => (
-                <SwitcherButton
+                <MemoizedSwitcherButton
                     key={code}
                     variant={
                         currentLanguage === code ? "contained" : "outlined"
@@ -70,7 +65,7 @@ const LanguageSwitcher: FC = () => {
                     isActive={currentLanguage === code}
                 >
                     {label}
-                </SwitcherButton>
+                </MemoizedSwitcherButton>
             ))}
         </SwitcherBox>
     );
