@@ -43,6 +43,7 @@ const ClientCard: FC<ClientCardProps> = ({
     onAccept,
     onComplete,
     callNext,
+    status,
 }) => {
     const { t } = useTranslation();
     const [isOpen, setIsOpen] = useState(false);
@@ -143,73 +144,89 @@ const ClientCard: FC<ClientCardProps> = ({
                 </TimeWrapper>
 
                 <Box display="flex" gap={2}>
-                    <CustomButton
-                        variantType="primary"
-                        sizeType="small"
-                        onClick={handleModalOpen}
-                    >
-                        {t("i18n_queue.redirect")}
-                    </CustomButton>
-                    <ReusableModal
-                        open={isOpen}
-                        onClose={handleClose}
-                        title={t("i18n_queue.redirectService")}
-                        width={theme.spacing(99)}
-                        showCloseButton={false}
-                    >
-                        <Box
-                            sx={{
-                                display: "flex",
-                                flexDirection: "column",
-                                gap: theme.spacing(2),
-                            }}
+                    {status === "idle" && (
+                        <CustomButton
+                            variantType="primary"
+                            sizeType="small"
+                            onClick={callNext}
                         >
-                            <CustomSearchInput
-                                placeholder={t(
-                                    "i18n_queue.searchServicePlaceholder"
-                                )}
-                                icon={
-                                    <SearchIcon style={{ color: "#667085" }} />
-                                }
-                                value={searchValue}
-                                onChange={handleInputChange}
-                                width={theme.spacing(87)}
-                                height={theme.spacing(6)}
-                                borderColor={theme.palette.lightBlueGray.main}
-                                borderRadius={theme.shape.borderRadius}
-                                backgroundColor={theme.palette.lightGray.main}
-                                iconPosition="left"
-                            />
+                            {t("i18n_queue.callNext")}
+                        </CustomButton>
+                    )}
 
-                            <ReusableTable
-                                data={filteredData}
-                                columns={columns}
-                                pageSize={5}
-                                onRowClick={handleRowClick}
-                            />
-                        </Box>
-                    </ReusableModal>
-                    <CustomButton
-                        variantType="primary"
-                        sizeType="small"
-                        onClick={onAccept}
-                    >
-                        {t("i18n_queue.accept")}
-                    </CustomButton>
-                    <CustomButton
-                        variantType="primary"
-                        sizeType="small"
-                        onClick={onComplete}
-                    >
-                        {t("i18n_queue.complete")}
-                    </CustomButton>
-                    <CustomButton
-                        variantType="primary"
-                        sizeType="small"
-                        onClick={callNext}
-                    >
-                        {t("i18n_queue.callNext")}
-                    </CustomButton>
+                    {status === "called" && (
+                        <>
+                            <CustomButton
+                                variantType="primary"
+                                sizeType="small"
+                                onClick={handleModalOpen}
+                            >
+                                {t("i18n_queue.redirect")}
+                            </CustomButton>
+                            <ReusableModal
+                                open={isOpen}
+                                onClose={handleClose}
+                                title={t("i18n_queue.redirectService")}
+                                width={theme.spacing(99)}
+                                showCloseButton={false}
+                            >
+                                <Box
+                                    sx={{
+                                        display: "flex",
+                                        flexDirection: "column",
+                                        gap: theme.spacing(2),
+                                    }}
+                                >
+                                    <CustomSearchInput
+                                        placeholder={t(
+                                            "i18n_queue.searchServicePlaceholder"
+                                        )}
+                                        icon={
+                                            <SearchIcon
+                                                style={{ color: "#667085" }}
+                                            />
+                                        }
+                                        value={searchValue}
+                                        onChange={handleInputChange}
+                                        width={theme.spacing(87)}
+                                        height={theme.spacing(6)}
+                                        borderColor={
+                                            theme.palette.lightBlueGray.main
+                                        }
+                                        borderRadius={theme.shape.borderRadius}
+                                        backgroundColor={
+                                            theme.palette.lightGray.main
+                                        }
+                                        iconPosition="left"
+                                    />
+
+                                    <ReusableTable
+                                        data={filteredData}
+                                        columns={columns}
+                                        pageSize={5}
+                                        onRowClick={handleRowClick}
+                                    />
+                                </Box>
+                            </ReusableModal>
+                            <CustomButton
+                                variantType="primary"
+                                sizeType="small"
+                                onClick={onAccept}
+                            >
+                                {t("i18n_queue.accept")}
+                            </CustomButton>
+                        </>
+                    )}
+
+                    {status === "accepted" && (
+                        <CustomButton
+                            variantType="primary"
+                            sizeType="small"
+                            onClick={onComplete}
+                        >
+                            {t("i18n_queue.complete")}
+                        </CustomButton>
+                    )}
                 </Box>
             </ActionPanel>
         </CardContainer>

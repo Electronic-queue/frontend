@@ -52,6 +52,9 @@ const QueuePage: FC = () => {
     const [acceptClient] = useAcceptClientMutation();
     const [callNext] = useCallNextMutation();
     const [completeClient] = useCompleteClientMutation();
+    const [status, setStatus] = useState<"idle" | "called" | "accepted">(
+        "idle"
+    );
     const managerId: number = 6;
 
     const {
@@ -84,6 +87,7 @@ const QueuePage: FC = () => {
         try {
             await acceptClient({ managerId }).unwrap();
             alert("Клиент принят!");
+            setStatus("accepted");
         } catch (err) {}
     };
 
@@ -91,6 +95,7 @@ const QueuePage: FC = () => {
         try {
             await callNext({ managerId }).unwrap();
             alert("Первый клиент принят!");
+            setStatus("called");
             refetchClients();
         } catch (err) {}
     };
@@ -98,8 +103,12 @@ const QueuePage: FC = () => {
     const handleСompleteClient = async () => {
         try {
             await completeClient({ managerId }).unwrap();
-            alert(" Услуга завершена!");
             refetchClients();
+            if (listOfClientsData.length > 1) {
+                setStatus("called");
+            } else {
+                setStatus("idle");
+            }
         } catch (err) {}
     };
 
@@ -164,6 +173,7 @@ const QueuePage: FC = () => {
                             onAccept={handleAcceptClient}
                             callNext={handleCallNextClient}
                             onComplete={handleСompleteClient}
+                            status={status}
                         />
                     ) : (
                         "Ошибка загрузки данных"
@@ -177,6 +187,7 @@ const QueuePage: FC = () => {
                     onAccept={handleAcceptClient}
                     callNext={handleCallNextClient}
                     onComplete={handleСompleteClient}
+                    status={status} // Передаем статус
                 />
             ) : (
                 <ClientCard
@@ -186,6 +197,7 @@ const QueuePage: FC = () => {
                     onAccept={handleAcceptClient}
                     callNext={handleCallNextClient}
                     onComplete={handleСompleteClient}
+                    status={status}
                 />
             )}
 
