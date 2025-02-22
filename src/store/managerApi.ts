@@ -19,7 +19,7 @@ export const managerApi = createApi({
     endpoints: (builder) => ({
         getRecordListByManager: builder.query<ManagerRecord[], void>({
             query: () => ({
-                url: `Manager/recordListByManager`,
+                url: "Manager/recordListByManager",
                 params: {
                     managerId: 6,
                     "api-version": "1",
@@ -28,7 +28,7 @@ export const managerApi = createApi({
         }),
         getServiceList: builder.query<any, void>({
             query: () => ({
-                url: `Service`,
+                url: "Service",
                 params: {
                     "api-version": "1",
                 },
@@ -36,7 +36,7 @@ export const managerApi = createApi({
         }),
         createRecord: builder.mutation<any, Partial<ManagerRecord>>({
             query: (newRecord) => ({
-                url: `Record/create`,
+                url: "Record/create",
                 method: "POST",
                 params: {
                     "api-version": "1",
@@ -64,13 +64,13 @@ export const managerApi = createApi({
             void
         >({
             query: () => ({
-                url: `Record/getrecordidbytoken`,
+                url: "Record/getrecordidbytoken",
                 params: { "api-version": "1" },
             }),
         }),
         updateQueueItem: builder.mutation<any, { id: number }>({
             query: ({ id }) => ({
-                url: `QueueItem/update`,
+                url: "QueueItem/update",
                 method: "POST",
                 params: {
                     id,
@@ -88,7 +88,7 @@ export const managerApi = createApi({
 
         acceptClient: builder.mutation<any, { managerId: number }>({
             query: ({ managerId }) => ({
-                url: `Manager/acceptclient`,
+                url: "Manager/acceptclient",
                 method: "POST",
                 params: {
                     managerId,
@@ -99,7 +99,7 @@ export const managerApi = createApi({
 
         callNext: builder.mutation<any, { managerId: number }>({
             query: ({ managerId }) => ({
-                url: `Manager/callnext`,
+                url: "Manager/callnext",
                 method: "POST",
                 params: {
                     managerId,
@@ -109,7 +109,7 @@ export const managerApi = createApi({
         }),
         completeClient: builder.mutation<any, { managerId: number }>({
             query: ({ managerId }) => ({
-                url: `Manager/completeclient`,
+                url: "Manager/completeclient",
                 method: "POST",
                 params: {
                     managerId,
@@ -123,7 +123,7 @@ export const managerApi = createApi({
             { recordId: number; rating: number; content: string }
         >({
             query: (review) => ({
-                url: `Review/create`,
+                url: "Review/create",
                 method: "POST",
                 params: {
                     "api-version": "1",
