@@ -123,13 +123,13 @@ const Header: FC = () => {
                                 label: t("I18N_QUEUE_MANAGEMENT"),
                             }}
                         />
-                        <PageLinks
+                        {/* <PageLinks
                             onClick={() => navigate("/manager/reports")}
                             link={{
                                 to: "/manager/reports",
                                 label: t("I18N_STATISTICS"),
                             }}
-                        />
+                        /> */}
                     </LinksContainer>
                 </Stack>
             )}
@@ -156,7 +156,7 @@ const Header: FC = () => {
                         >
                             <MenuItem onClick={handleLogout}>
                                 <LogoutIcon sx={{ marginRight: 1 }} />
-                                {t("I18N_LOGOUT")}
+                                {t("i18n_queue.logOut")}
                             </MenuItem>
                         </Menu>
                     </>

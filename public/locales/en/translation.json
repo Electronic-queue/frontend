@@ -82,6 +82,7 @@
         "redirectService": "Redirect service",
         "serviceName": "Service name",
         "details": "Details",
-        "callNext": "Call next"
+        "callNext": "Call next",
+        "logOut": "Log out"
     }
 }

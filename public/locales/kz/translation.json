@@ -82,6 +82,7 @@
         "redirectService": "Қызметті қайта бағыттау",
         "serviceName": "Қызмет атауы",
         "details": "Мәліметтер",
-        "callNext": "Келесіні шақыру"
+        "callNext": "Келесіні шақыру",
+        "logOut": "Шығу"
     }
 }
