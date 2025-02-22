@@ -2,13 +2,13 @@ import { styled } from "@mui/material/styles";
 import { Box } from "@mui/material";
 
 export const CardContainer = styled(Box)(({ theme }) => ({
-    width: theme.spacing(140.5),
+    width: theme.spacing(141),
     display: "flex",
     justifyContent: "space-between",
     padding: theme.spacing(4),
     backgroundColor: theme.palette.background.paper,
     borderRadius: theme.shape.borderRadius,
-    boxShadow: theme.shadows[2],
+    boxShadow: theme.shadows[3],
 }));
 
 export const ClientDetails = styled(Box)(({ theme }) => ({
