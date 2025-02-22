@@ -222,14 +222,15 @@ const QueuePage: FC = () => {
                 onClose={() => setIsPauseModalOpen(false)}
                 title="Остановка окна"
                 width={theme.spacing(99)}
+                height={theme.spacing(29)}
                 showCloseButton={false}
             >
-                <Box sx={{ display: "flex", justifyContent: "center" }}>
-                    <SelectTime
-                        onTimeSelect={(time) => setSelectedTime(time)}
-                    />
-                </Box>
-                <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
+                <Box sx={{ display: "flex", justifyContent: "center", gap: 3 }}>
+                    <Box sx={{ display: "flex", justifyContent: "center" }}>
+                        <SelectTime
+                            onTimeSelect={(time) => setSelectedTime(time)}
+                        />
+                    </Box>
                     <CustomButton
                         variantType="primary"
                         sizeType="medium"
