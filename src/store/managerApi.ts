@@ -1,7 +1,7 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { RootState } from "src/store/store";
 import { ManagerRecord } from "src/types/managerApiTypes";
-import { apiBaseUrl } from "src/config/api.config";
+export const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
 
 export const managerApi = createApi({
     reducerPath: "managerApi",
