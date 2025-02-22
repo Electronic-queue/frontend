@@ -5,7 +5,6 @@ import { TimePicker } from "@mui/x-date-pickers/TimePicker";
 import dayjs, { Dayjs } from "dayjs";
 import { Box } from "@mui/material";
 import { SelectTimeProps } from "../types/selectTimeTypes";
-import theme from "src/styles/theme";
 
 const SelectTime: FC<SelectTimeProps> = ({ onTimeSelect }) => {
     const [selectedTime, setSelectedTime] = useState<Dayjs | null>(
