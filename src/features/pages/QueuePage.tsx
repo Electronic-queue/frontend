@@ -73,7 +73,12 @@ const QueuePage: FC = () => {
             return () => clearInterval(interval);
         }
     }, [listOfClientsData, refetchClients]);
-
+    useEffect(() => {
+        const savedStatus = sessionStorage.getItem("clientStatus");
+        if (savedStatus) {
+            setStatus(savedStatus as "idle" | "called" | "accepted");
+        }
+    }, []);
     const firstClient = listOfClientsData?.[0] || null;
     const serviceId = firstClient?.serviceId;
 
@@ -88,6 +93,7 @@ const QueuePage: FC = () => {
             await acceptClient({ managerId }).unwrap();
             alert("Клиент принят!");
             setStatus("accepted");
+            sessionStorage.setItem("clientStatus", "accepted");
         } catch (err) {}
     };
 
@@ -96,6 +102,7 @@ const QueuePage: FC = () => {
             await callNext({ managerId }).unwrap();
             alert("Первый клиент принят!");
             setStatus("called");
+            sessionStorage.setItem("clientStatus", "called");
             refetchClients();
         } catch (err) {}
     };
@@ -106,8 +113,10 @@ const QueuePage: FC = () => {
             refetchClients();
             if (listOfClientsData.length > 1) {
                 setStatus("called");
+                sessionStorage.setItem("clientStatus", "called");
             } else {
                 setStatus("idle");
+                sessionStorage.removeItem("clientStatus");
             }
         } catch (err) {}
     };
