@@ -59,7 +59,7 @@
         "signUp": "Sign up",
         "number": "Your number №",
         "window": "Window",
-        "peopleAhead": "People ahead",
+        "peopleAhead": "Your turn ",
         "refuse": "Refuse",
         "cancel": "Cancel",
         "confirm": "Confirm",
@@ -83,6 +83,7 @@
         "serviceName": "Service name",
         "details": "Details",
         "callNext": "Call next",
-        "logOut": "Log out"
+        "logOut": "Log out",
+        "beingServed": "Being served"
     }
 }

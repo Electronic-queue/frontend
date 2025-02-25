@@ -84,7 +84,9 @@ const InProgress = () => {
                 <SULogoM />
             </Box>
             <FormContainer>
-                <Typography>Вас обслуживают ожидайте</Typography>
+                <Typography sx={{ fontSize: theme.typography.h5.fontSize }}>
+                    {t("i18n_queue.beingServed")}
+                </Typography>
             </FormContainer>
         </BackgroundContainer>
     );
