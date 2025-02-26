@@ -19,7 +19,6 @@ import {
     useGetServiceByIdQuery,
 } from "src/store/managerApi";
 import { Alert, Snackbar } from "@mui/material";
-import CircularProgress from "@mui/material/CircularProgress";
 import Skeleton from "@mui/material/Skeleton";
 
 const ButtonWrapper = styled(Box)(({ theme }) => ({
@@ -36,6 +35,15 @@ const StatusCardWrapper = styled(Stack)(({ theme }) => ({
     justifyContent: "center",
     marginTop: theme.spacing(3),
     marginBottom: theme.spacing(6),
+}));
+
+const SkeletonStyles = styled(Box)(({ theme }) => ({
+    width: "1128px",
+    display: "flex",
+    justifyContent: "space-between",
+    padding: theme.spacing(4),
+    backgroundColor: theme.palette.background.paper,
+    boxShadow: theme.shadows[3],
 }));
 
 const clientData1 = {
@@ -201,19 +209,10 @@ const QueuePage: FC = () => {
             </StatusCardWrapper>
 
             {isListOfClientsLoading ? (
-                <Box
-                    sx={{
-                        width: "1128px",
-                        display: "flex",
-                        justifyContent: "space-between",
-                        padding: theme.spacing(4),
-                        backgroundColor: theme.palette.background.paper,
-                        boxShadow: theme.shadows[3],
-                    }}
-                >
+                <SkeletonStyles>
                     <Skeleton variant="rectangular" width={210} height={118} />
                     <Skeleton variant="rectangular" width={250} height={118} />
-                </Box>
+                </SkeletonStyles>
             ) : listOfClientsError ? (
                 <p>
                     {"status" in listOfClientsError &&

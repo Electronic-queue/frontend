@@ -41,7 +41,7 @@
         "in_anticipation": "В ожидании"
     },
     "i18n_queue": {
-        "pause": "Приостановить окно на паузу",
+        "pause": "Поставить окно на паузу",
         "clientNumber": "Номер клиента",
         "lastName": "Фамилия",
         "firstName": "Имя",
