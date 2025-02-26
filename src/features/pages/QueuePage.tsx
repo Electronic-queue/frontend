@@ -18,6 +18,9 @@ import {
     useGetRecordListByManagerQuery,
     useGetServiceByIdQuery,
 } from "src/store/managerApi";
+import { Alert, Snackbar } from "@mui/material";
+import CircularProgress from "@mui/material/CircularProgress";
+import Skeleton from "@mui/material/Skeleton";
 
 const ButtonWrapper = styled(Box)(({ theme }) => ({
     marginBottom: theme.spacing(3),
@@ -52,6 +55,11 @@ const QueuePage: FC = () => {
     const [acceptClient] = useAcceptClientMutation();
     const [callNext] = useCallNextMutation();
     const [completeClient] = useCompleteClientMutation();
+    const [snackbar, setSnackbar] = useState<{
+        open: boolean;
+        message: string;
+    }>({ open: false, message: "" });
+
     const [status, setStatus] = useState<"idle" | "called" | "accepted">(
         "idle"
     );
@@ -91,7 +99,8 @@ const QueuePage: FC = () => {
     const handleAcceptClient = async () => {
         try {
             await acceptClient({ managerId }).unwrap();
-            alert("Клиент принят!");
+            setSnackbar({ open: true, message: "Клиент принят!" });
+
             setStatus("accepted");
             sessionStorage.setItem("clientStatus", "accepted");
         } catch (err) {}
@@ -100,7 +109,8 @@ const QueuePage: FC = () => {
     const handleCallNextClient = async () => {
         try {
             await callNext({ managerId }).unwrap();
-            alert("Первый клиент принят!");
+            setSnackbar({ open: true, message: "Очередь начался!" });
+
             setStatus("called");
             sessionStorage.setItem("clientStatus", "called");
             refetchClients();
@@ -110,6 +120,7 @@ const QueuePage: FC = () => {
     const handleСompleteClient = async () => {
         try {
             await completeClient({ managerId }).unwrap();
+            setSnackbar({ open: true, message: "Услуга завершена!" });
             refetchClients();
             if (listOfClientsData.length > 1) {
                 setStatus("called");
@@ -152,6 +163,20 @@ const QueuePage: FC = () => {
     };
     return (
         <>
+            <Snackbar
+                open={snackbar.open}
+                autoHideDuration={3000}
+                onClose={() => setSnackbar({ open: false, message: "" })}
+            >
+                <Alert
+                    severity="success"
+                    onClose={() => setSnackbar({ open: false, message: "" })}
+                    sx={{ fontSize: theme.typography.body1.fontSize }}
+                >
+                    {snackbar.message}
+                </Alert>
+            </Snackbar>
+
             <ButtonWrapper>
                 <CustomButton
                     variantType="primary"
@@ -170,7 +195,19 @@ const QueuePage: FC = () => {
             </StatusCardWrapper>
 
             {isListOfClientsLoading ? (
-                <p>Загрузка...</p>
+                <Box
+                    sx={{
+                        width: "1128px",
+                        display: "flex",
+                        justifyContent: "space-between",
+                        padding: theme.spacing(4),
+                        backgroundColor: theme.palette.background.paper,
+                        boxShadow: theme.shadows[3],
+                    }}
+                >
+                    <Skeleton variant="rectangular" width={210} height={118} />
+                    <Skeleton variant="rectangular" width={250} height={118} />
+                </Box>
             ) : listOfClientsError ? (
                 <p>
                     {"status" in listOfClientsError &&
@@ -196,7 +233,7 @@ const QueuePage: FC = () => {
                     onAccept={handleAcceptClient}
                     callNext={handleCallNextClient}
                     onComplete={handleСompleteClient}
-                    status={status} // Передаем статус
+                    status={status}
                 />
             ) : (
                 <ClientCard
