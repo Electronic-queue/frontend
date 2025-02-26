@@ -99,7 +99,10 @@ const QueuePage: FC = () => {
     const handleAcceptClient = async () => {
         try {
             await acceptClient({ managerId }).unwrap();
-            setSnackbar({ open: true, message: "Клиент принят!" });
+            setSnackbar({
+                open: true,
+                message: t("i18n_queue.clientAccepted"),
+            });
 
             setStatus("accepted");
             sessionStorage.setItem("clientStatus", "accepted");
@@ -109,7 +112,7 @@ const QueuePage: FC = () => {
     const handleCallNextClient = async () => {
         try {
             await callNext({ managerId }).unwrap();
-            setSnackbar({ open: true, message: "Очередь начался!" });
+            setSnackbar({ open: true, message: t("i18n_queue.startQueue") });
 
             setStatus("called");
             sessionStorage.setItem("clientStatus", "called");
@@ -120,7 +123,10 @@ const QueuePage: FC = () => {
     const handleСompleteClient = async () => {
         try {
             await completeClient({ managerId }).unwrap();
-            setSnackbar({ open: true, message: "Услуга завершена!" });
+            setSnackbar({
+                open: true,
+                message: t("i18n_queue.serviceCompleted"),
+            });
             refetchClients();
             if (listOfClientsData.length > 1) {
                 setStatus("called");

@@ -87,6 +87,9 @@
         "beingServed": "Being served",
         "selectTime": "Select time (minutes)",
         "pauseWindow": "Pause window",
-        "stopWindow": "Stop window"
+        "stopWindow": "Stop window",
+        "startQueue": "Start queue",
+        "clientAccepted": "Client accepted!",
+        "serviceCompleted": "Service completed!"
     }
 }

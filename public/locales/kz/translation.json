@@ -87,6 +87,9 @@
         "beingServed": "Сізге қызмет көрсетілуде",
         "selectTime": "Уақытты таңдаңыз (минуттар)",
         "pauseWindow": "Терезені кідірту",
-        "stopWindow": "Терезені тоқтату"
+        "stopWindow": "Терезені тоқтату",
+        "startQueue": "Кезек басталды",
+        "clientAccepted": "Клиент қабылданды!",
+        "serviceCompleted": "Қызмет аяқталды!"
     }
 }

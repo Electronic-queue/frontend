@@ -86,6 +86,9 @@
         "beingServed": "Вас обслуживают",
         "selectTime": "Выберите время ",
         "pauseWindow": "Поставить окно на паузу",
-        "stopWindow": "Остановить окно"
+        "stopWindow": "Остановить окно",
+        "startQueue": "Начало очереди",
+        "clientAccepted": "Клиент принят!",
+        "serviceCompleted": "Услуга завершена!"
     }
 }
