@@ -5,6 +5,7 @@ import { TimePicker } from "@mui/x-date-pickers/TimePicker";
 import dayjs, { Dayjs } from "dayjs";
 import { Box } from "@mui/material";
 import { SelectTimeProps } from "../types/selectTimeTypes";
+import { useTranslation } from "react-i18next";
 
 const SelectTime: FC<SelectTimeProps> = ({ onTimeSelect }) => {
     const [selectedTime, setSelectedTime] = useState<Dayjs | null>(
@@ -22,19 +23,26 @@ const SelectTime: FC<SelectTimeProps> = ({ onTimeSelect }) => {
             onTimeSelect(minutes);
         }
     };
-
+    const { t } = useTranslation();
     return (
         <LocalizationProvider dateAdapter={AdapterDayjs}>
             <Box
                 sx={{ minWidth: 200, "& .MuiClock-root": { display: "none" } }}
             >
                 <TimePicker
-                    label="Выберите время (минуты)"
+                    label={t("i18n_queue.selectTime")}
                     value={selectedTime}
                     onChange={handleTimeChange}
                     views={["minutes"]}
                     format="mm"
                     ampm={false}
+                    slotProps={{
+                        textField: {
+                            inputProps: {
+                                style: { fontSize: 16 },
+                            },
+                        },
+                    }}
                 />
             </Box>
         </LocalizationProvider>

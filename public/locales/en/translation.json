@@ -84,6 +84,9 @@
         "details": "Details",
         "callNext": "Call next",
         "logOut": "Log out",
-        "beingServed": "Being served"
+        "beingServed": "Being served",
+        "selectTime": "Select time (minutes)",
+        "pauseWindow": "Pause window",
+        "stopWindow": "Stop window"
     }
 }

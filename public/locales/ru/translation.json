@@ -83,6 +83,9 @@
         "details": "Детали",
         "callNext": "Вызвать следующего",
         "logOut": "Выйти",
-        "beingServed": "Вас обслуживают"
+        "beingServed": "Вас обслуживают",
+        "selectTime": "Выберите время ",
+        "pauseWindow": "Поставить окно на паузу",
+        "stopWindow": "Остановить окно"
     }
 }

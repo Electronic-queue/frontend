@@ -241,7 +241,7 @@ const QueuePage: FC = () => {
             <ReusableModal
                 open={isPauseModalOpen}
                 onClose={() => setIsPauseModalOpen(false)}
-                title="Остановка окна"
+                title={t("i18n_queue.stopWindow")}
                 width={theme.spacing(99)}
                 height={theme.spacing(29)}
                 showCloseButton={false}
@@ -260,7 +260,7 @@ const QueuePage: FC = () => {
                             setIsTimerModalOpen(true);
                         }}
                     >
-                        Поставить окно на паузу
+                        {t("i18n_queue.pauseWindow")}
                     </CustomButton>
                 </Box>
             </ReusableModal>
