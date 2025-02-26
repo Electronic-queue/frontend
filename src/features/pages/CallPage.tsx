@@ -126,10 +126,18 @@ const CallPage = () => {
                 navigate("/progress");
             }
         });
+
+        connection.on("RecieveRedirectClient", (data) => {
+            console.log(data);
+            if (data.NewRecordId === recordId) {
+                navigate("/wait");
+            }
+        });
         return () => {
             connection.off("ReceiveRecordCreated");
             connection.off("RecieveUpdateRecord");
             connection.off("RecieveAcceptRecord");
+            connection.off("RecieveRedirectClient");
         };
     }, [recordId, navigate]);
 
