@@ -128,11 +128,16 @@ const CallPage = () => {
         });
 
         connection.on("RecieveRedirectClient", (data) => {
-            console.log(data);
-            if (data.NewRecordId === recordId) {
-                navigate("/wait");
+            console.log("Received RecieveRedirectClient:", data);
+            console.log("Current recordId:", recordId);
+            console.log("Comparison result:", data.NewRecordId == recordId);
+
+            if (data.NewRecordId == recordId) {
+                console.log("Navigating to /wait");
+                navigate("/wait", { replace: true });
             }
         });
+
         return () => {
             connection.off("ReceiveRecordCreated");
             connection.off("RecieveUpdateRecord");
