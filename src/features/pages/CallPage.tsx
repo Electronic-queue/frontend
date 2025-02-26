@@ -60,7 +60,7 @@ interface TimerProps {
 }
 
 const Timer: React.FC<TimerProps> = ({ onTimeout }) => {
-    const [timeLeft, setTimeLeft] = useState(30);
+    const [timeLeft, setTimeLeft] = useState(90);
 
     useEffect(() => {
         if (timeLeft === 0) {
