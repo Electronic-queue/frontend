@@ -191,7 +191,10 @@ const QueuePage: FC = () => {
                 <StatusCard variant="accepted" number={75} />
                 <StatusCard variant="not_accepted" number={3} />
                 <StatusCard variant="redirected" number={5} />
-                <StatusCard variant="in_anticipation" number={8} />
+                <StatusCard
+                    variant="in_anticipation"
+                    number={listOfClientsData.length}
+                />
             </StatusCardWrapper>
 
             {isListOfClientsLoading ? (
