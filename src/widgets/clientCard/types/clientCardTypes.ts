@@ -14,7 +14,7 @@ export interface ClientCardProps {
     onAccept: () => void;
     onComplete: () => void;
     callNext: () => void;
-    status: any;
+    status: string;
 }
 
 export interface ServiceData {

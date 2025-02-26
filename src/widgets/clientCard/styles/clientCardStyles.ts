@@ -2,7 +2,7 @@ import { styled } from "@mui/material/styles";
 import { Box } from "@mui/material";
 
 export const CardContainer = styled(Box)(({ theme }) => ({
-    width: theme.spacing(141),
+    width: "1128px",
     display: "flex",
     justifyContent: "space-between",
     padding: theme.spacing(4),
