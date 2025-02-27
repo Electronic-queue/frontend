@@ -61,6 +61,8 @@ const WaitingPage = () => {
     const { t } = useTranslation();
     const navigate = useNavigate();
     const dispatch = useDispatch();
+    const storedRecordId = localStorage.getItem("recordId");
+    const initialRecordId = storedRecordId ? Number(storedRecordId) : null;
 
     const {
         data: tokenData,
@@ -68,11 +70,21 @@ const WaitingPage = () => {
         isFetching: isFetchingRecordId,
     } = useGetRecordIdByTokenQuery();
 
-    const recordId = tokenData?.recordId ? Number(tokenData.recordId) : null;
+    const recordId = tokenData?.recordId
+        ? Number(tokenData.recordId)
+        : initialRecordId;
 
-    const { data: clientRecord } = useGetClientRecordByIdQuery(recordId ?? 0, {
-        skip: !recordId,
-    });
+    // Сохраняем recordId в localStorage только если он новый
+    useEffect(() => {
+        if (recordId && recordId !== initialRecordId) {
+            localStorage.setItem("recordId", recordId.toString());
+        }
+    }, [recordId, initialRecordId]);
+
+    const { data: clientRecord } = useGetClientRecordByIdQuery(
+        recordId ?? 0, // Используем `recordId` (он уже может быть из localStorage)
+        { skip: !recordId } // Пропускаем запрос, если recordId нет вообще
+    );
 
     const [recordData, setRecordData] = useState<ClientRecord | null>(null);
     const [isOpen, setIsOpen] = useState(false);
@@ -102,9 +114,12 @@ const WaitingPage = () => {
         });
 
         connection.on("RecieveUpdateRecord", (queueList) => {
-            if (!recordId) return;
+            const activeRecordId = localStorage.getItem("recordId");
+            if (!activeRecordId) return;
+
             const updatedItem = queueList.find(
-                (item: { recordId: number }) => item.recordId === recordId
+                (item: { recordId: number }) =>
+                    item.recordId === Number(activeRecordId)
             );
 
             if (updatedItem) {
@@ -135,6 +150,7 @@ const WaitingPage = () => {
         }
 
         localStorage.removeItem("token");
+        localStorage.removeItem("recordId");
         dispatch(setToken(null));
         navigate("/");
         setIsOpen(false);

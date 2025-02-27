@@ -128,14 +128,14 @@ const CallPage = () => {
         });
 
         connection.on("RecieveRedirectClient", (data) => {
-            console.log("Received RecieveRedirectClient:", data);
+            console.log("Received Redirect Data:", data);
             console.log("Current recordId:", recordId);
-            console.log("Comparison result:", data.NewRecordId == recordId);
 
-            if (data.NewRecordId == recordId) {
-                console.log("Navigating to /wait");
-                navigate("/wait", { replace: true });
-            }
+            localStorage.setItem("recordId", data.newRecordId.toString());
+
+            setStoredRecordId(data.newRecordId);
+            console.log("Current recordId2:", recordId);
+            navigate("/wait");
         });
 
         return () => {
@@ -161,6 +161,7 @@ const CallPage = () => {
             alert(error);
         }
         localStorage.removeItem("token");
+        localStorage.removeItem("recordId");
         dispatch(setToken(null));
         navigate("/");
         setIsOpen(false);
@@ -262,3 +263,6 @@ const CallPage = () => {
 };
 
 export default CallPage;
+function setStoredRecordId(newRecordId: any) {
+    throw new Error("Function not implemented.");
+}
