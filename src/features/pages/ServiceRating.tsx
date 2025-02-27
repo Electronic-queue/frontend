@@ -21,7 +21,7 @@ import DialogContent from "@mui/material/DialogContent";
 import DialogContentText from "@mui/material/DialogContentText";
 import Button from "@mui/material/Button";
 import { useDispatch } from "react-redux";
-import { setToken } from "src/store/userAuthSlice";
+import { setRecordId, setToken } from "src/store/userAuthSlice";
 
 const BackgroundContainer = styled(Box)(({ theme }) => ({
     display: "flex",
@@ -96,6 +96,8 @@ const ServiceRating = () => {
         navigate("/");
         localStorage.removeItem("token");
         dispatch(setToken(null));
+        localStorage.removeItem("recordId");
+        dispatch(setRecordId(null));
     };
 
     return (

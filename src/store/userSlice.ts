@@ -4,7 +4,7 @@ interface UserInfo {
     iin: string;
     firstName: string;
     lastName: string;
-    middleName?: string;
+    surname?: string;
     serviceId?: number;
 }
 

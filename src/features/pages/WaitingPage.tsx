@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useReducer, useCallback } from "react";
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
 import { styled } from "@mui/material/styles";
@@ -14,11 +14,11 @@ import {
 } from "src/store/managerApi";
 import connection, { startSignalR } from "src/features/signalR";
 import { useDispatch, useSelector } from "react-redux";
-import { setToken } from "src/store/userAuthSlice";
+import { setToken, setRecordId } from "src/store/userAuthSlice";
 import { useNavigate } from "react-router-dom";
 import Skeleton from "@mui/material/Skeleton";
 import { RootState } from "src/store/store";
-import { setRecordId } from "src/store/userAuthSlice"; // Импорт экшена
+
 const BackgroundContainer = styled(Box)(({ theme }) => ({
     display: "flex",
     flexDirection: "column",
@@ -43,33 +43,60 @@ const InfoBlock = styled(Box)(({ theme }) => ({
     gap: theme.spacing(3),
 }));
 
-const RefuceModal = styled(Box)(({ theme }) => ({
-    display: "flex",
-    flexDirection: "column",
-    gap: theme.spacing(2),
-    alignItems: "center",
-    justifyContent: "center",
-}));
-
-interface ClientRecord {
-    recordId: number;
-    windowNumber: number;
-    clientNumber: number;
-    expectedAcceptanceTime: string;
+interface RefuseModalProps {
+    open: boolean;
+    onClose: () => void;
+    onConfirm: () => void;
 }
+
+const RefuseModal = ({ open, onClose, onConfirm }: RefuseModalProps) => {
+    const { t } = useTranslation();
+    return (
+        <ReusableModal
+            open={open}
+            onClose={onClose}
+            width={340}
+            showCloseButton={false}
+        >
+            <Box
+                display="flex"
+                flexDirection="column"
+                gap={2}
+                alignItems="center"
+            >
+                <Typography variant="h4">
+                    {t("i18n_queue.refuseQueue")}
+                </Typography>
+                <Box sx={{ display: "flex", gap: theme.spacing(2) }}>
+                    <CustomButton variantType="primary" onClick={onConfirm}>
+                        {t("i18n_queue.confirm")}
+                    </CustomButton>
+                    <CustomButton variantType="primary" onClick={onClose}>
+                        {t("i18n_queue.cancel")}
+                    </CustomButton>
+                </Box>
+            </Box>
+        </ReusableModal>
+    );
+};
 
 const WaitingPage = () => {
     const { t } = useTranslation();
     const navigate = useNavigate();
     const dispatch = useDispatch();
+    const recordId = useSelector(
+        (state: RootState) => (state.user as any).recordId
+    );
 
-    const {
-        data: tokenData,
-        refetch: refetchRecordId,
-        isFetching: isFetchingRecordId,
-    } = useGetRecordIdByTokenQuery();
+    const { data: tokenData, isFetching: isFetchingRecordId } =
+        useGetRecordIdByTokenQuery();
+    const { data: clientRecord } = useGetClientRecordByIdQuery(recordId ?? 0, {
+        skip: !recordId,
+    });
 
-    const recordId = useSelector((state: RootState) => state.user.recordId);
+    const [updateQueueItem, { isLoading: isUpdating }] =
+        useUpdateQueueItemMutation();
+    const [isOpen, toggleModal] = useReducer((open) => !open, false);
 
     useEffect(() => {
         if (tokenData?.recordId && !recordId) {
@@ -77,31 +104,11 @@ const WaitingPage = () => {
         }
     }, [tokenData, recordId, dispatch]);
 
-    const { data: clientRecord } = useGetClientRecordByIdQuery(recordId ?? 0, {
-        skip: !recordId,
-    });
-
-    const [recordData, setRecordData] = useState<ClientRecord | null>(null);
-    const [isOpen, setIsOpen] = useState(false);
-    const [updateQueueItem] = useUpdateQueueItemMutation();
-
-    useEffect(() => {
-        refetchRecordId();
-    }, []);
-
-    useEffect(() => {
-        if (clientRecord && clientRecord.recordId !== recordData?.recordId) {
-            setRecordData(clientRecord);
-        }
-    }, [clientRecord, recordData]);
-
     useEffect(() => {
         startSignalR();
 
-        connection.on("ReceiveRecordCreated", (newRecord: ClientRecord) => {
+        connection.on("ReceiveRecordCreated", (newRecord) => {
             if (newRecord.recordId === recordId) {
-                setRecordData(newRecord);
-
                 if (newRecord.clientNumber === 0) {
                     navigate("/call");
                 }
@@ -113,13 +120,8 @@ const WaitingPage = () => {
             const updatedItem = queueList.find(
                 (item: { recordId: number }) => item.recordId === recordId
             );
-
-            if (updatedItem) {
-                setRecordData(updatedItem);
-
-                if (updatedItem.clientNumber === 0) {
-                    navigate("/call");
-                }
+            if (updatedItem && updatedItem.clientNumber === 0) {
+                navigate("/call");
             }
         });
 
@@ -129,25 +131,19 @@ const WaitingPage = () => {
         };
     }, [recordId, navigate]);
 
-    const handleModalOpen = () => setIsOpen(true);
-    const handleClose = () => setIsOpen(false);
-
-    const handleConfirmRefuse = async () => {
+    const handleConfirmRefuse = useCallback(async () => {
         if (!recordId) return;
-
         try {
             await updateQueueItem({ id: recordId }).unwrap();
         } catch (error) {
-            alert(error);
+            console.error("Ошибка при обновлении очереди:", error);
         }
-
         localStorage.removeItem("token");
         localStorage.removeItem("recordId");
         dispatch(setToken(null));
         dispatch(setRecordId(null));
         navigate("/");
-        setIsOpen(false);
-    };
+    }, [recordId, dispatch, navigate, updateQueueItem]);
 
     if (isFetchingRecordId) {
         return (
@@ -180,29 +176,25 @@ const WaitingPage = () => {
                         marginBottom: theme.spacing(4),
                     }}
                 >
-                    <Typography
-                        variant="h4"
-                        component="h1"
-                        sx={{ marginBottom: 2 }}
-                    >
-                        {t("i18n_queue.number")} {recordData?.recordId || "-"}
+                    <Typography variant="h4">
+                        {t("i18n_queue.number")} {clientRecord?.recordId || "-"}
                     </Typography>
                 </Box>
 
                 <InfoBlock>
-                    {recordData ? (
+                    {clientRecord ? (
                         <>
                             <Typography variant="h6">
-                                {t("i18n_queue.window")}:
-                                {recordData.windowNumber}
+                                {t("i18n_queue.window")}:{" "}
+                                {clientRecord.windowNumber}
                             </Typography>
                             <Typography variant="h6">
-                                {t("i18n_queue.peopleAhead")}:
-                                {recordData.clientNumber}
+                                {t("i18n_queue.peopleAhead")}:{" "}
+                                {clientRecord.clientNumber}
                             </Typography>
                             <Typography variant="h6">
-                                {t("i18n_queue.expectedTime")}:
-                                {recordData.expectedAcceptanceTime}
+                                {t("i18n_queue.expectedTime")}:{" "}
+                                {clientRecord.expectedAcceptanceTime}
                             </Typography>
                         </>
                     ) : (
@@ -230,40 +222,18 @@ const WaitingPage = () => {
                     <CustomButton
                         variantType="danger"
                         fullWidth
-                        onClick={handleModalOpen}
+                        onClick={toggleModal}
+                        disabled={isUpdating}
                     >
                         {t("i18n_queue.refuse")}
                     </CustomButton>
                 </Box>
             </FormContainer>
-            <ReusableModal
+            <RefuseModal
                 open={isOpen}
-                onClose={handleClose}
-                width={340}
-                showCloseButton={false}
-            >
-                <RefuceModal>
-                    <Box>
-                        <Typography variant="h4">
-                            {t("i18n_queue.refuseQueue")}
-                        </Typography>
-                    </Box>
-                    <Box sx={{ display: "flex", gap: theme.spacing(2) }}>
-                        <CustomButton
-                            variantType="primary"
-                            onClick={handleConfirmRefuse}
-                        >
-                            {t("i18n_queue.confirm")}
-                        </CustomButton>
-                        <CustomButton
-                            variantType="primary"
-                            onClick={handleClose}
-                        >
-                            {t("i18n_queue.cancel")}
-                        </CustomButton>
-                    </Box>
-                </RefuceModal>
-            </ReusableModal>
+                onClose={toggleModal}
+                onConfirm={handleConfirmRefuse}
+            />
         </BackgroundContainer>
     );
 };
