@@ -61,8 +61,6 @@ const WaitingPage = () => {
     const { t } = useTranslation();
     const navigate = useNavigate();
     const dispatch = useDispatch();
-    const storedRecordId = localStorage.getItem("recordId");
-    const initialRecordId = storedRecordId ? Number(storedRecordId) : null;
 
     const {
         data: tokenData,
@@ -70,21 +68,11 @@ const WaitingPage = () => {
         isFetching: isFetchingRecordId,
     } = useGetRecordIdByTokenQuery();
 
-    const recordId = tokenData?.recordId
-        ? Number(tokenData.recordId)
-        : initialRecordId;
+    const recordId = tokenData?.recordId ? Number(tokenData.recordId) : null;
 
-    // Сохраняем recordId в localStorage только если он новый
-    useEffect(() => {
-        if (recordId && recordId !== initialRecordId) {
-            localStorage.setItem("recordId", recordId.toString());
-        }
-    }, [recordId, initialRecordId]);
-
-    const { data: clientRecord } = useGetClientRecordByIdQuery(
-        recordId ?? 0, // Используем `recordId` (он уже может быть из localStorage)
-        { skip: !recordId } // Пропускаем запрос, если recordId нет вообще
-    );
+    const { data: clientRecord } = useGetClientRecordByIdQuery(recordId ?? 0, {
+        skip: !recordId,
+    });
 
     const [recordData, setRecordData] = useState<ClientRecord | null>(null);
     const [isOpen, setIsOpen] = useState(false);
@@ -114,12 +102,9 @@ const WaitingPage = () => {
         });
 
         connection.on("RecieveUpdateRecord", (queueList) => {
-            const activeRecordId = localStorage.getItem("recordId");
-            if (!activeRecordId) return;
-
+            if (!recordId) return;
             const updatedItem = queueList.find(
-                (item: { recordId: number }) =>
-                    item.recordId === Number(activeRecordId)
+                (item: { recordId: number }) => item.recordId === recordId
             );
 
             if (updatedItem) {

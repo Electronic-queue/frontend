@@ -143,12 +143,14 @@ const CallPage = () => {
                 console.error("Invalid data received:", data);
                 return;
             }
+            if (data.recordId === storedRecordId) {
+                localStorage.setItem("recordId", data.newRecordId.toString());
+                setStoredRecordId(data.newRecordId);
 
-            localStorage.setItem("recordId", data.newRecordId.toString());
-            setStoredRecordId(data.newRecordId);
-            console.log("Updating storedRecordId to:", data.newRecordId);
+                console.log("Updating storedRecordId to:", data.newRecordId);
 
-            navigate("/wait");
+                navigate("/wait");
+            }
         });
 
         return () => {
@@ -276,6 +278,3 @@ const CallPage = () => {
 };
 
 export default CallPage;
-function setStoredRecordId(newRecordId: any) {
-    throw new Error("Function not implemented.");
-}
