@@ -90,6 +90,8 @@
         "stopWindow": "Терезені тоқтату",
         "startQueue": "Кезек басталды",
         "clientAccepted": "Клиент қабылданды!",
-        "serviceCompleted": "Қызмет аяқталды!"
+        "serviceCompleted": "Қызмет аяқталды!",
+        "serviceRedirected": "Қызмет қайта бағытталды!",
+        "redirectServiceAction": "Қайта бағыттау әрекеті"
     }
 }

@@ -90,6 +90,8 @@
         "stopWindow": "Stop window",
         "startQueue": "Start queue",
         "clientAccepted": "Client accepted!",
-        "serviceCompleted": "Service completed!"
+        "serviceCompleted": "Service completed!",
+        "serviceRedirected": "Service redirected!",
+        "redirectServiceAction": "Redirect "
     }
 }
