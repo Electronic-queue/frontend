@@ -91,7 +91,10 @@ const CallPage = () => {
     const dispatch = useDispatch();
     const [expired, setExpired] = useState(false);
     const [isOpen, setIsOpen] = useState(false);
-
+    const [storedRecordId, setStoredRecordId] = useState<number | null>(() => {
+        const savedRecordId = localStorage.getItem("recordId");
+        return savedRecordId ? Number(savedRecordId) : null;
+    });
     const { data: tokenData } = useGetRecordIdByTokenQuery();
     const recordId = tokenData?.recordId ? Number(tokenData.recordId) : null;
     const [updateQueueItem] = useUpdateQueueItemMutation();
@@ -101,7 +104,9 @@ const CallPage = () => {
     });
 
     const windowNumber = clientRecord?.windowNumber ?? "-";
-
+    useEffect(() => {
+        console.log("Updated storedRecordId:", storedRecordId);
+    }, [storedRecordId]);
     useEffect(() => {
         startSignalR();
         connection.on("ReceiveRecordCreated", (newRecord) => {
@@ -129,12 +134,20 @@ const CallPage = () => {
 
         connection.on("RecieveRedirectClient", (data) => {
             console.log("Received Redirect Data:", data);
-            console.log("Current recordId:", recordId);
+            console.log(
+                "Current storedRecordId before update:",
+                storedRecordId
+            );
+
+            if (!data || typeof data.newRecordId !== "number") {
+                console.error("Invalid data received:", data);
+                return;
+            }
 
             localStorage.setItem("recordId", data.newRecordId.toString());
-
             setStoredRecordId(data.newRecordId);
-            console.log("Current recordId2:", recordId);
+            console.log("Updating storedRecordId to:", data.newRecordId);
+
             navigate("/wait");
         });
 
