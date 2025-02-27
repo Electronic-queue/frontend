@@ -16,7 +16,7 @@ import {
     useUpdateQueueItemMutation,
 } from "src/store/managerApi";
 import { useDispatch } from "react-redux";
-import { setToken } from "src/store/userAuthSlice";
+import { setRecordId, setToken } from "src/store/userAuthSlice";
 
 const BackgroundContainer = styled(Box)(({ theme }) => ({
     display: "flex",
@@ -134,25 +134,18 @@ const CallPage = () => {
 
         connection.on("RecieveRedirectClient", (data) => {
             console.log("Received Redirect Data:", data);
-            console.log(
-                "Current storedRecordId before update:",
-                storedRecordId
-            );
 
             if (!data || typeof data.newRecordId !== "number") {
                 console.error("Invalid data received:", data);
                 return;
             }
+
             if (data.recordId === storedRecordId) {
-                localStorage.setItem("recordId", data.newRecordId.toString());
-                setStoredRecordId(data.newRecordId);
-
-                console.log("Updating storedRecordId to:", data.newRecordId);
-
-                navigate("/wait");
+                dispatch(setRecordId(data.newRecordId));
+                console.log("Updating global recordId to:", data.newRecordId);
+                navigate("/wait", { state: { newRecordId: data.newRecordId } });
             }
         });
-
         return () => {
             connection.off("ReceiveRecordCreated");
             connection.off("RecieveUpdateRecord");
@@ -175,12 +168,15 @@ const CallPage = () => {
         } catch (error) {
             alert(error);
         }
+        console.log("Removing recordId from Redux:", recordId);
         localStorage.removeItem("token");
         localStorage.removeItem("recordId");
+        dispatch(setRecordId(null));
         dispatch(setToken(null));
         navigate("/");
         setIsOpen(false);
     };
+
     const handleAvtomaticConfirmRefuse = async () => {
         if (!recordId) return;
         try {
@@ -188,9 +184,11 @@ const CallPage = () => {
         } catch (error) {
             alert(error);
         }
+        console.log("Removing recordId from Redux automatically:", recordId);
         localStorage.removeItem("token");
+        localStorage.removeItem("recordId");
+        dispatch(setRecordId(null));
         dispatch(setToken(null));
-
         setIsOpen(false);
     };
 

@@ -13,11 +13,12 @@ import {
     useUpdateQueueItemMutation,
 } from "src/store/managerApi";
 import connection, { startSignalR } from "src/features/signalR";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { setToken } from "src/store/userAuthSlice";
 import { useNavigate } from "react-router-dom";
 import Skeleton from "@mui/material/Skeleton";
-
+import { RootState } from "src/store/store";
+import { setRecordId } from "src/store/userAuthSlice"; // Импорт экшена
 const BackgroundContainer = styled(Box)(({ theme }) => ({
     display: "flex",
     flexDirection: "column",
@@ -68,7 +69,13 @@ const WaitingPage = () => {
         isFetching: isFetchingRecordId,
     } = useGetRecordIdByTokenQuery();
 
-    const recordId = tokenData?.recordId ? Number(tokenData.recordId) : null;
+    const recordId = useSelector((state: RootState) => state.user.recordId);
+
+    useEffect(() => {
+        if (tokenData?.recordId && !recordId) {
+            dispatch(setRecordId(Number(tokenData.recordId)));
+        }
+    }, [tokenData, recordId, dispatch]);
 
     const { data: clientRecord } = useGetClientRecordByIdQuery(recordId ?? 0, {
         skip: !recordId,
@@ -137,6 +144,7 @@ const WaitingPage = () => {
         localStorage.removeItem("token");
         localStorage.removeItem("recordId");
         dispatch(setToken(null));
+        dispatch(setRecordId(null));
         navigate("/");
         setIsOpen(false);
     };
