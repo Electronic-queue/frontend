@@ -112,7 +112,7 @@ const CallPage = () => {
         connection.on("ReceiveRecordCreated", (newRecord) => {
             if (
                 newRecord.recordId === recordId &&
-                newRecord.clientNumber === -1
+                newRecord.clientNumber === -2
             ) {
                 navigate("/progress");
             }
@@ -122,7 +122,7 @@ const CallPage = () => {
                 (item: { recordId: number | null }) =>
                     item.recordId === recordId
             );
-            if (updatedItem && updatedItem.clientNumber === -1) {
+            if (updatedItem && updatedItem.clientNumber === -2) {
                 navigate("/progress");
             }
         });
@@ -168,9 +168,11 @@ const CallPage = () => {
         } catch (error) {
             alert(error);
         }
-        console.log("Removing recordId from Redux:", recordId);
-        localStorage.removeItem("token");
         localStorage.removeItem("recordId");
+        console.log("Removing recordId from Redux:", recordId);
+
+        localStorage.removeItem("token");
+        setStoredRecordId(null);
         dispatch(setRecordId(null));
         dispatch(setToken(null));
         navigate("/");
@@ -190,6 +192,7 @@ const CallPage = () => {
         dispatch(setRecordId(null));
         dispatch(setToken(null));
         setIsOpen(false);
+        setStoredRecordId(null);
     };
 
     return (
