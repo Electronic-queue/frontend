@@ -71,6 +71,7 @@ const QueuePage: FC = () => {
     }>({ open: false, message: "" });
 
     const [status, setStatus] = useState<StatusType>("idle");
+    const [isCallingNext, setIsCallingNext] = useState(false);
     const managerId: number = 6;
 
     const {
@@ -118,6 +119,7 @@ const QueuePage: FC = () => {
     };
 
     const handleCallNextClient = async () => {
+        setIsCallingNext(true);
         try {
             await callNext({ managerId }).unwrap();
             setSnackbar({ open: true, message: t("i18n_queue.startQueue") });
@@ -225,6 +227,7 @@ const QueuePage: FC = () => {
                             callNext={handleCallNextClient}
                             onComplete={handleСompleteClient}
                             status={status}
+                            loading={isCallingNext}
                         />
                     ) : (
                         "Ошибка загрузки данных"
@@ -239,6 +242,7 @@ const QueuePage: FC = () => {
                     callNext={handleCallNextClient}
                     onComplete={handleСompleteClient}
                     status={status}
+                    loading={isCallingNext}
                 />
             ) : (
                 <ClientCard
@@ -249,6 +253,7 @@ const QueuePage: FC = () => {
                     callNext={handleCallNextClient}
                     onComplete={handleСompleteClient}
                     status={status}
+                    loading={isCallingNext}
                 />
             )}
 
