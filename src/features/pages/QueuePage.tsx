@@ -84,7 +84,7 @@ const QueuePage: FC = () => {
         if (listOfClientsData.length === 0) {
             const interval = setInterval(() => {
                 refetchClients();
-            }, 30000);
+            }, 2000);
 
             return () => clearInterval(interval);
         }
