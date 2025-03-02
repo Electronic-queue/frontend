@@ -214,7 +214,7 @@ const QueuePage: FC = () => {
                     <Skeleton variant="rectangular" width={250} height={118} />
                 </SkeletonStyles>
             ) : listOfClientsError ? (
-                <p>
+                <>
                     {"status" in listOfClientsError &&
                     listOfClientsError.status === 404 ? (
                         <ClientCard
@@ -229,7 +229,7 @@ const QueuePage: FC = () => {
                     ) : (
                         "Ошибка загрузки данных"
                     )}
-                </p>
+                </>
             ) : firstClient ? (
                 <ClientCard
                     clientData={clientData!}
