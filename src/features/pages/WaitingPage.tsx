@@ -95,7 +95,7 @@ const WaitingPage = () => {
             if (newRecord.recordId === recordId) {
                 setRecordData(newRecord);
 
-                if (newRecord.clientNumber === 0) {
+                if (newRecord.clientNumber === -1) {
                     navigate("/call");
                 }
             }
@@ -110,7 +110,7 @@ const WaitingPage = () => {
             if (updatedItem) {
                 setRecordData(updatedItem);
 
-                if (updatedItem.clientNumber === 0) {
+                if (updatedItem.clientNumber === -1) {
                     navigate("/call");
                 }
             }

@@ -107,7 +107,7 @@ const CallPage = () => {
         connection.on("ReceiveRecordCreated", (newRecord) => {
             if (
                 newRecord.recordId === recordId &&
-                newRecord.clientNumber === -1
+                newRecord.clientNumber === -2
             ) {
                 navigate("/progress");
             }
@@ -117,7 +117,7 @@ const CallPage = () => {
                 (item: { recordId: number | null }) =>
                     item.recordId === recordId
             );
-            if (updatedItem && updatedItem.clientNumber === -1) {
+            if (updatedItem && updatedItem.clientNumber === -2) {
                 navigate("/progress");
             }
         });

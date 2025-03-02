@@ -31,16 +31,6 @@ const FormContainer = styled(Stack)(({ theme }) => ({
     textAlign: "center",
 }));
 
-const TitleBox = styled(Box)(({ theme }) => ({
-    width: theme.spacing(15),
-    height: theme.spacing(15),
-    borderRadius: "50%",
-    border: `8px solid ${theme.palette.error.main}`,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-}));
-
 const InProgress = () => {
     const { t } = useTranslation();
     const navigate = useNavigate();
@@ -56,7 +46,7 @@ const InProgress = () => {
         connection.on("ReceiveRecordCreated", (newRecord) => {
             if (
                 newRecord.recordId === recordData?.recordId &&
-                newRecord.clientNumber === -2
+                newRecord.clientNumber === -3
             ) {
                 navigate("/rating");
             }
@@ -67,7 +57,7 @@ const InProgress = () => {
                 (item: { recordId: number }) =>
                     item.recordId === recordData?.recordId
             );
-            if (updatedItem && updatedItem.clientNumber === -2) {
+            if (updatedItem && updatedItem.clientNumber === -3) {
                 navigate("/rating");
             }
         });
