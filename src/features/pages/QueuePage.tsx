@@ -21,6 +21,8 @@ import {
 import { Alert, Snackbar } from "@mui/material";
 import Skeleton from "@mui/material/Skeleton";
 
+type StatusType = "idle" | "called" | "accepted";
+
 const ButtonWrapper = styled(Box)(({ theme }) => ({
     marginBottom: theme.spacing(3),
     display: "flex",
@@ -68,9 +70,7 @@ const QueuePage: FC = () => {
         message: string;
     }>({ open: false, message: "" });
 
-    const [status, setStatus] = useState<"idle" | "called" | "accepted">(
-        "idle"
-    );
+    const [status, setStatus] = useState<StatusType>("idle");
     const managerId: number = 6;
 
     const {
