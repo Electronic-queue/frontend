@@ -16,7 +16,7 @@ import {
     useUpdateQueueItemMutation,
 } from "src/store/managerApi";
 import { useDispatch } from "react-redux";
-import { setToken } from "src/store/userAuthSlice";
+import { setRecordId, setToken } from "src/store/userAuthSlice";
 
 const BackgroundContainer = styled(Box)(({ theme }) => ({
     display: "flex",
@@ -60,7 +60,7 @@ interface TimerProps {
 }
 
 const Timer: React.FC<TimerProps> = ({ onTimeout }) => {
-    const [timeLeft, setTimeLeft] = useState(30);
+    const [timeLeft, setTimeLeft] = useState(90);
 
     useEffect(() => {
         if (timeLeft === 0) {
@@ -91,7 +91,10 @@ const CallPage = () => {
     const dispatch = useDispatch();
     const [expired, setExpired] = useState(false);
     const [isOpen, setIsOpen] = useState(false);
-
+    const [storedRecordId, setStoredRecordId] = useState<number | null>(() => {
+        const savedRecordId = localStorage.getItem("recordId");
+        return savedRecordId ? Number(savedRecordId) : null;
+    });
     const { data: tokenData } = useGetRecordIdByTokenQuery();
     const recordId = tokenData?.recordId ? Number(tokenData.recordId) : null;
     const [updateQueueItem] = useUpdateQueueItemMutation();
@@ -101,7 +104,9 @@ const CallPage = () => {
     });
 
     const windowNumber = clientRecord?.windowNumber ?? "-";
-
+    useEffect(() => {
+        console.log("Updated storedRecordId:", storedRecordId);
+    }, [storedRecordId]);
     useEffect(() => {
         startSignalR();
         connection.on("ReceiveRecordCreated", (newRecord) => {
@@ -126,10 +131,26 @@ const CallPage = () => {
                 navigate("/progress");
             }
         });
+
+        connection.on("RecieveRedirectClient", (data) => {
+            console.log("Received Redirect Data:", data);
+
+            if (!data || typeof data.newRecordId !== "number") {
+                console.error("Invalid data received:", data);
+                return;
+            }
+
+            if (data.recordId === storedRecordId) {
+                dispatch(setRecordId(data.newRecordId));
+                console.log("Updating global recordId to:", data.newRecordId);
+                navigate("/wait", { state: { newRecordId: data.newRecordId } });
+            }
+        });
         return () => {
             connection.off("ReceiveRecordCreated");
             connection.off("RecieveUpdateRecord");
             connection.off("RecieveAcceptRecord");
+            connection.off("RecieveRedirectClient");
         };
     }, [recordId, navigate]);
 
@@ -147,11 +168,17 @@ const CallPage = () => {
         } catch (error) {
             alert(error);
         }
+        localStorage.removeItem("recordId");
+        console.log("Removing recordId from Redux:", recordId);
+
         localStorage.removeItem("token");
+        setStoredRecordId(null);
+        dispatch(setRecordId(null));
         dispatch(setToken(null));
         navigate("/");
         setIsOpen(false);
     };
+
     const handleAvtomaticConfirmRefuse = async () => {
         if (!recordId) return;
         try {
@@ -159,10 +186,13 @@ const CallPage = () => {
         } catch (error) {
             alert(error);
         }
+        console.log("Removing recordId from Redux automatically:", recordId);
         localStorage.removeItem("token");
+        localStorage.removeItem("recordId");
+        dispatch(setRecordId(null));
         dispatch(setToken(null));
-
         setIsOpen(false);
+        setStoredRecordId(null);
     };
 
     return (

@@ -89,6 +89,8 @@
         "stopWindow": "Остановить окно",
         "startQueue": "Начало очереди",
         "clientAccepted": "Клиент принят!",
-        "serviceCompleted": "Услуга завершена!"
+        "serviceCompleted": "Услуга завершена!",
+        "serviceRedirected": "Услуга перенаправлена!",
+        "redirectServiceAction": "Перенаправить"
     }
 }

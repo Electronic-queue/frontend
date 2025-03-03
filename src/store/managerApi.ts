@@ -117,6 +117,20 @@ export const managerApi = createApi({
                 },
             }),
         }),
+        redirectClient: builder.mutation<
+            any,
+            { managerId: number; serviceId: number }
+        >({
+            query: ({ managerId, serviceId }) => ({
+                url: "Manager/redirectclient",
+                method: "POST",
+                params: {
+                    managerId,
+                    serviceId,
+                    "api-version": "1",
+                },
+            }),
+        }),
 
         createReview: builder.mutation<
             any,
@@ -147,4 +161,5 @@ export const {
     useAcceptClientMutation,
     useCallNextMutation,
     useCompleteClientMutation,
+    useRedirectClientMutation,
 } = managerApi;
