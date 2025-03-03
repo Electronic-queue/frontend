@@ -109,6 +109,7 @@ const WaitingPage = () => {
 
         connection.on("ReceiveRecordCreated", (newRecord) => {
             if (newRecord.recordId === recordId) {
+
                 if (newRecord.clientNumber === -1) {
                     navigate("/call");
                 }
@@ -120,8 +121,10 @@ const WaitingPage = () => {
             const updatedItem = queueList.find(
                 (item: { recordId: number }) => item.recordId === recordId
             );
+
             if (updatedItem && updatedItem.clientNumber === -1) {
                 navigate("/call");
+
             }
         });
 

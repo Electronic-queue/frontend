@@ -1,4 +1,4 @@
-import { FC, useState } from "react";
+import { FC } from "react";
 import Box from "@mui/material/Box";
 import { useTranslation } from "react-i18next";
 import StatusButtons from "./StatusButtons";
@@ -34,6 +34,7 @@ const ClientCard: FC<ClientCardProps> = ({
     onComplete,
     callNext,
     status,
+    loading,
 }) => {
     const { t } = useTranslation();
 
@@ -80,7 +81,7 @@ const ClientCard: FC<ClientCardProps> = ({
                         <Typography variant="h6" color="text" fontWeight="bold">
                             {t("i18n_queue.serviceTime")}:
                         </Typography>
-                        <Typography variant="h6" color="text">
+                        <Typography variant="h6" color="text" component="span">
                             {serviceTime} {t("i18n_queue.minut")}
                         </Typography>
                     </Box>
@@ -91,6 +92,7 @@ const ClientCard: FC<ClientCardProps> = ({
                     callNext={callNext}
                     onAccept={onAccept}
                     onComplete={onComplete}
+                    loading={loading}
                 />
             </ActionPanel>
         </CardContainer>

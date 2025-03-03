@@ -31,16 +31,6 @@ const FormContainer = styled(Stack)(({ theme }) => ({
     textAlign: "center",
 }));
 
-const TitleBox = styled(Box)(({ theme }) => ({
-    width: theme.spacing(15),
-    height: theme.spacing(15),
-    borderRadius: "50%",
-    border: `8px solid ${theme.palette.error.main}`,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-}));
-
 const InProgress = () => {
     const { t } = useTranslation();
     const navigate = useNavigate();

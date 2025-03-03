@@ -21,6 +21,8 @@ import {
 import { Alert, Snackbar } from "@mui/material";
 import Skeleton from "@mui/material/Skeleton";
 
+type StatusType = "idle" | "called" | "accepted";
+
 const ButtonWrapper = styled(Box)(({ theme }) => ({
     marginBottom: theme.spacing(3),
     display: "flex",
@@ -68,9 +70,8 @@ const QueuePage: FC = () => {
         message: string;
     }>({ open: false, message: "" });
 
-    const [status, setStatus] = useState<"idle" | "called" | "accepted">(
-        "idle"
-    );
+    const [status, setStatus] = useState<StatusType>("idle");
+    const [isCallingNext, setIsCallingNext] = useState(false);
     const managerId: number = 6;
 
     const {
@@ -118,6 +119,7 @@ const QueuePage: FC = () => {
     };
 
     const handleCallNextClient = async () => {
+        setIsCallingNext(true);
         try {
             await callNext({ managerId }).unwrap();
             setSnackbar({ open: true, message: t("i18n_queue.startQueue") });
@@ -217,7 +219,7 @@ const QueuePage: FC = () => {
                     <Skeleton variant="rectangular" width={250} height={118} />
                 </SkeletonStyles>
             ) : listOfClientsError ? (
-                <p>
+                <>
                     {"status" in listOfClientsError &&
                     listOfClientsError.status === 404 ? (
                         <ClientCard
@@ -228,11 +230,12 @@ const QueuePage: FC = () => {
                             callNext={handleCallNextClient}
                             onComplete={handleСompleteClient}
                             status={status}
+                            loading={isCallingNext}
                         />
                     ) : (
                         "Ошибка загрузки данных"
                     )}
-                </p>
+                </>
             ) : firstClient ? (
                 <ClientCard
                     clientData={clientData!}
@@ -242,6 +245,7 @@ const QueuePage: FC = () => {
                     callNext={handleCallNextClient}
                     onComplete={handleСompleteClient}
                     status={status}
+                    loading={isCallingNext}
                 />
             ) : (
                 <ClientCard
@@ -252,6 +256,7 @@ const QueuePage: FC = () => {
                     callNext={handleCallNextClient}
                     onComplete={handleСompleteClient}
                     status={status}
+                    loading={isCallingNext}
                 />
             )}
 

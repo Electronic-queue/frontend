@@ -20,7 +20,26 @@ interface StatusButtonsProps {
     callNext: () => void;
     onAccept: () => void;
     onComplete: () => void;
+    loading: boolean;
 }
+
+
+const IdleButton: FC<{ callNext: () => void; loading: boolean }> = ({
+    callNext,
+    loading,
+}) => {
+    const { t } = useTranslation();
+    return (
+        <CustomButton
+            variantType="primary"
+            sizeType="small"
+            onClick={callNext}
+            disabled={loading}
+        >
+            {t("i18n_queue.callNext")}
+        </CustomButton>
+    );
+};
 
 const MainWrapper = styled(Box)(({ theme }) => ({
     display: "flex",
@@ -33,6 +52,7 @@ const ButtonWrapperStyles = styled(Box)(({ theme }) => ({
     gap: theme.spacing(2),
     justifyContent: "flex-end",
 }));
+
 
 const CalledButtons: FC<{ onAccept: () => void }> = ({ onAccept }) => {
     const { t } = useTranslation();
@@ -182,18 +202,13 @@ const StatusButtons: FC<StatusButtonsProps> = ({
     callNext,
     onAccept,
     onComplete,
+    loading,
 }) => {
     switch (status) {
         case "idle":
-            return (
-                <CustomButton
-                    variantType="primary"
-                    sizeType="small"
-                    onClick={callNext}
-                >
-                    {t("i18n_queue.callNext")}
-                </CustomButton>
-            );
+
+            return <IdleButton callNext={callNext} loading={loading} />;
+
         case "called":
             return <CalledButtons onAccept={onAccept} />;
         case "accepted":
