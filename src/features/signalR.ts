@@ -1,5 +1,6 @@
 import * as signalR from "@microsoft/signalr";
-import { signalRBaseUrl } from "src/config/api.config";
+
+export const signalRBaseUrl = import.meta.env.VITE_SIGNALR_BASE_URL;
 
 const connection = new signalR.HubConnectionBuilder()
     .withUrl(signalRBaseUrl, {

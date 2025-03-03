@@ -1,7 +1,7 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { RootState } from "src/store/store";
 import { ManagerRecord } from "src/types/managerApiTypes";
-import { apiBaseUrl } from "src/config/api.config";
+export const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
 
 export const managerApi = createApi({
     reducerPath: "managerApi",
@@ -19,16 +19,16 @@ export const managerApi = createApi({
     endpoints: (builder) => ({
         getRecordListByManager: builder.query<ManagerRecord[], void>({
             query: () => ({
-                url: `Manager/recordListByManager`,
+                url: "Manager/recordListByManager",
                 params: {
-                    managerId: 3,
+                    managerId: 6,
                     "api-version": "1",
                 },
             }),
         }),
         getServiceList: builder.query<any, void>({
             query: () => ({
-                url: `Service`,
+                url: "Service",
                 params: {
                     "api-version": "1",
                 },
@@ -36,7 +36,7 @@ export const managerApi = createApi({
         }),
         createRecord: builder.mutation<any, Partial<ManagerRecord>>({
             query: (newRecord) => ({
-                url: `Record/create`,
+                url: "Record/create",
                 method: "POST",
                 params: {
                     "api-version": "1",
@@ -64,13 +64,13 @@ export const managerApi = createApi({
             void
         >({
             query: () => ({
-                url: `Record/getrecordidbytoken`,
+                url: "Record/getrecordidbytoken",
                 params: { "api-version": "1" },
             }),
         }),
         updateQueueItem: builder.mutation<any, { id: number }>({
             query: ({ id }) => ({
-                url: `QueueItem/update`,
+                url: "QueueItem/update",
                 method: "POST",
                 params: {
                     id,
@@ -78,12 +78,52 @@ export const managerApi = createApi({
                 },
             }),
         }),
+
+        getServiceById: builder.query<any, number>({
+            query: (serviceId) => ({
+                url: `Service/${serviceId}`,
+                params: { "api-version": "1" },
+            }),
+        }),
+
+        acceptClient: builder.mutation<any, { managerId: number }>({
+            query: ({ managerId }) => ({
+                url: "Manager/acceptclient",
+                method: "POST",
+                params: {
+                    managerId,
+                    "api-version": "1",
+                },
+            }),
+        }),
+
+        callNext: builder.mutation<any, { managerId: number }>({
+            query: ({ managerId }) => ({
+                url: "Manager/callnext",
+                method: "POST",
+                params: {
+                    managerId,
+                    "api-version": "1",
+                },
+            }),
+        }),
+        completeClient: builder.mutation<any, { managerId: number }>({
+            query: ({ managerId }) => ({
+                url: "Manager/completeclient",
+                method: "POST",
+                params: {
+                    managerId,
+                    "api-version": "1",
+                },
+            }),
+        }),
+
         createReview: builder.mutation<
             any,
             { recordId: number; rating: number; content: string }
         >({
             query: (review) => ({
-                url: `Review/create`,
+                url: "Review/create",
                 method: "POST",
                 params: {
                     "api-version": "1",
@@ -103,4 +143,8 @@ export const {
     useGetClientRecordByIdQuery,
     useUpdateQueueItemMutation,
     useCreateReviewMutation,
+    useGetServiceByIdQuery,
+    useAcceptClientMutation,
+    useCallNextMutation,
+    useCompleteClientMutation,
 } = managerApi;

@@ -1,4 +1,4 @@
-import { FC, useContext, useState } from "react";
+import { FC, useState, useEffect } from "react";
 import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
 import { styled } from "@mui/material/styles";
@@ -11,8 +11,17 @@ import ReusableModal from "src/components/ModalPage";
 import theme from "src/styles/theme";
 import SelectTime from "src/widgets/selectTiem/ui/SelectTime";
 import Timer from "src/widgets/timer/ui/Timer";
-// import { useGetRecordListByManagerQuery } from "src/store/managerApi";
-import useQueueData from "src/hooks/useQueueData";
+import {
+    useAcceptClientMutation,
+    useCallNextMutation,
+    useCompleteClientMutation,
+    useGetRecordListByManagerQuery,
+    useGetServiceByIdQuery,
+} from "src/store/managerApi";
+import { Alert, Snackbar } from "@mui/material";
+import Skeleton from "@mui/material/Skeleton";
+
+type StatusType = "idle" | "called" | "accepted";
 
 const ButtonWrapper = styled(Box)(({ theme }) => ({
     marginBottom: theme.spacing(3),
@@ -30,33 +39,133 @@ const StatusCardWrapper = styled(Stack)(({ theme }) => ({
     marginBottom: theme.spacing(6),
 }));
 
-const clientData = {
-    clientNumber: "A21",
-    lastName: "Каримов",
-    firstName: "Айдархан",
-    patronymic: "Нурсултанович",
-    service: "Услуга 2",
-    iin: "070501060888",
+const SkeletonStyles = styled(Box)(({ theme }) => ({
+    width: "1128px",
+    display: "flex",
+    justifyContent: "space-between",
+    padding: theme.spacing(4),
+    backgroundColor: theme.palette.background.paper,
+    boxShadow: theme.shadows[3],
+}));
+
+const clientData1 = {
+    clientNumber: "-",
+    lastName: "-",
+    firstName: "-",
+    patronymic: "-",
+    service: "-",
+    iin: "-",
 };
-
-const handleRedirect = () => {
-    alert("Клиент перенаправлен");
-};
-
-const handleAccept = () => {
-    alert("Клиент принят");
-};
-
-const serviceTime = "03:00";
-
+const serviceTime1 = "0";
 const QueuePage: FC = () => {
     const { t } = useTranslation();
     const [selectedTime, setSelectedTime] = useState<number>(1);
     const [isPauseModalOpen, setIsPauseModalOpen] = useState(false);
     const [isTimerModalOpen, setIsTimerModalOpen] = useState(false);
+    const [acceptClient] = useAcceptClientMutation();
+    const [callNext] = useCallNextMutation();
+    const [completeClient] = useCompleteClientMutation();
+    const [snackbar, setSnackbar] = useState<{
+        open: boolean;
+        message: string;
+    }>({ open: false, message: "" });
 
-    // const { data, error, isLoading } = useGetRecordListByManagerQuery();
+    const [status, setStatus] = useState<StatusType>("idle");
+    const [isCallingNext, setIsCallingNext] = useState(false);
+    const managerId: number = 6;
 
+    const {
+        data: listOfClientsData = [],
+        error: listOfClientsError,
+        isLoading: isListOfClientsLoading,
+        refetch: refetchClients,
+    } = useGetRecordListByManagerQuery();
+
+    useEffect(() => {
+        if (listOfClientsData.length === 0) {
+            const interval = setInterval(() => {
+                refetchClients();
+            }, 30000);
+
+            return () => clearInterval(interval);
+        }
+    }, [listOfClientsData, refetchClients]);
+    useEffect(() => {
+        const savedStatus = sessionStorage.getItem("clientStatus");
+        if (savedStatus) {
+            setStatus(savedStatus as "idle" | "called" | "accepted");
+        }
+    }, []);
+    const firstClient = listOfClientsData?.[0] || null;
+    const serviceId = firstClient?.serviceId;
+
+    const {
+        data: serviceData,
+        error: serviceError,
+        isLoading: isServiceLoading,
+    } = useGetServiceByIdQuery(serviceId ?? 0, { skip: !serviceId });
+
+    const handleAcceptClient = async () => {
+        try {
+            await acceptClient({ managerId }).unwrap();
+            setSnackbar({
+                open: true,
+                message: t("i18n_queue.clientAccepted"),
+            });
+
+            setStatus("accepted");
+            sessionStorage.setItem("clientStatus", "accepted");
+        } catch (err) {}
+    };
+
+    const handleCallNextClient = async () => {
+        setIsCallingNext(true);
+        try {
+            await callNext({ managerId }).unwrap();
+            setSnackbar({ open: true, message: t("i18n_queue.startQueue") });
+
+            setStatus("called");
+            sessionStorage.setItem("clientStatus", "called");
+            refetchClients();
+        } catch (err) {}
+    };
+
+    const handleСompleteClient = async () => {
+        try {
+            await completeClient({ managerId }).unwrap();
+            setSnackbar({
+                open: true,
+                message: t("i18n_queue.serviceCompleted"),
+            });
+            refetchClients();
+            if (listOfClientsData.length > 1) {
+                setStatus("called");
+                sessionStorage.setItem("clientStatus", "called");
+            } else {
+                setStatus("idle");
+                sessionStorage.removeItem("clientStatus");
+            }
+        } catch (err) {}
+    };
+
+    const serviceName = isServiceLoading
+        ? "Загрузка услуги..."
+        : serviceError
+          ? "Ошибка загрузки услуги"
+          : serviceData?.value?.nameRu || "Неизвестная услуга";
+
+    const clientData = firstClient
+        ? {
+              clientNumber: `${firstClient.recordId}`,
+              lastName: firstClient.lastName,
+              firstName: firstClient.firstName,
+              patronymic: firstClient.surname || "",
+              service: serviceName,
+              iin: firstClient.iin,
+          }
+        : null;
+    const serviceTime = serviceData?.value?.averageExecutionTime;
+    const handleRedirect = () => alert("Клиент перенаправлен");
     const handlePauseModalOpen = () => setIsPauseModalOpen(true);
     const handlePauseModalClose = () => setIsPauseModalOpen(false);
     const handleTimerModalOpen = () => {
@@ -67,17 +176,28 @@ const QueuePage: FC = () => {
 
     const handleTimeSelect = (time: number) => {
         setSelectedTime(time);
-        alert(`Выбранное время: ${time}`);
     };
-    const queueData = useQueueData();
-
     return (
         <>
+            <Snackbar
+                open={snackbar.open}
+                autoHideDuration={3000}
+                onClose={() => setSnackbar({ open: false, message: "" })}
+            >
+                <Alert
+                    severity="success"
+                    onClose={() => setSnackbar({ open: false, message: "" })}
+                    sx={{ fontSize: theme.typography.body1.fontSize }}
+                >
+                    {snackbar.message}
+                </Alert>
+            </Snackbar>
+
             <ButtonWrapper>
                 <CustomButton
                     variantType="primary"
                     sizeType="medium"
-                    onClick={handlePauseModalOpen}
+                    onClick={() => setIsPauseModalOpen(true)}
                 >
                     {t("i18n_queue.pause")}
                 </CustomButton>
@@ -90,12 +210,52 @@ const QueuePage: FC = () => {
                 <StatusCard variant="in_anticipation" number={8} />
             </StatusCardWrapper>
 
-            <ClientCard
-                clientData={clientData}
-                serviceTime={serviceTime}
-                onRedirect={handleRedirect}
-                onAccept={handleAccept}
-            />
+            {isListOfClientsLoading ? (
+                <SkeletonStyles>
+                    <Skeleton variant="rectangular" width={210} height={118} />
+                    <Skeleton variant="rectangular" width={250} height={118} />
+                </SkeletonStyles>
+            ) : listOfClientsError ? (
+                <>
+                    {"status" in listOfClientsError &&
+                    listOfClientsError.status === 404 ? (
+                        <ClientCard
+                            clientData={clientData1}
+                            serviceTime={serviceTime1}
+                            onRedirect={handleRedirect}
+                            onAccept={handleAcceptClient}
+                            callNext={handleCallNextClient}
+                            onComplete={handleСompleteClient}
+                            status={status}
+                            loading={isCallingNext}
+                        />
+                    ) : (
+                        "Ошибка загрузки данных"
+                    )}
+                </>
+            ) : firstClient ? (
+                <ClientCard
+                    clientData={clientData!}
+                    serviceTime={serviceTime}
+                    onRedirect={handleRedirect}
+                    onAccept={handleAcceptClient}
+                    callNext={handleCallNextClient}
+                    onComplete={handleСompleteClient}
+                    status={status}
+                    loading={isCallingNext}
+                />
+            ) : (
+                <ClientCard
+                    clientData={clientData1}
+                    serviceTime={serviceTime}
+                    onRedirect={handleRedirect}
+                    onAccept={handleAcceptClient}
+                    callNext={handleCallNextClient}
+                    onComplete={handleСompleteClient}
+                    status={status}
+                    loading={isCallingNext}
+                />
+            )}
 
             <Box
                 sx={{
@@ -104,45 +264,57 @@ const QueuePage: FC = () => {
                     paddingBottom: theme.spacing(3),
                 }}
             >
-                {queueData.length > 0 ? (
-                    queueData.map((item, index) => (
+                {Array.isArray(listOfClientsData) &&
+                listOfClientsData.length > 1 ? (
+                    listOfClientsData.slice(1, 5).map((item) => (
                         <QueueCard
-                            key={index}
-                            clientNumber={item.clientNumber}
-                            service={item.service}
-                            bookingTime={item.bookingTime}
-                            expectedTime={item.expectedTime}
+                            key={item.recordId}
+                            clientNumber={item.recordId}
+                            service={item.serviceNameRu}
+                            bookingTime={new Date(
+                                item.createdOn ?? ""
+                            ).toLocaleTimeString([], {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                            })}
+                            expectedTime={item.expectedAcceptanceTime}
                         />
                     ))
                 ) : (
-                    <p>Загрузка...</p>
+                    <p>Нет данных</p>
                 )}
             </Box>
 
             <ReusableModal
                 open={isPauseModalOpen}
-                onClose={handlePauseModalClose}
-                title="Остановка окна"
+                onClose={() => setIsPauseModalOpen(false)}
+                title={t("i18n_queue.stopWindow")}
                 width={theme.spacing(99)}
+                height={theme.spacing(29)}
                 showCloseButton={false}
             >
-                <Box sx={{ display: "flex", justifyContent: "center" }}>
-                    <SelectTime onTimeSelect={handleTimeSelect} />
-                </Box>
-                <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
+                <Box sx={{ display: "flex", justifyContent: "center", gap: 3 }}>
+                    <Box sx={{ display: "flex", justifyContent: "center" }}>
+                        <SelectTime
+                            onTimeSelect={(time) => setSelectedTime(time)}
+                        />
+                    </Box>
                     <CustomButton
                         variantType="primary"
                         sizeType="medium"
-                        onClick={handleTimerModalOpen}
+                        onClick={() => {
+                            setIsPauseModalOpen(false);
+                            setIsTimerModalOpen(true);
+                        }}
                     >
-                        Поставить окно на паузу
+                        {t("i18n_queue.pauseWindow")}
                     </CustomButton>
                 </Box>
             </ReusableModal>
 
             <ReusableModal
                 open={isTimerModalOpen}
-                onClose={handleTimerModalClose}
+                onClose={() => setIsTimerModalOpen(false)}
                 title="Окно на паузе"
                 width={theme.spacing(99)}
                 showCloseButton={false}
@@ -150,7 +322,7 @@ const QueuePage: FC = () => {
             >
                 <Timer
                     initialTime={selectedTime}
-                    onResume={handleTimerModalClose}
+                    onResume={() => setIsTimerModalOpen(false)}
                 />
             </ReusableModal>
         </>

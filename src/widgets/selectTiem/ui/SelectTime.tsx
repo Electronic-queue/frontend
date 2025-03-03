@@ -1,53 +1,51 @@
 import { FC, useState } from "react";
-import {
-    Select,
-    MenuItem,
-    FormControl,
-    InputLabel,
-    FormHelperText,
-    Box,
-    SelectChangeEvent,
-} from "@mui/material";
-import { styled } from "@mui/material/styles";
-import { SelectTimeProps } from "../types/selectTimeTypes"; // Интерфейс пропсов, который можно создать отдельно
-
-const StyledFormControl = styled(FormControl)(({ theme }) => ({
-    minWidth: 120,
-    marginBottom: theme.spacing(2),
-}));
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { TimePicker } from "@mui/x-date-pickers/TimePicker";
+import dayjs, { Dayjs } from "dayjs";
+import { Box } from "@mui/material";
+import { SelectTimeProps } from "../types/selectTimeTypes";
+import { useTranslation } from "react-i18next";
 
 const SelectTime: FC<SelectTimeProps> = ({ onTimeSelect }) => {
-    const [selectedTime, setSelectedTime] = useState<number>(1);
+    const [selectedTime, setSelectedTime] = useState<Dayjs | null>(
+        dayjs().minute(1).second(0)
+    );
 
-    const handleTimeChange = (event: SelectChangeEvent<number>) => {
-        const newTime = event.target.value as number;
-        setSelectedTime(newTime);
-        onTimeSelect(newTime);
+    const handleTimeChange = (newValue: Dayjs | null) => {
+        if (newValue) {
+            let minutes = newValue.minute();
+            if (minutes > 30) {
+                minutes = 30;
+            }
+            const adjustedTime = dayjs().minute(minutes).second(0);
+            setSelectedTime(adjustedTime);
+            onTimeSelect(minutes);
+        }
     };
-
+    const { t } = useTranslation();
     return (
-        <Box>
-            <StyledFormControl>
-                <InputLabel id="select-time-label">Выберите время</InputLabel>
-                <Select
-                    labelId="select-time-label"
+        <LocalizationProvider dateAdapter={AdapterDayjs}>
+            <Box
+                sx={{ minWidth: 200, "& .MuiClock-root": { display: "none" } }}
+            >
+                <TimePicker
+                    label={t("i18n_queue.selectTime")}
                     value={selectedTime}
                     onChange={handleTimeChange}
-                    label="Выберите время"
-                >
-                    {Array.from({ length: 30 }, (_, index) => index + 1).map(
-                        (minute) => (
-                            <MenuItem key={minute} value={minute}>
-                                {minute} минут
-                            </MenuItem>
-                        )
-                    )}
-                </Select>
-                <FormHelperText>
-                    Минимум 1 минута, максимум 30 минут
-                </FormHelperText>
-            </StyledFormControl>
-        </Box>
+                    views={["minutes"]}
+                    format="mm"
+                    ampm={false}
+                    slotProps={{
+                        textField: {
+                            inputProps: {
+                                style: { fontSize: 16 },
+                            },
+                        },
+                    }}
+                />
+            </Box>
+        </LocalizationProvider>
     );
 };
 

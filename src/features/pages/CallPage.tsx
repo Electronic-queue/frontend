@@ -7,7 +7,6 @@ import { useTranslation } from "react-i18next";
 import { SULogoM } from "src/assets";
 import CustomButton from "src/components/Button";
 import ReusableModal from "src/components/ModalPage";
-import mockData from "src/components/mock/MockWaitingData.json";
 import theme from "src/styles/theme";
 import { useNavigate } from "react-router-dom";
 import connection, { startSignalR } from "src/features/signalR";
@@ -108,7 +107,7 @@ const CallPage = () => {
         connection.on("ReceiveRecordCreated", (newRecord) => {
             if (
                 newRecord.recordId === recordId &&
-                newRecord.clientNumber === -1
+                newRecord.clientNumber === -2
             ) {
                 navigate("/progress");
             }
@@ -118,11 +117,11 @@ const CallPage = () => {
                 (item: { recordId: number | null }) =>
                     item.recordId === recordId
             );
-            if (updatedItem && updatedItem.clientNumber === -1) {
+            if (updatedItem && updatedItem.clientNumber === -2) {
                 navigate("/progress");
             }
         });
-        connection.on("RecieveAcceptRecord", (recordAccept) => {
+        connection.on("RecieveUpdateRecord", (recordAccept) => {
             if (recordAccept.recordId === recordId) {
                 navigate("/progress");
             }

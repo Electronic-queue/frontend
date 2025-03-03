@@ -235,11 +235,8 @@ const LoginPage: FC = () => {
                             alignItems: "center",
                         }}
                     >
-                        <Typography>
-                            {t("i18n_login.forgotPassword")}
-                        </Typography>
                         <RestoreAccessText onClick={handleModalOpen}>
-                            {t("i18n_login.restoreAccess")}
+                            {t("i18n_login.forgotPassword")}
                         </RestoreAccessText>
                     </Stack>
                 </LoginCard>

@@ -59,7 +59,7 @@
         "signUp": "Sign up",
         "number": "Your number №",
         "window": "Window",
-        "peopleAhead": "People ahead",
+        "peopleAhead": "Your turn ",
         "refuse": "Refuse",
         "cancel": "Cancel",
         "confirm": "Confirm",
@@ -76,6 +76,20 @@
         "mobileOnly": "This page is only accessible via phone",
         "reviewSubmitted": "Review successfully submitted!",
         "reviewError": "An error occurred while submitting the review!",
-        "complete": "Complete"
+        "complete": "Complete",
+        "minut": "Minuts",
+        "searchServicePlaceholder": "Search for service...",
+        "redirectService": "Redirect service",
+        "serviceName": "Service name",
+        "details": "Details",
+        "callNext": "Call next",
+        "logOut": "Log out",
+        "beingServed": "Being served",
+        "selectTime": "Select time (minutes)",
+        "pauseWindow": "Pause window",
+        "stopWindow": "Stop window",
+        "startQueue": "Start queue",
+        "clientAccepted": "Client accepted!",
+        "serviceCompleted": "Service completed!"
     }
 }

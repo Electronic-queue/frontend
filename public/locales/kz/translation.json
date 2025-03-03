@@ -59,7 +59,7 @@
         "signUp": "Тіркелу",
         "number": "Сіздің нөміріңіз №",
         "window": "Терезе",
-        "peopleAhead": "Алдыңғы адамдар",
+        "peopleAhead": "Сіздің кезегіңіз",
         "refuse": "Бас тарту",
         "cancel": "Болдырмау",
         "confirm": "Растау",
@@ -76,6 +76,20 @@
         "mobileOnly": "Бұл бет тек телефон арқылы қолжетімд",
         "reviewSubmitted": "Пікір сәтті жіберілді!",
         "reviewError": "Пікірді жіберу кезінде қате орын алды!",
-        "complete": "Аяқтау"
+        "complete": "Аяқтау",
+        "minut": "Минут",
+        "searchServicePlaceholder": "Қызметті іздеу...",
+        "redirectService": "Қызметті қайта бағыттау",
+        "serviceName": "Қызмет атауы",
+        "details": "Мәліметтер",
+        "callNext": "Келесіні шақыру",
+        "logOut": "Шығу",
+        "beingServed": "Сізге қызмет көрсетілуде",
+        "selectTime": "Уақытты таңдаңыз (минуттар)",
+        "pauseWindow": "Терезені кідірту",
+        "stopWindow": "Терезені тоқтату",
+        "startQueue": "Кезек басталды",
+        "clientAccepted": "Клиент қабылданды!",
+        "serviceCompleted": "Қызмет аяқталды!"
     }
 }
