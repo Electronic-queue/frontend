@@ -11,11 +11,10 @@ import WaitingPage from "./features/pages/WaitingPage";
 import CallPage from "./features/pages/CallPage";
 import ServiceRating from "./features/pages/ServiceRating";
 import QueuePage from "./features/pages/QueuePage";
-import StatisticPage from "./features/pages/StatisticPage";
-import SignalRComponent from "./components/SignalRComponent";
 import Page from "./components/Page";
 import RestrictedAccess from "./components/RestrictedAccess";
 import "./app.css";
+import InProgress from "./features/pages/InProgressPage";
 
 const App: FC = () => {
     const isMobile = useMediaQuery("(max-width: 768px)");
@@ -50,6 +49,7 @@ const MobileRoutes: FC = () => (
         <Route path="/selection" element={<ServiceSelection />} />
         <Route path="/wait" element={<WaitingPage />} />
         <Route path="/call" element={<CallPage />} />
+        <Route path="/progress" element={<InProgress />} />
         <Route path="/rating" element={<ServiceRating />} />
     </Routes>
 );
@@ -57,8 +57,7 @@ const MobileRoutes: FC = () => (
 const DesktopRoutes: FC = () => (
     <Routes>
         <Route path="/manager/queue" element={<QueuePage />} />
-        <Route path="/manager/reports" element={<StatisticPage />} />
-        <Route path="/signal" element={<SignalRComponent />} />
+        {/* <Route path="/manager/reports" element={<StatisticPage />} /> */}
         <Route path="/*" element={<RestrictedAccess />} />
     </Routes>
 );

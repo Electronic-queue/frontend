@@ -62,6 +62,7 @@ const ClientRegisterPage = () => {
 
     const onSubmit = (data: FormValues) => {
         dispatch(setUserInfo(data));
+
         navigate("/selection");
     };
 
@@ -95,7 +96,7 @@ const ClientRegisterPage = () => {
                             ...pattern(
                                 /^\d{12}$/,
                                 t("i18n_register.iinLengthError")
-                            ),
+                            ), // Только 12 цифр
                         }}
                         labelKey="i18n_register.iin"
                     />
@@ -105,7 +106,10 @@ const ClientRegisterPage = () => {
                         control={control}
                         rules={{
                             ...required,
-                            ...minLength(2),
+                            ...pattern(
+                                /^[a-zA-Zа-яА-ЯёЁ-]+$/,
+                                t("i18n_register.invalidNameError")
+                            ), // Только буквы и дефисы, без пробелов
                             ...maxLength(40),
                         }}
                         labelKey="i18n_register.firstName"
@@ -116,7 +120,10 @@ const ClientRegisterPage = () => {
                         control={control}
                         rules={{
                             ...required,
-                            ...minLength(2),
+                            ...pattern(
+                                /^[a-zA-Zа-яА-ЯёЁ-]+$/,
+                                t("i18n_register.invalidNameError")
+                            ),
                             ...maxLength(40),
                         }}
                         labelKey="i18n_register.lastName"
@@ -125,7 +132,13 @@ const ClientRegisterPage = () => {
                     <StyledTextField
                         name="middleName"
                         control={control}
-                        rules={{ ...minLength(2), ...maxLength(40) }}
+                        rules={{
+                            ...pattern(
+                                /^[a-zA-Zа-яА-ЯёЁ-]+$/,
+                                t("i18n_register.invalidNameError")
+                            ),
+                            ...maxLength(40),
+                        }}
                         labelKey="i18n_register.middleName"
                     />
                 </Box>

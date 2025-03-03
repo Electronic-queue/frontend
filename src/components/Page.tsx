@@ -9,7 +9,6 @@ export interface IPageProps {
 const PageContainer = styled(Stack)(({ theme }) => ({
     margin: "0 auto",
     padding: theme.spacing(3),
-    height: "calc(100vh - 85.5px)",
     alignItems: "flex-start",
     maxWidth: "1200px",
 }));

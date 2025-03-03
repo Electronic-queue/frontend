@@ -1,5 +1,6 @@
 import * as signalR from "@microsoft/signalr";
-import { signalRBaseUrl } from "src/config/api.config";
+
+export const signalRBaseUrl = import.meta.env.VITE_SIGNALR_BASE_URL;
 
 const connection = new signalR.HubConnectionBuilder()
     .withUrl(signalRBaseUrl, {
@@ -16,13 +17,11 @@ export const startSignalR = async () => {
             await connection.start();
         }
     } catch (error) {
-        console.error("❌ Ошибка подключения к SignalR:", error);
         setTimeout(startSignalR, 5000);
     }
 };
 
 connection.onclose(async (error) => {
-    console.error("❌ Соединение с SignalR разорвано:", error);
     await startSignalR();
 });
 

@@ -1,17 +1,8 @@
-import { FC, useState } from "react";
+import { FC } from "react";
 import Box from "@mui/material/Box";
-import Typography from "@mui/material/Typography";
-import { styled } from "@mui/material/styles";
-import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import { useTranslation } from "react-i18next";
-import CustomButton from "../../../components/Button";
-import ReusableModal from "../../../components/ModalPage";
-import CustomSearchInput from "../../../components/SearchInput";
-import SearchIcon from "@mui/icons-material/Search";
-import ReusableTable from "src/components/Table";
-import Snackbar from "@mui/material/Snackbar";
-import Alert from "@mui/material/Alert";
-import data from "src/components/mock/servicesData.json";
+import StatusButtons from "./StatusButtons";
+import { ClientCardProps } from "../types/clientCardTypes";
 import {
     CardContainer,
     ClientDetails,
@@ -19,8 +10,9 @@ import {
     TimeWrapper,
     ClientInfoWrapper,
 } from "../styles/clientCardStyles";
-import { ClientCardProps, ServiceData } from "../types/clientCardTypes";
-import theme from "src/styles/theme";
+import Typography from "@mui/material/Typography";
+import AccessTimeIcon from "@mui/icons-material/AccessTime";
+import { styled } from "@mui/material/styles";
 
 const LabelText = styled(Typography)(({ theme }) => ({
     fontWeight: 600,
@@ -35,66 +27,16 @@ const ValueText = styled(Typography)(({ theme }) => ({
     textAlign: "left",
 }));
 
-const columns = [
-    {
-        accessorKey: "id",
-        header: "№",
-    },
-    {
-        accessorKey: "service",
-        header: "Название услуги",
-    },
-    {
-        accessorKey: "details",
-        header: "Детали",
-        cell: ({ row }: { row: any }) => (
-            <CustomButton
-                variantType="primary"
-                sizeType="small"
-                onClick={() => handleSend(row.original)}
-            >
-                Отправить
-            </CustomButton>
-        ),
-    },
-];
-
-const handleSend = (row: any) => {};
-
 const ClientCard: FC<ClientCardProps> = ({
     clientData,
     serviceTime,
-
     onAccept,
+    onComplete,
+    callNext,
+    status,
+    loading,
 }) => {
     const { t } = useTranslation();
-    const [isOpen, setIsOpen] = useState(false);
-    const handleModalOpen = () => setIsOpen(true);
-    const handleClose = () => setIsOpen(false);
-    const handleSnackbarClose = () => setSnackbarOpen(false);
-    const [searchValue, setSearchValue] = useState("");
-    const [filteredData, setFilteredData] = useState<ServiceData[]>(data);
-    const [snackbarOpen, setSnackbarOpen] = useState(false);
-    const [alertMessage, setAlertMessage] = useState("");
-
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const value = e.target.value;
-        setSearchValue(value);
-
-        const filtered = data.filter((row) =>
-            row.service.toLowerCase().includes(value.toLowerCase())
-        );
-        setFilteredData(filtered);
-    };
-    const handleRowClick = (row: any) => {
-        setAlertMessage(
-            `Вы перенаправили пользователя в услугу: ${row.service}`
-        );
-
-        setSnackbarOpen(true);
-
-        handleClose();
-    };
 
     return (
         <CardContainer>
@@ -120,7 +62,10 @@ const ClientCard: FC<ClientCardProps> = ({
                         label: t("i18n_queue.service"),
                         value: clientData.service,
                     },
-                    { label: t("i18n_queue.iin"), value: clientData.iin },
+                    {
+                        label: t("i18n_queue.iin"),
+                        value: clientData.iin,
+                    },
                 ].map(({ label, value }, index) => (
                     <ClientInfoWrapper key={index}>
                         <LabelText>{label}</LabelText>
@@ -136,65 +81,19 @@ const ClientCard: FC<ClientCardProps> = ({
                         <Typography variant="h6" color="text" fontWeight="bold">
                             {t("i18n_queue.serviceTime")}:
                         </Typography>
-                        <Typography variant="h6" color="text">
-                            {serviceTime}
+                        <Typography variant="h6" color="text" component="span">
+                            {serviceTime} {t("i18n_queue.minut")}
                         </Typography>
                     </Box>
                 </TimeWrapper>
 
-                <Box display="flex" gap={2}>
-                    <CustomButton
-                        variantType="primary"
-                        sizeType="small"
-                        onClick={handleModalOpen}
-                    >
-                        {t("i18n_queue.redirect")}
-                    </CustomButton>
-                    <ReusableModal
-                        open={isOpen}
-                        onClose={handleClose}
-                        title="Перенаправление услуги"
-                        width={theme.spacing(99)}
-                        showCloseButton={false}
-                    >
-                        <Box
-                            sx={{
-                                display: "flex",
-                                flexDirection: "column",
-                                gap: theme.spacing(2),
-                            }}
-                        >
-                            <CustomSearchInput
-                                placeholder="Поиск услуги..."
-                                icon={
-                                    <SearchIcon style={{ color: "#667085" }} />
-                                }
-                                value={searchValue}
-                                onChange={handleInputChange}
-                                width={theme.spacing(87)}
-                                height={theme.spacing(6)}
-                                borderColor={theme.palette.lightBlueGray.main}
-                                borderRadius={theme.shape.borderRadius}
-                                backgroundColor={theme.palette.lightGray.main}
-                                iconPosition="left"
-                            />
-
-                            <ReusableTable
-                                data={filteredData}
-                                columns={columns}
-                                pageSize={5}
-                                onRowClick={handleRowClick}
-                            />
-                        </Box>
-                    </ReusableModal>
-                    <CustomButton
-                        variantType="primary"
-                        sizeType="small"
-                        onClick={onAccept}
-                    >
-                        {t("i18n_queue.accept")}
-                    </CustomButton>
-                </Box>
+                <StatusButtons
+                    status={status}
+                    callNext={callNext}
+                    onAccept={onAccept}
+                    onComplete={onComplete}
+                    loading={loading}
+                />
             </ActionPanel>
         </CardContainer>
     );

@@ -12,6 +12,10 @@ export interface ClientCardProps {
     serviceTime: string;
     onRedirect: () => void;
     onAccept: () => void;
+    onComplete: () => void;
+    callNext: () => void;
+    status: "idle" | "called" | "accepted";
+    loading: boolean;
 }
 
 export interface ServiceData {

@@ -6,11 +6,17 @@ import Box from "@mui/material/Box";
 import { useTranslation } from "react-i18next";
 import { SULogoM } from "src/assets";
 import CustomButton from "src/components/Button";
-import mockData from "src/components/mock/MockWaitingData.json";
+import ReusableModal from "src/components/ModalPage";
 import theme from "src/styles/theme";
 import { useNavigate } from "react-router-dom";
 import connection, { startSignalR } from "src/features/signalR";
-import { useGetRecordIdByTokenQuery } from "src/store/managerApi";
+import {
+    useGetClientRecordByIdQuery,
+    useGetRecordIdByTokenQuery,
+    useUpdateQueueItemMutation,
+} from "src/store/managerApi";
+import { useDispatch } from "react-redux";
+import { setToken } from "src/store/userAuthSlice";
 
 const BackgroundContainer = styled(Box)(({ theme }) => ({
     display: "flex",
@@ -41,12 +47,20 @@ const TitleBox = styled(Box)(({ theme }) => ({
     justifyContent: "center",
 }));
 
+const RefuseModal = styled(Box)(({ theme }) => ({
+    display: "flex",
+    flexDirection: "column",
+    gap: theme.spacing(2),
+    alignItems: "center",
+    justifyContent: "center",
+}));
+
 interface TimerProps {
     onTimeout: () => void;
 }
 
 const Timer: React.FC<TimerProps> = ({ onTimeout }) => {
-    const [timeLeft, setTimeLeft] = useState(60);
+    const [timeLeft, setTimeLeft] = useState(30);
 
     useEffect(() => {
         if (timeLeft === 0) {
@@ -74,41 +88,82 @@ const Timer: React.FC<TimerProps> = ({ onTimeout }) => {
 const CallPage = () => {
     const { t } = useTranslation();
     const navigate = useNavigate();
+    const dispatch = useDispatch();
     const [expired, setExpired] = useState(false);
-    const windowNumber = mockData.mock[0].window;
+    const [isOpen, setIsOpen] = useState(false);
 
-    const { data: recordData, isLoading: isRecordLoading } =
-        useGetRecordIdByTokenQuery();
+    const { data: tokenData } = useGetRecordIdByTokenQuery();
+    const recordId = tokenData?.recordId ? Number(tokenData.recordId) : null;
+    const [updateQueueItem] = useUpdateQueueItemMutation();
+
+    const { data: clientRecord } = useGetClientRecordByIdQuery(recordId ?? 0, {
+        skip: !recordId,
+    });
+
+    const windowNumber = clientRecord?.windowNumber ?? "-";
 
     useEffect(() => {
-        if (isRecordLoading) return;
-
         startSignalR();
-
         connection.on("ReceiveRecordCreated", (newRecord) => {
             if (
-                newRecord.recordId === recordData?.recordId &&
-                newRecord.clientNumber === "-1"
+                newRecord.recordId === recordId &&
+                newRecord.clientNumber === -2
             ) {
-                navigate("/rating");
+                navigate("/progress");
             }
         });
-
         connection.on("RecieveUpdateRecord", (queueList) => {
             const updatedItem = queueList.find(
-                (item: { recordId: number }) =>
-                    item.recordId === recordData?.recordId
+                (item: { recordId: number | null }) =>
+                    item.recordId === recordId
             );
-            if (updatedItem && updatedItem.clientNumber === "-1") {
-                navigate("/rating");
+            if (updatedItem && updatedItem.clientNumber === -2) {
+                navigate("/progress");
             }
         });
-
+        connection.on("RecieveUpdateRecord", (recordAccept) => {
+            if (recordAccept.recordId === recordId) {
+                navigate("/progress");
+            }
+        });
         return () => {
             connection.off("ReceiveRecordCreated");
-            connection.off("ReceiveUpdateRecord");
+            connection.off("RecieveUpdateRecord");
+            connection.off("RecieveAcceptRecord");
         };
-    }, [navigate, recordData, isRecordLoading]);
+    }, [recordId, navigate]);
+
+    const handleModalOpen = () => setIsOpen(true);
+    const handleClose = () => setIsOpen(false);
+
+    const handleNavige = () => {
+        navigate("/");
+    };
+
+    const handleConfirmRefuse = async () => {
+        if (!recordId) return;
+        try {
+            await updateQueueItem({ id: recordId }).unwrap();
+        } catch (error) {
+            alert(error);
+        }
+        localStorage.removeItem("token");
+        dispatch(setToken(null));
+        navigate("/");
+        setIsOpen(false);
+    };
+    const handleAvtomaticConfirmRefuse = async () => {
+        if (!recordId) return;
+        try {
+            await updateQueueItem({ id: recordId }).unwrap();
+        } catch (error) {
+            alert(error);
+        }
+        localStorage.removeItem("token");
+        dispatch(setToken(null));
+
+        setIsOpen(false);
+    };
 
     return (
         <BackgroundContainer>
@@ -121,26 +176,74 @@ const CallPage = () => {
                         <Typography variant="h4" sx={{ marginBottom: 2 }}>
                             {t("i18n_queue.approachWindow")} {windowNumber}
                         </Typography>
-                        <Timer onTimeout={() => setExpired(true)} />
+                        <Timer
+                            onTimeout={() => {
+                                setExpired(true);
+                                handleAvtomaticConfirmRefuse();
+                            }}
+                        />
                         <Box sx={{ paddingTop: theme.spacing(5) }}>
                             <CustomButton
                                 variantType="danger"
-                                color="primary"
                                 fullWidth
+                                onClick={handleModalOpen}
                             >
                                 {t("i18n_queue.refuse")}
                             </CustomButton>
                         </Box>
                     </>
                 ) : (
-                    <Typography
-                        variant="h5"
-                        sx={{ color: theme.palette.error.main }}
+                    <Box
+                        sx={{
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: theme.spacing(2),
+                        }}
                     >
-                        {t("i18n_queue.timeoutMessage")}
-                    </Typography>
+                        <Typography
+                            variant="h5"
+                            sx={{ color: theme.palette.error.main }}
+                        >
+                            {t("i18n_queue.timeoutMessage")}
+                        </Typography>
+                        <CustomButton
+                            variantType="primary"
+                            sizeType="medium"
+                            onClick={handleNavige}
+                        >
+                            {t("i18n_queue.signUp")}
+                        </CustomButton>
+                    </Box>
                 )}
-            </FormContainer>
+            </FormContainer>{" "}
+            <ReusableModal
+                open={isOpen}
+                onClose={handleClose}
+                width={340}
+                showCloseButton={false}
+            >
+                <RefuseModal>
+                    <Box>
+                        <Typography variant="h4">
+                            {t("i18n_queue.refuseQueue")}
+                        </Typography>
+                    </Box>
+                    <Box sx={{ display: "flex", gap: theme.spacing(2) }}>
+                        <CustomButton
+                            variantType="primary"
+                            onClick={handleConfirmRefuse}
+                        >
+                            {t("i18n_queue.confirm")}
+                        </CustomButton>
+                        <CustomButton
+                            variantType="primary"
+                            onClick={handleClose}
+                        >
+                            {t("i18n_queue.cancel")}
+                        </CustomButton>
+                    </Box>
+                </RefuseModal>
+            </ReusableModal>
         </BackgroundContainer>
     );
 };
