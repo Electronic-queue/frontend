@@ -14,14 +14,16 @@ import Timer from "src/widgets/timer/ui/Timer";
 import {
     useAcceptClientMutation,
     useCallNextMutation,
+    useRedirectClientMutation,
     useCompleteClientMutation,
     useGetRecordListByManagerQuery,
     useGetServiceByIdQuery,
+    useGetServiceListQuery,
 } from "src/store/managerApi";
 import { Alert, Snackbar } from "@mui/material";
 import Skeleton from "@mui/material/Skeleton";
 
-type StatusType = "idle" | "called" | "accepted";
+type StatusType = "idle" | "called" | "accepted" | "redirected";
 
 const ButtonWrapper = styled(Box)(({ theme }) => ({
     marginBottom: theme.spacing(3),
@@ -63,8 +65,10 @@ const QueuePage: FC = () => {
     const [isPauseModalOpen, setIsPauseModalOpen] = useState(false);
     const [isTimerModalOpen, setIsTimerModalOpen] = useState(false);
     const [acceptClient] = useAcceptClientMutation();
+    const [redirectClient] = useRedirectClientMutation();
     const [callNext] = useCallNextMutation();
     const [completeClient] = useCompleteClientMutation();
+    const [selectedServiceId, setSelectedServiceId] = useState(null);
     const [snackbar, setSnackbar] = useState<{
         open: boolean;
         message: string;
@@ -73,6 +77,7 @@ const QueuePage: FC = () => {
     const [status, setStatus] = useState<StatusType>("idle");
     const [isCallingNext, setIsCallingNext] = useState(false);
     const managerId: number = 6;
+    const serviceIdRedirect: number = 3;
 
     const {
         data: listOfClientsData = [],
@@ -93,7 +98,9 @@ const QueuePage: FC = () => {
     useEffect(() => {
         const savedStatus = sessionStorage.getItem("clientStatus");
         if (savedStatus) {
-            setStatus(savedStatus as "idle" | "called" | "accepted");
+            setStatus(
+                savedStatus as "idle" | "called" | "accepted" | "redirected"
+            );
         }
     }, []);
     const firstClient = listOfClientsData?.[0] || null;
@@ -104,6 +111,12 @@ const QueuePage: FC = () => {
         error: serviceError,
         isLoading: isServiceLoading,
     } = useGetServiceByIdQuery(serviceId ?? 0, { skip: !serviceId });
+    useEffect(() => {
+        if (listOfClientsData.length === 0) {
+            setStatus("idle");
+            sessionStorage.removeItem("clientStatus");
+        }
+    }, [listOfClientsData]);
 
     const handleAcceptClient = async () => {
         try {
@@ -116,6 +129,32 @@ const QueuePage: FC = () => {
             setStatus("accepted");
             sessionStorage.setItem("clientStatus", "accepted");
         } catch (err) {}
+    };
+
+    const handleRedirectClient = async (serviceIdRedirect: number) => {
+        try {
+            await redirectClient({
+                managerId,
+                serviceId: serviceIdRedirect,
+            }).unwrap();
+
+            setSnackbar({
+                open: true,
+                message: t("i18n_queue.clientRedirected"),
+            });
+
+            refetchClients();
+
+            if (listOfClientsData.length > 1) {
+                setStatus("called");
+                sessionStorage.setItem("clientStatus", "called");
+            } else {
+                setStatus("idle");
+                sessionStorage.removeItem("clientStatus");
+            }
+        } catch (err) {
+            console.error("Ошибка при перенаправлении клиента:", err);
+        }
     };
 
     const handleCallNextClient = async () => {
@@ -137,7 +176,8 @@ const QueuePage: FC = () => {
                 open: true,
                 message: t("i18n_queue.serviceCompleted"),
             });
-            refetchClients();
+            await refetchClients();
+
             if (listOfClientsData.length > 1) {
                 setStatus("called");
                 sessionStorage.setItem("clientStatus", "called");
@@ -225,7 +265,7 @@ const QueuePage: FC = () => {
                         <ClientCard
                             clientData={clientData1}
                             serviceTime={serviceTime1}
-                            onRedirect={handleRedirect}
+                            onRedirect={handleRedirectClient}
                             onAccept={handleAcceptClient}
                             callNext={handleCallNextClient}
                             onComplete={handleСompleteClient}
@@ -240,7 +280,7 @@ const QueuePage: FC = () => {
                 <ClientCard
                     clientData={clientData!}
                     serviceTime={serviceTime}
-                    onRedirect={handleRedirect}
+                    onRedirect={handleRedirectClient}
                     onAccept={handleAcceptClient}
                     callNext={handleCallNextClient}
                     onComplete={handleСompleteClient}
@@ -251,7 +291,7 @@ const QueuePage: FC = () => {
                 <ClientCard
                     clientData={clientData1}
                     serviceTime={serviceTime}
-                    onRedirect={handleRedirect}
+                    onRedirect={handleRedirectClient}
                     onAccept={handleAcceptClient}
                     callNext={handleCallNextClient}
                     onComplete={handleСompleteClient}
