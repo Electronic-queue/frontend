@@ -19,6 +19,7 @@ import {
     useGetRecordListByManagerQuery,
     useGetServiceByIdQuery,
     useGetServiceListQuery,
+    usePauseWindowMutation,
 } from "src/store/managerApi";
 import { Alert, Snackbar } from "@mui/material";
 import Skeleton from "@mui/material/Skeleton";
@@ -68,6 +69,7 @@ const QueuePage: FC = () => {
     const [redirectClient] = useRedirectClientMutation();
     const [callNext] = useCallNextMutation();
     const [completeClient] = useCompleteClientMutation();
+    const [pauseWindow] = usePauseWindowMutation();
     const [selectedServiceId, setSelectedServiceId] = useState(null);
     const [snackbar, setSnackbar] = useState<{
         open: boolean;
@@ -117,6 +119,27 @@ const QueuePage: FC = () => {
             sessionStorage.removeItem("clientStatus");
         }
     }, [listOfClientsData]);
+
+    const handlePauseWindow = async () => {
+        try {
+            await pauseWindow({
+                managerId,
+                exceedingTime: selectedTime,
+            }).unwrap();
+            setIsPauseModalOpen(false);
+            setIsTimerModalOpen(true);
+            setSnackbar({
+                open: true,
+                message: t("i18n_queue.windowPaused"),
+            });
+        } catch (error) {
+            console.error("Ошибка при постановке на паузу:", error);
+            setSnackbar({
+                open: true,
+                message: t("i18n_queue.pauseError"),
+            });
+        }
+    };
 
     const handleAcceptClient = async () => {
         try {

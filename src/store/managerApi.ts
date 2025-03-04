@@ -131,6 +131,20 @@ export const managerApi = createApi({
                 },
             }),
         }),
+        pauseWindow: builder.mutation<
+            any,
+            { managerId: number; exceedingTime: number }
+        >({
+            query: ({ managerId, exceedingTime }) => ({
+                url: "Manager/pausewindow",
+                method: "POST",
+                params: {
+                    managerId,
+                    exceedingTime,
+                    "api-version": "1",
+                },
+            }),
+        }),
 
         createReview: builder.mutation<
             any,
@@ -162,4 +176,5 @@ export const {
     useCallNextMutation,
     useCompleteClientMutation,
     useRedirectClientMutation,
+    usePauseWindowMutation,
 } = managerApi;
