@@ -33,6 +33,7 @@ const ClientCard: FC<ClientCardProps> = ({
     onAccept,
     onComplete,
     callNext,
+    onRedirect,
     status,
     loading,
 }) => {
@@ -92,6 +93,7 @@ const ClientCard: FC<ClientCardProps> = ({
                     callNext={callNext}
                     onAccept={onAccept}
                     onComplete={onComplete}
+                    onRedirect={onRedirect}
                     loading={loading}
                 />
             </ActionPanel>
