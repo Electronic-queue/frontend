@@ -18,7 +18,6 @@ import {
     useCompleteClientMutation,
     useGetRecordListByManagerQuery,
     useGetServiceByIdQuery,
-    useGetServiceListQuery,
     usePauseWindowMutation,
 } from "src/store/managerApi";
 import { Alert, Snackbar } from "@mui/material";
@@ -70,7 +69,7 @@ const QueuePage: FC = () => {
     const [callNext] = useCallNextMutation();
     const [completeClient] = useCompleteClientMutation();
     const [pauseWindow] = usePauseWindowMutation();
-    const [selectedServiceId, setSelectedServiceId] = useState(null);
+
     const [snackbar, setSnackbar] = useState<{
         open: boolean;
         message: string;
@@ -79,7 +78,6 @@ const QueuePage: FC = () => {
     const [status, setStatus] = useState<StatusType>("idle");
     const [isCallingNext, setIsCallingNext] = useState(false);
     const managerId: number = 6;
-    const serviceIdRedirect: number = 3;
 
     const {
         data: listOfClientsData = [],
@@ -228,18 +226,12 @@ const QueuePage: FC = () => {
           }
         : null;
     const serviceTime = serviceData?.value?.averageExecutionTime;
-    const handleRedirect = () => alert("Клиент перенаправлен");
-    const handlePauseModalOpen = () => setIsPauseModalOpen(true);
-    const handlePauseModalClose = () => setIsPauseModalOpen(false);
-    const handleTimerModalOpen = () => {
-        setIsPauseModalOpen(false);
-        setIsTimerModalOpen(true);
-    };
-    const handleTimerModalClose = () => setIsTimerModalOpen(false);
 
-    const handleTimeSelect = (time: number) => {
-        setSelectedTime(time);
+    const handlePauseModalOpen = () => {
+        setIsPauseModalOpen(true);
+        setSelectedTime(1);
     };
+
     return (
         <>
             <Snackbar
@@ -260,7 +252,7 @@ const QueuePage: FC = () => {
                 <CustomButton
                     variantType="primary"
                     sizeType="medium"
-                    onClick={() => setIsPauseModalOpen(true)}
+                    onClick={() => handlePauseModalOpen()}
                 >
                     {t("i18n_queue.pause")}
                 </CustomButton>
