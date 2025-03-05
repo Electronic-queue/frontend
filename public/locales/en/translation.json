@@ -94,6 +94,10 @@
         "serviceRedirected": "Service redirected!",
         "redirectServiceAction": "Redirect ",
         "windowPaused": "Window paused!",
-        "pauseError": "Error pausing the window!"
+        "pauseError": "Error pausing the window!",
+        "windowStarted": "Window started!",
+        "startError": "Error starting the window!",
+        "resumeWork": "Resume work",
+        "windowPausedMessage": "Window paused"
     }
 }

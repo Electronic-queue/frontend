@@ -382,7 +382,7 @@ const QueuePage: FC = () => {
             <ReusableModal
                 open={isTimerModalOpen}
                 onClose={() => setIsTimerModalOpen(false)}
-                title="Окно на паузе"
+                title={t("i18n_queue.windowPausedMessage")}
                 width={theme.spacing(99)}
                 showCloseButton={false}
                 ignoreBackdropClick={true}
@@ -390,6 +390,7 @@ const QueuePage: FC = () => {
                 <Timer
                     initialTime={selectedTime}
                     onResume={() => setIsTimerModalOpen(false)}
+                    managerId={managerId}
                 />
             </ReusableModal>
         </>

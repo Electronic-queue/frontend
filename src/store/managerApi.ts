@@ -145,7 +145,16 @@ export const managerApi = createApi({
                 },
             }),
         }),
-
+        startWindow: builder.mutation<any, { managerId: number }>({
+            query: ({ managerId }) => ({
+                url: "Manager/startwindow",
+                method: "POST",
+                params: {
+                    managerId,
+                    "api-version": "1",
+                },
+            }),
+        }),
         createReview: builder.mutation<
             any,
             { recordId: number; rating: number; content: string }
@@ -177,4 +186,5 @@ export const {
     useCompleteClientMutation,
     useRedirectClientMutation,
     usePauseWindowMutation,
+    useStartWindowMutation,
 } = managerApi;
