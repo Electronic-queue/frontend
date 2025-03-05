@@ -133,7 +133,7 @@ const QueuePage: FC = () => {
                 message: t("i18n_queue.windowPaused"),
             });
         } catch (error) {
-            console.error("Ошибка при постановке на паузу:", error);
+            console.error("Error while pausing the window:", error);
             setSnackbar({
                 open: true,
                 message: t("i18n_queue.pauseError"),
@@ -371,6 +371,7 @@ const QueuePage: FC = () => {
                         onClick={() => {
                             setIsPauseModalOpen(false);
                             setIsTimerModalOpen(true);
+                            handlePauseWindow();
                         }}
                     >
                         {t("i18n_queue.pauseWindow")}

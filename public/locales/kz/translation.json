@@ -92,6 +92,8 @@
         "clientAccepted": "Клиент қабылданды!",
         "serviceCompleted": "Қызмет аяқталды!",
         "serviceRedirected": "Қызмет қайта бағытталды!",
-        "redirectServiceAction": "Қайта бағыттау әрекеті"
+        "redirectServiceAction": "Қайта бағыттау әрекеті",
+        "windowPaused": "Терезе кідіртілді!",
+        "pauseError": "Терезені кідірту кезінде қате пайда болды!"
     }
 }

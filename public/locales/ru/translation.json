@@ -91,6 +91,8 @@
         "clientAccepted": "Клиент принят!",
         "serviceCompleted": "Услуга завершена!",
         "serviceRedirected": "Услуга перенаправлена!",
-        "redirectServiceAction": "Перенаправить"
+        "redirectServiceAction": "Перенаправить",
+        "windowPaused": "Окно поставлено на паузу!",
+        "pauseError": "Ошибка при постановке окна на паузу!"
     }
 }
