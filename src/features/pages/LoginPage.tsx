@@ -120,13 +120,29 @@ const LoginPage: FC = () => {
         (state: RootState) => state.auth
     );
 
-    const onSubmit = (data: { username: string; password: string }) => {
-        dispatch(login(data));
+    const onSubmit = async (data: { username: string; password: string }) => {
+        try {
+            const resultAction = await dispatch(
+                login({
+                    login: data.username,
+                    password: data.password,
+                })
+            );
+
+            if (login.fulfilled.match(resultAction)) {
+                const token = resultAction.payload?.token;
+                if (token) {
+                    console.log("Токен:", token);
+                }
+            }
+        } catch (error) {
+            console.error("Ошибка при входе:", error);
+        }
     };
 
     useEffect(() => {
         if (isAuthenticated) {
-            navigate("/");
+            navigate("/manager/queue");
         }
     }, [isAuthenticated, navigate]);
 

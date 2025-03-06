@@ -18,15 +18,17 @@ const initialState: AuthState = {
 export const login = createAsyncThunk(
     "auth/login",
     async (
-        { username, password }: { username: string; password: string },
+        { login, password }: { login: string; password: string },
         thunkAPI
     ) => {
         try {
-            const response = await axios.post(
-                "http://localhost:5000/api/auth/login",
-                { username, password }
+            const response = await axios.get(
+                "http://queue-main-api.satbayevproject.kz/api/Manager/login",
+                {
+                    params: { login, password, "api-version": "1" },
+                }
             );
-            return response.data.token;
+            return response.data;
         } catch (error: any) {
             return thunkAPI.rejectWithValue(
                 error.response?.data?.message || "Login failed"
@@ -60,6 +62,7 @@ const authSlice = createSlice({
                     localStorage.setItem("token", action.payload);
                 }
             )
+
             .addCase(login.rejected, (state, action: PayloadAction<any>) => {
                 state.loading = false;
                 state.error = action.payload;
