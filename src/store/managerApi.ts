@@ -21,7 +21,6 @@ export const managerApi = createApi({
             query: () => ({
                 url: "Manager/recordListByManager",
                 params: {
-                    managerId: 6,
                     "api-version": "1",
                 },
             }),
@@ -43,7 +42,6 @@ export const managerApi = createApi({
                 },
                 body: {
                     ...newRecord,
-                    CreatedBy: 2,
                 },
             }),
         }),
@@ -86,23 +84,21 @@ export const managerApi = createApi({
             }),
         }),
 
-        acceptClient: builder.mutation<any, { managerId: number }>({
-            query: ({ managerId }) => ({
+        acceptClient: builder.mutation<any, {}>({
+            query: ({}) => ({
                 url: "Manager/acceptclient",
                 method: "POST",
                 params: {
-                    managerId,
                     "api-version": "1",
                 },
             }),
         }),
 
-        callNext: builder.mutation<any, { managerId: number }>({
-            query: ({ managerId }) => ({
+        callNext: builder.mutation<any, {}>({
+            query: ({}) => ({
                 url: "Manager/callnext",
                 method: "POST",
                 params: {
-                    managerId,
                     "api-version": "1",
                 },
             }),

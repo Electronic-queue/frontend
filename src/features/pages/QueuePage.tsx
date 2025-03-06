@@ -141,7 +141,7 @@ const QueuePage: FC = () => {
 
     const handleAcceptClient = async () => {
         try {
-            await acceptClient({ managerId }).unwrap();
+            await acceptClient({}).unwrap();
             setSnackbar({
                 open: true,
                 message: t("i18n_queue.clientAccepted"),
@@ -181,7 +181,7 @@ const QueuePage: FC = () => {
     const handleCallNextClient = async () => {
         setIsCallingNext(true);
         try {
-            await callNext({ managerId }).unwrap();
+            await callNext({}).unwrap();
             setSnackbar({ open: true, message: t("i18n_queue.startQueue") });
 
             setStatus("called");
