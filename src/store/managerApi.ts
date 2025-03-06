@@ -131,7 +131,30 @@ export const managerApi = createApi({
                 },
             }),
         }),
-
+        pauseWindow: builder.mutation<
+            any,
+            { managerId: number; exceedingTime: number }
+        >({
+            query: ({ managerId, exceedingTime }) => ({
+                url: "Manager/pausewindow",
+                method: "POST",
+                params: {
+                    managerId,
+                    exceedingTime,
+                    "api-version": "1",
+                },
+            }),
+        }),
+        startWindow: builder.mutation<any, { managerId: number }>({
+            query: ({ managerId }) => ({
+                url: "Manager/startwindow",
+                method: "POST",
+                params: {
+                    managerId,
+                    "api-version": "1",
+                },
+            }),
+        }),
         createReview: builder.mutation<
             any,
             { recordId: number; rating: number; content: string }
@@ -162,4 +185,6 @@ export const {
     useCallNextMutation,
     useCompleteClientMutation,
     useRedirectClientMutation,
+    usePauseWindowMutation,
+    useStartWindowMutation,
 } = managerApi;

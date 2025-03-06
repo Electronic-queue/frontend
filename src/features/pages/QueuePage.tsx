@@ -18,7 +18,7 @@ import {
     useCompleteClientMutation,
     useGetRecordListByManagerQuery,
     useGetServiceByIdQuery,
-    useGetServiceListQuery,
+    usePauseWindowMutation,
 } from "src/store/managerApi";
 import { Alert, Snackbar } from "@mui/material";
 import Skeleton from "@mui/material/Skeleton";
@@ -68,7 +68,8 @@ const QueuePage: FC = () => {
     const [redirectClient] = useRedirectClientMutation();
     const [callNext] = useCallNextMutation();
     const [completeClient] = useCompleteClientMutation();
-    const [selectedServiceId, setSelectedServiceId] = useState(null);
+    const [pauseWindow] = usePauseWindowMutation();
+
     const [snackbar, setSnackbar] = useState<{
         open: boolean;
         message: string;
@@ -77,7 +78,6 @@ const QueuePage: FC = () => {
     const [status, setStatus] = useState<StatusType>("idle");
     const [isCallingNext, setIsCallingNext] = useState(false);
     const managerId: number = 6;
-    const serviceIdRedirect: number = 3;
 
     const {
         data: listOfClientsData = [],
@@ -117,6 +117,27 @@ const QueuePage: FC = () => {
             sessionStorage.removeItem("clientStatus");
         }
     }, [listOfClientsData]);
+
+    const handlePauseWindow = async () => {
+        try {
+            await pauseWindow({
+                managerId,
+                exceedingTime: selectedTime,
+            }).unwrap();
+            setIsPauseModalOpen(false);
+            setIsTimerModalOpen(true);
+            setSnackbar({
+                open: true,
+                message: t("i18n_queue.windowPaused"),
+            });
+        } catch (error) {
+            console.error("Error while pausing the window:", error);
+            setSnackbar({
+                open: true,
+                message: t("i18n_queue.pauseError"),
+            });
+        }
+    };
 
     const handleAcceptClient = async () => {
         try {
@@ -205,18 +226,12 @@ const QueuePage: FC = () => {
           }
         : null;
     const serviceTime = serviceData?.value?.averageExecutionTime;
-    const handleRedirect = () => alert("Клиент перенаправлен");
-    const handlePauseModalOpen = () => setIsPauseModalOpen(true);
-    const handlePauseModalClose = () => setIsPauseModalOpen(false);
-    const handleTimerModalOpen = () => {
-        setIsPauseModalOpen(false);
-        setIsTimerModalOpen(true);
-    };
-    const handleTimerModalClose = () => setIsTimerModalOpen(false);
 
-    const handleTimeSelect = (time: number) => {
-        setSelectedTime(time);
+    const handlePauseModalOpen = () => {
+        setIsPauseModalOpen(true);
+        setSelectedTime(1);
     };
+
     return (
         <>
             <Snackbar
@@ -237,7 +252,7 @@ const QueuePage: FC = () => {
                 <CustomButton
                     variantType="primary"
                     sizeType="medium"
-                    onClick={() => setIsPauseModalOpen(true)}
+                    onClick={() => handlePauseModalOpen()}
                 >
                     {t("i18n_queue.pause")}
                 </CustomButton>
@@ -348,6 +363,7 @@ const QueuePage: FC = () => {
                         onClick={() => {
                             setIsPauseModalOpen(false);
                             setIsTimerModalOpen(true);
+                            handlePauseWindow();
                         }}
                     >
                         {t("i18n_queue.pauseWindow")}
@@ -358,7 +374,7 @@ const QueuePage: FC = () => {
             <ReusableModal
                 open={isTimerModalOpen}
                 onClose={() => setIsTimerModalOpen(false)}
-                title="Окно на паузе"
+                title={t("i18n_queue.windowPausedMessage")}
                 width={theme.spacing(99)}
                 showCloseButton={false}
                 ignoreBackdropClick={true}
@@ -366,6 +382,7 @@ const QueuePage: FC = () => {
                 <Timer
                     initialTime={selectedTime}
                     onResume={() => setIsTimerModalOpen(false)}
+                    managerId={managerId}
                 />
             </ReusableModal>
         </>
