@@ -22,6 +22,8 @@ import {
 } from "src/store/managerApi";
 import { Alert, Snackbar } from "@mui/material";
 import Skeleton from "@mui/material/Skeleton";
+// import { useSelector } from "react-redux";
+// import { RootState } from "src/store/store";
 
 type StatusType = "idle" | "called" | "accepted" | "redirected";
 
@@ -59,6 +61,8 @@ const clientData1 = {
     iin: "-",
 };
 const serviceTime1 = "0";
+// const token = useSelector((state: RootState) => state.user.token);
+// console.log("Текущий токен:", token);
 const QueuePage: FC = () => {
     const { t } = useTranslation();
     const [selectedTime, setSelectedTime] = useState<number>(1);
@@ -141,7 +145,7 @@ const QueuePage: FC = () => {
 
     const handleAcceptClient = async () => {
         try {
-            await acceptClient({ managerId }).unwrap();
+            await acceptClient({}).unwrap();
             setSnackbar({
                 open: true,
                 message: t("i18n_queue.clientAccepted"),
@@ -181,7 +185,7 @@ const QueuePage: FC = () => {
     const handleCallNextClient = async () => {
         setIsCallingNext(true);
         try {
-            await callNext({ managerId }).unwrap();
+            await callNext({}).unwrap();
             setSnackbar({ open: true, message: t("i18n_queue.startQueue") });
 
             setStatus("called");
