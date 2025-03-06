@@ -109,7 +109,6 @@ const WaitingPage = () => {
 
         connection.on("ReceiveRecordCreated", (newRecord) => {
             if (newRecord.recordId === recordId) {
-
                 if (newRecord.clientNumber === -1) {
                     navigate("/call");
                 }
@@ -124,7 +123,12 @@ const WaitingPage = () => {
 
             if (updatedItem && updatedItem.clientNumber === -1) {
                 navigate("/call");
+            }
+        });
 
+        connection.on("SendToClients", (notification) => {
+            if (notification) {
+                console.log(notification);
             }
         });
 
