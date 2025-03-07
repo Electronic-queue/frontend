@@ -135,6 +135,7 @@ const WaitingPage = () => {
         return () => {
             connection.off("ReceiveRecordCreated");
             connection.off("ReceiveUpdateRecord");
+            connection.off("SendToClients");
         };
     }, [recordId, navigate]);
 

@@ -1,4 +1,4 @@
-import { FC, useContext, useState } from "react";
+import { FC, useContext, useEffect, useState } from "react";
 import Stack from "@mui/material/Stack";
 import { styled } from "@mui/material/styles";
 import { useNavigate } from "react-router-dom";
@@ -17,7 +17,8 @@ import { SULogo } from "src/assets";
 import { UserLogo } from "src/assets";
 import LanguageSwitcher from "src/components/LanguageSwitcher";
 import { MediaContext } from "src/features/MediaProvider";
-
+import connection from "src/features/signalR";
+import NotificationsNoneIcon from "@mui/icons-material/NotificationsNone";
 const HeaderContainer = styled(Stack)(({ theme }) => ({
     width: "100%",
     backgroundColor: "white",
@@ -75,11 +76,25 @@ const Header: FC = () => {
     const [openSnackbar, setOpenSnackbar] = useState(false);
     const [snackbarMessage, setSnackbarMessage] = useState("");
 
+    useEffect(() => {
+        connection.on("SendToClients", (notification) => {
+            if (notification) {
+                setNotifications((prev) => [...prev, notification.contentRu]);
+            }
+        });
+
+        return () => {
+            connection.off("SendToClients");
+        };
+    }, []);
+
     const handleNotificationClick = () => {
         if (notifications.length > 0) {
-            setSnackbarMessage(notifications[0]);
+            const message = notifications[0] || "Нет уведомлений";
+            setSnackbarMessage(message);
+            setNotifications((prev) => prev.slice(1));
         } else {
-            setSnackbarMessage("No notifications");
+            setSnackbarMessage("Нет уведомлений");
         }
         setOpenSnackbar(true);
     };
@@ -167,7 +182,7 @@ const Header: FC = () => {
                     >
                         <IconButton onClick={handleNotificationClick}>
                             <StyledNotificationCircle>
-                                {notifications.length}
+                                <NotificationsNoneIcon />
                             </StyledNotificationCircle>
                         </IconButton>
                     </NotificationBadge>
@@ -176,7 +191,7 @@ const Header: FC = () => {
 
             <Snackbar
                 open={openSnackbar}
-                autoHideDuration={4000}
+                autoHideDuration={6000}
                 onClose={handleSnackbarClose}
                 anchorOrigin={{ vertical: "top", horizontal: "center" }}
             >
