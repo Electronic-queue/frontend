@@ -15,6 +15,7 @@ import Page from "./components/Page";
 import RestrictedAccess from "./components/RestrictedAccess";
 import "./app.css";
 import InProgress from "./features/pages/InProgressPage";
+import ProtectedRoute from "src/components/ProtectedRoute";
 
 const App: FC = () => {
     const isMobile = useMediaQuery("(max-width: 768px)");
@@ -56,8 +57,14 @@ const MobileRoutes: FC = () => (
 
 const DesktopRoutes: FC = () => (
     <Routes>
-        <Route path="/manager/queue" element={<QueuePage />} />
-        {/* <Route path="/manager/reports" element={<StatisticPage />} /> */}
+        <Route
+            path="/manager/queue"
+            element={
+                <ProtectedRoute>
+                    <QueuePage />
+                </ProtectedRoute>
+            }
+        />
         <Route path="/*" element={<RestrictedAccess />} />
     </Routes>
 );
