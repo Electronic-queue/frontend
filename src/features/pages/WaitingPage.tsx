@@ -99,6 +99,13 @@ const WaitingPage = () => {
     const { data: clientRecord } = useGetClientRecordByIdQuery(recordId ?? 0, {
         skip: !recordId,
     });
+    useEffect(() => {}, [recordId]);
+
+    useEffect(() => {
+        if (recordId) {
+            refetch();
+        }
+    }, [recordId, refetch]);
 
     const [updateQueueItem, { isLoading: isUpdating }] =
         useUpdateQueueItemMutation();
@@ -108,11 +115,13 @@ const WaitingPage = () => {
         if (
             tokenData &&
             typeof tokenData.recordId === "number" &&
-            tokenData.recordId > 0
+            tokenData.recordId > 0 &&
+            tokenData.recordId !== recordId &&
+            tokenData.recordId > (recordId ?? 0)
         ) {
             dispatch(setRecordId(tokenData.recordId));
         }
-    }, [tokenData, dispatch]);
+    }, [tokenData, recordId, dispatch]);
 
     useEffect(() => {
         startSignalR();
@@ -126,13 +135,16 @@ const WaitingPage = () => {
         });
 
         connection.on("RecieveUpdateRecord", (queueList) => {
-            if (!recordId) return;
-            const updatedItem = queueList.find(
+            const latestRecord = queueList.find(
                 (item: { recordId: number }) => item.recordId === recordId
             );
 
-            if (updatedItem && updatedItem.clientNumber === -1) {
-                navigate("/call");
+            if (latestRecord) {
+                dispatch(setRecordId(latestRecord.recordId));
+
+                if (latestRecord.clientNumber === -1) {
+                    navigate("/call");
+                }
             }
         });
 
