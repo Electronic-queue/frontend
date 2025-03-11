@@ -88,8 +88,14 @@ const WaitingPage = () => {
         (state: RootState) => (state.user as any).recordId
     );
 
-    const { data: tokenData, isFetching: isFetchingRecordId } =
-        useGetRecordIdByTokenQuery();
+    const {
+        data: tokenData,
+        isFetching: isFetchingRecordId,
+        refetch,
+    } = useGetRecordIdByTokenQuery(undefined, {
+        refetchOnMountOrArgChange: true,
+    });
+
     const { data: clientRecord } = useGetClientRecordByIdQuery(recordId ?? 0, {
         skip: !recordId,
     });
@@ -99,17 +105,20 @@ const WaitingPage = () => {
     const [isOpen, toggleModal] = useReducer((open) => !open, false);
 
     useEffect(() => {
-        if (tokenData?.recordId && !recordId) {
-            dispatch(setRecordId(Number(tokenData.recordId)));
+        if (
+            tokenData &&
+            typeof tokenData.recordId === "number" &&
+            tokenData.recordId > 0
+        ) {
+            dispatch(setRecordId(tokenData.recordId));
         }
-    }, [tokenData, recordId, dispatch]);
+    }, [tokenData, dispatch]);
 
     useEffect(() => {
         startSignalR();
 
         connection.on("ReceiveRecordCreated", (newRecord) => {
             if (newRecord.recordId === recordId) {
-
                 if (newRecord.clientNumber === -1) {
                     navigate("/call");
                 }
@@ -124,7 +133,6 @@ const WaitingPage = () => {
 
             if (updatedItem && updatedItem.clientNumber === -1) {
                 navigate("/call");
-
             }
         });
 
@@ -143,7 +151,10 @@ const WaitingPage = () => {
         }
         localStorage.removeItem("token");
         localStorage.removeItem("recordId");
+        await refetch();
         dispatch(setToken(null));
+        connection.off("ReceiveRecordCreated");
+        connection.off("ReceiveUpdateRecord");
         dispatch(setRecordId(null));
         navigate("/");
     }, [recordId, dispatch, navigate, updateQueueItem]);

@@ -21,7 +21,7 @@ import {
     useCreateRecordMutation,
 } from "src/store/managerApi";
 import { useNavigate } from "react-router-dom";
-import { setToken } from "src/store/userAuthSlice";
+import { setRecordId, setToken } from "src/store/userAuthSlice";
 import i18n from "src/i18n";
 
 const BackgroundContainer = styled(Box)(({ theme }) => ({
@@ -94,6 +94,9 @@ const ServiceSelection = () => {
             if (response.token) {
                 localStorage.setItem("token", response.token);
                 dispatch(setToken(response.token));
+                dispatch(setRecordId(null));
+                localStorage.removeItem("recordId");
+
                 navigate("/wait");
             } else {
                 alert("Ошибка: не получен токен");
