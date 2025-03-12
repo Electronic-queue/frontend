@@ -33,6 +33,14 @@ export const managerApi = createApi({
                 },
             }),
         }),
+        getManagerId: builder.query<number, void>({
+            query: () => ({
+                url: "Manager/GetManagerId",
+                params: {
+                    "api-version": "1",
+                },
+            }),
+        }),
         createRecord: builder.mutation<any, Partial<ManagerRecord>>({
             query: (newRecord) => ({
                 url: "Record/create",
@@ -183,4 +191,5 @@ export const {
     useRedirectClientMutation,
     usePauseWindowMutation,
     useStartWindowMutation,
+    useGetManagerIdQuery,
 } = managerApi;

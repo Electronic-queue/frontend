@@ -19,10 +19,11 @@ import {
     useGetRecordListByManagerQuery,
     useGetServiceByIdQuery,
     usePauseWindowMutation,
+    useGetManagerIdQuery,
 } from "src/store/managerApi";
 import { Alert, Snackbar } from "@mui/material";
 import Skeleton from "@mui/material/Skeleton";
-
+import connection, { startSignalR } from "src/features/signalR";
 type StatusType = "idle" | "called" | "accepted" | "redirected";
 
 const ButtonWrapper = styled(Box)(({ theme }) => ({
@@ -69,7 +70,6 @@ const QueuePage: FC = () => {
     const [callNext] = useCallNextMutation();
     const [completeClient] = useCompleteClientMutation();
     const [pauseWindow] = usePauseWindowMutation();
-
     const [snackbar, setSnackbar] = useState<{
         open: boolean;
         message: string;
@@ -85,6 +85,7 @@ const QueuePage: FC = () => {
         isLoading: isListOfClientsLoading,
         refetch: refetchClients,
     } = useGetRecordListByManagerQuery();
+    console.log("listOfClientsData", listOfClientsData);
 
     useEffect(() => {
         if (listOfClientsData.length === 0) {
@@ -111,12 +112,27 @@ const QueuePage: FC = () => {
         error: serviceError,
         isLoading: isServiceLoading,
     } = useGetServiceByIdQuery(serviceId ?? 0, { skip: !serviceId });
+    const { data: managerIdData } = useGetManagerIdQuery();
+    console.log("Manager ID: ", managerIdData);
     useEffect(() => {
         if (listOfClientsData.length === 0) {
             setStatus("idle");
             sessionStorage.removeItem("clientStatus");
         }
     }, [listOfClientsData]);
+
+    useEffect(() => {
+        startSignalR();
+
+        connection.on("ClientListByManagerId", (newList) => {
+            console.log("newList", newList);
+            console.log("fistName", newList[0].firstName);
+        });
+
+        return () => {
+            connection.off("ClientListByManagerId");
+        };
+    }, []);
 
     const handlePauseWindow = async () => {
         try {
@@ -225,6 +241,7 @@ const QueuePage: FC = () => {
               iin: firstClient.iin,
           }
         : null;
+
     const serviceTime = serviceData?.value?.averageExecutionTime;
 
     const handlePauseModalOpen = () => {
