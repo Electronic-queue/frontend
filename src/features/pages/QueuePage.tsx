@@ -133,6 +133,9 @@ const QueuePage: FC = () => {
             console.log("fistName", clientListSignalR[0].firstName);
             setClientsSignalR(clientListSignalR);
         });
+        connection.on("RecieveManagerStatic", (managerStatic) => {
+            console.log("managerStatic", managerStatic);
+        });
         return () => {
             connection.off("ClientListByManagerId");
         };
