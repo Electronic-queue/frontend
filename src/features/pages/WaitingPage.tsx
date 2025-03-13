@@ -7,11 +7,12 @@ import { SULogoM } from "src/assets";
 import theme from "src/styles/theme";
 import CustomButton from "src/components/Button";
 import ReusableModal from "src/components/ModalPage";
+
 import {
-    useGetRecordIdByTokenQuery,
     useGetClientRecordByIdQuery,
+    useGetRecordIdByTokenQuery,
     useUpdateQueueItemMutation,
-} from "src/store/managerApi";
+} from "src/store/userApi";
 import connection, { startSignalR } from "src/features/signalR";
 import { useDispatch, useSelector } from "react-redux";
 import { setToken, setRecordId } from "src/store/userAuthSlice";

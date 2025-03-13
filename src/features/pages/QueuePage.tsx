@@ -24,6 +24,7 @@ import {
 import { Alert, Snackbar } from "@mui/material";
 import Skeleton from "@mui/material/Skeleton";
 import connection, { startSignalR } from "src/features/signalR";
+import { set } from "react-hook-form";
 type StatusType = "idle" | "called" | "accepted" | "redirected";
 
 const ButtonWrapper = styled(Box)(({ theme }) => ({
@@ -76,8 +77,9 @@ const QueuePage: FC = () => {
     }>({ open: false, message: "" });
 
     const [status, setStatus] = useState<StatusType>("idle");
-    const [isCallingNext, setIsCallingNext] = useState(false);
+
     const managerId: number = 6;
+    const [clientsSignalR, setClientsSignalR] = useState<any[]>([]);
 
     const {
         data: listOfClientsData = [],
@@ -85,26 +87,19 @@ const QueuePage: FC = () => {
         isLoading: isListOfClientsLoading,
         refetch: refetchClients,
     } = useGetRecordListByManagerQuery();
-    console.log("listOfClientsData", listOfClientsData);
 
     useEffect(() => {
-        if (listOfClientsData.length === 0) {
-            const interval = setInterval(() => {
-                refetchClients();
-            }, 2000);
-
-            return () => clearInterval(interval);
-        }
-    }, [listOfClientsData, refetchClients]);
-    useEffect(() => {
+        console.log(
+            "Сохранённый статус в sessionStorage:",
+            sessionStorage.getItem("clientStatus")
+        );
         const savedStatus = sessionStorage.getItem("clientStatus");
         if (savedStatus) {
-            setStatus(
-                savedStatus as "idle" | "called" | "accepted" | "redirected"
-            );
+            setStatus(savedStatus as StatusType);
         }
     }, []);
-    const firstClient = listOfClientsData?.[0] || null;
+
+    const firstClient = clientsSignalR?.[0] || null;
     const serviceId = firstClient?.serviceId;
 
     const {
@@ -112,23 +107,29 @@ const QueuePage: FC = () => {
         error: serviceError,
         isLoading: isServiceLoading,
     } = useGetServiceByIdQuery(serviceId ?? 0, { skip: !serviceId });
-    const { data: managerIdData } = useGetManagerIdQuery();
-    console.log("Manager ID: ", managerIdData);
+    const { data: managerIdData } = useGetManagerIdQuery() as {
+        data?: string | undefined;
+    };
+
+    console.log("Converted Manager ID:", managerIdData);
     useEffect(() => {
-        if (listOfClientsData.length === 0) {
-            setStatus("idle");
-            sessionStorage.removeItem("clientStatus");
+        console.log("Обновляем статус:", status);
+        sessionStorage.setItem("clientStatus", status);
+    }, [status]);
+
+    useEffect(() => {
+        if (clientsSignalR.length === 0) {
+            setStatus((prev) => (prev === "idle" ? "idle" : prev)); // Сохранение текущего статуса
         }
-    }, [listOfClientsData]);
+    }, [clientsSignalR]);
 
     useEffect(() => {
         startSignalR();
-
-        connection.on("ClientListByManagerId", (newList) => {
-            console.log("newList", newList);
-            console.log("fistName", newList[0].firstName);
+        connection.on("ClientListByManagerId", (clientListSignalR) => {
+            console.log("clientListSignalR", clientListSignalR);
+            console.log("fistName", clientListSignalR[0].firstName);
+            setClientsSignalR(clientListSignalR);
         });
-
         return () => {
             connection.off("ClientListByManagerId");
         };
@@ -182,7 +183,7 @@ const QueuePage: FC = () => {
 
             refetchClients();
 
-            if (listOfClientsData.length > 1) {
+            if (clientsSignalR.length > 1) {
                 setStatus("called");
                 sessionStorage.setItem("clientStatus", "called");
             } else {
@@ -195,7 +196,6 @@ const QueuePage: FC = () => {
     };
 
     const handleCallNextClient = async () => {
-        setIsCallingNext(true);
         try {
             await callNext({}).unwrap();
             setSnackbar({ open: true, message: t("i18n_queue.startQueue") });
@@ -215,7 +215,7 @@ const QueuePage: FC = () => {
             });
             await refetchClients();
 
-            if (listOfClientsData.length > 1) {
+            if (clientsSignalR.length > 1) {
                 setStatus("called");
                 sessionStorage.setItem("clientStatus", "called");
             } else {
@@ -279,58 +279,18 @@ const QueuePage: FC = () => {
                 <StatusCard variant="accepted" number={75} />
                 <StatusCard variant="not_accepted" number={3} />
                 <StatusCard variant="redirected" number={5} />
-                <StatusCard
-                    variant="in_anticipation"
-                    number={listOfClientsData.length}
-                />
+                <StatusCard variant="in_anticipation" number={2} />
             </StatusCardWrapper>
 
-            {isListOfClientsLoading ? (
-                <SkeletonStyles>
-                    <Skeleton variant="rectangular" width={210} height={118} />
-                    <Skeleton variant="rectangular" width={250} height={118} />
-                </SkeletonStyles>
-            ) : listOfClientsError ? (
-                <>
-                    {"status" in listOfClientsError &&
-                    listOfClientsError.status === 404 ? (
-                        <ClientCard
-                            clientData={clientData1}
-                            serviceTime={serviceTime1}
-                            onRedirect={handleRedirectClient}
-                            onAccept={handleAcceptClient}
-                            callNext={handleCallNextClient}
-                            onComplete={handleСompleteClient}
-                            status={status}
-                            loading={isCallingNext}
-                        />
-                    ) : (
-                        "Ошибка загрузки данных"
-                    )}
-                </>
-            ) : firstClient ? (
-                <ClientCard
-                    clientData={clientData!}
-                    serviceTime={serviceTime}
-                    onRedirect={handleRedirectClient}
-                    onAccept={handleAcceptClient}
-                    callNext={handleCallNextClient}
-                    onComplete={handleСompleteClient}
-                    status={status}
-                    loading={isCallingNext}
-                />
-            ) : (
-                <ClientCard
-                    clientData={clientData1}
-                    serviceTime={serviceTime}
-                    onRedirect={handleRedirectClient}
-                    onAccept={handleAcceptClient}
-                    callNext={handleCallNextClient}
-                    onComplete={handleСompleteClient}
-                    status={status}
-                    loading={isCallingNext}
-                />
-            )}
+            <ClientCard
+                clientData={firstClient ? clientData! : clientData1}
+                serviceTime={firstClient ? serviceTime : serviceTime1}
+                onRedirect={handleRedirectClient}
+                onAccept={handleAcceptClient}
+                callNext={handleCallNextClient}
+                onComplete={handleСompleteClient}
+                status={status}
+            />
 
             <Box
                 sx={{
@@ -339,9 +299,8 @@ const QueuePage: FC = () => {
                     paddingBottom: theme.spacing(3),
                 }}
             >
-                {Array.isArray(listOfClientsData) &&
-                listOfClientsData.length > 1 ? (
-                    listOfClientsData.slice(1, 5).map((item) => (
+                {Array.isArray(clientsSignalR) && clientsSignalR.length > 1 ? (
+                    clientsSignalR.slice(1, 5).map((item) => (
                         <QueueCard
                             key={item.recordId}
                             clientNumber={item.recordId}

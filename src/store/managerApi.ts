@@ -8,7 +8,7 @@ export const managerApi = createApi({
     baseQuery: fetchBaseQuery({
         baseUrl: apiBaseUrl,
         prepareHeaders: (headers, { getState }) => {
-            const token = (getState() as RootState)?.user?.token;
+            const token = (getState() as RootState)?.auth?.token;
 
             if (token) {
                 headers.set("Authorization", `Bearer ${token}`);
@@ -41,47 +41,11 @@ export const managerApi = createApi({
                 },
             }),
         }),
-        createRecord: builder.mutation<any, Partial<ManagerRecord>>({
-            query: (newRecord) => ({
-                url: "Record/create",
-                method: "POST",
-                params: {
-                    "api-version": "1",
-                },
-                body: {
-                    ...newRecord,
-                },
-            }),
-        }),
+
         getRecordById: builder.query<any, number>({
             query: (recordId) => ({
                 url: `Record/${recordId}`,
                 params: { "api-version": "1" },
-            }),
-        }),
-        getClientRecordById: builder.query<any, number>({
-            query: (recordId) => ({
-                url: `Record/GetClientRecord/${recordId}`,
-                params: { "api-version": "1" },
-            }),
-        }),
-        getRecordIdByToken: builder.query<
-            { recordId: number; connectionId: string },
-            void
-        >({
-            query: () => ({
-                url: "Record/getrecordidbytoken",
-                params: { "api-version": "1" },
-            }),
-        }),
-        updateQueueItem: builder.mutation<any, { id: number }>({
-            query: ({ id }) => ({
-                url: "QueueItem/update",
-                method: "POST",
-                params: {
-                    id,
-                    "api-version": "1",
-                },
             }),
         }),
 
@@ -178,11 +142,7 @@ export const managerApi = createApi({
 export const {
     useGetRecordListByManagerQuery,
     useGetServiceListQuery,
-    useCreateRecordMutation,
-    useGetRecordIdByTokenQuery,
     useGetRecordByIdQuery,
-    useGetClientRecordByIdQuery,
-    useUpdateQueueItemMutation,
     useCreateReviewMutation,
     useGetServiceByIdQuery,
     useAcceptClientMutation,

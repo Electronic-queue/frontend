@@ -21,21 +21,12 @@ interface StatusButtonsProps {
     onAccept: () => void;
     onComplete: () => void;
     onRedirect: (serviceIdRedirect: number) => void;
-    loading: boolean;
 }
 
-const IdleButton: FC<{ callNext: () => void; loading: boolean }> = ({
-    callNext,
-    loading,
-}) => {
+const IdleButton: FC<{ callNext: () => void }> = ({ callNext }) => {
     const { t } = useTranslation();
     return (
-        <CustomButton
-            variantType="primary"
-            sizeType="small"
-            onClick={callNext}
-            disabled={loading}
-        >
+        <CustomButton variantType="primary" sizeType="small" onClick={callNext}>
             {t("i18n_queue.callNext")}
         </CustomButton>
     );
@@ -206,11 +197,10 @@ const StatusButtons: FC<StatusButtonsProps> = ({
     onAccept,
     onComplete,
     onRedirect,
-    loading,
 }) => {
     switch (status) {
         case "idle":
-            return <IdleButton callNext={callNext} loading={loading} />;
+            return <IdleButton callNext={callNext} />;
 
         case "called":
             return (
