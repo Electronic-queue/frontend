@@ -87,6 +87,9 @@ const QueuePage: FC = () => {
         isLoading: isListOfClientsLoading,
         refetch: refetchClients,
     } = useGetRecordListByManagerQuery();
+    useEffect(() => {
+        refetchClients();
+    }, []);
 
     useEffect(() => {
         console.log(
@@ -119,7 +122,7 @@ const QueuePage: FC = () => {
 
     useEffect(() => {
         if (clientsSignalR.length === 0) {
-            setStatus((prev) => (prev === "idle" ? "idle" : prev)); // Сохранение текущего статуса
+            setStatus((prev) => (prev === "idle" ? "idle" : prev));
         }
     }, [clientsSignalR]);
 
