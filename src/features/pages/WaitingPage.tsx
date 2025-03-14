@@ -139,18 +139,21 @@ const WaitingPage = () => {
                 (item: { recordId: number }) => item.recordId === recordId
             );
 
+
             if (latestRecord) {
                 dispatch(setRecordId(latestRecord.recordId));
 
                 if (latestRecord.clientNumber === -1) {
                     navigate("/call");
                 }
+
             }
         });
 
         return () => {
             connection.off("ReceiveRecordCreated");
             connection.off("ReceiveUpdateRecord");
+            connection.off("SendToClients");
         };
     }, [recordId, navigate]);
 

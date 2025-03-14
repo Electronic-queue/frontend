@@ -1,4 +1,4 @@
-import { FC, useContext, useState } from "react";
+import { FC, useContext, useEffect, useState } from "react";
 import Stack from "@mui/material/Stack";
 import { styled } from "@mui/material/styles";
 import { useNavigate } from "react-router-dom";
@@ -17,7 +17,8 @@ import { SULogo } from "src/assets";
 import { UserLogo } from "src/assets";
 import LanguageSwitcher from "src/components/LanguageSwitcher";
 import { MediaContext } from "src/features/MediaProvider";
-
+import connection from "src/features/signalR";
+import NotificationsNoneIcon from "@mui/icons-material/NotificationsNone";
 const HeaderContainer = styled(Stack)(({ theme }) => ({
     width: "100%",
     backgroundColor: "white",
@@ -75,11 +76,26 @@ const Header: FC = () => {
     const [openSnackbar, setOpenSnackbar] = useState(false);
     const [snackbarMessage, setSnackbarMessage] = useState("");
 
+    useEffect(() => {
+        connection.on("SendToClients", (notification) => {
+            if (notification) {
+                setNotifications((prev) => [...prev, notification.contentRu]);
+            }
+        });
+
+        return () => {
+            connection.off("SendToClients");
+        };
+    }, []);
+
     const handleNotificationClick = () => {
         if (notifications.length > 0) {
-            setSnackbarMessage(notifications[0]);
+            const message =
+                notifications[0] || t("i18n_queue.notificationsIsEmpty");
+            setSnackbarMessage(message);
+            setNotifications((prev) => prev.slice(1));
         } else {
-            setSnackbarMessage("No notifications");
+            setSnackbarMessage(t("i18n_queue.notificationsIsEmpty"));
         }
         setOpenSnackbar(true);
     };
@@ -123,13 +139,6 @@ const Header: FC = () => {
                                 label: t("I18N_QUEUE_MANAGEMENT"),
                             }}
                         />
-                        {/* <PageLinks
-                            onClick={() => navigate("/manager/reports")}
-                            link={{
-                                to: "/manager/reports",
-                                label: t("I18N_STATISTICS"),
-                            }}
-                        /> */}
                     </LinksContainer>
                 </Stack>
             )}
@@ -167,7 +176,7 @@ const Header: FC = () => {
                     >
                         <IconButton onClick={handleNotificationClick}>
                             <StyledNotificationCircle>
-                                {notifications.length}
+                                <NotificationsNoneIcon />
                             </StyledNotificationCircle>
                         </IconButton>
                     </NotificationBadge>
@@ -176,7 +185,7 @@ const Header: FC = () => {
 
             <Snackbar
                 open={openSnackbar}
-                autoHideDuration={4000}
+                autoHideDuration={6000}
                 onClose={handleSnackbarClose}
                 anchorOrigin={{ vertical: "top", horizontal: "center" }}
             >

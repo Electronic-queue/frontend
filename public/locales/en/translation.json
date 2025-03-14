@@ -98,6 +98,7 @@
         "windowStarted": "Window started!",
         "startError": "Error starting the window!",
         "resumeWork": "Resume work",
-        "windowPausedMessage": "Window paused"
+        "windowPausedMessage": "Window paused",
+        "notificationsIsEmpty": "No notifications"
     }
 }
