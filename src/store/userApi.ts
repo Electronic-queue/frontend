@@ -3,7 +3,7 @@ import { RootState } from "src/store/store";
 import { ManagerRecord } from "src/types/managerApiTypes";
 
 export const userApi = createApi({
-    reducerPath: "userApi", // ✅ Даем уникальное имя
+    reducerPath: "userApi",
     baseQuery: fetchBaseQuery({
         baseUrl: import.meta.env.VITE_API_BASE_URL,
         prepareHeaders: (headers, { getState }) => {
