@@ -6,7 +6,18 @@ import CustomButton from "src/components/Button";
 import { Alert, Snackbar } from "@mui/material";
 import { useTranslation } from "react-i18next";
 import { useStartWindowMutation } from "src/store/managerApi";
+import { styled } from "@mui/material/styles";
 
+const TimeLeftTypographyStyled = styled(Typography)<{ isCountingUp: boolean }>(
+    ({ theme, isCountingUp }) => ({
+        color: isCountingUp
+            ? theme.palette.error.main
+            : theme.palette.green.main,
+        marginTop: -120,
+        marginRight: 20,
+        fontSize: theme.typography.body2.fontSize,
+    })
+);
 const Timer: React.FC<TimerProps> = ({
     initialTime,
     onResume,
@@ -105,18 +116,9 @@ const Timer: React.FC<TimerProps> = ({
                     />
                 </Box>
 
-                <Typography
-                    variant="body2"
-                    sx={{
-                        color: isCountingUp
-                            ? theme.palette.error.main
-                            : theme.palette.green.main,
-                        marginTop: "-120px",
-                        marginRight: "20px",
-                    }}
-                >
+                <TimeLeftTypographyStyled isCountingUp={isCountingUp}>
                     {formatTime(timeLeft)}
-                </Typography>
+                </TimeLeftTypographyStyled>
 
                 <CustomButton
                     onClick={handleButtonClick}
