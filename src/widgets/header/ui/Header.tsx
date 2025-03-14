@@ -90,11 +90,12 @@ const Header: FC = () => {
 
     const handleNotificationClick = () => {
         if (notifications.length > 0) {
-            const message = notifications[0] || "Нет уведомлений";
+            const message =
+                notifications[0] || t("i18n_queue.notificationsIsEmpty");
             setSnackbarMessage(message);
             setNotifications((prev) => prev.slice(1));
         } else {
-            setSnackbarMessage("Нет уведомлений");
+            setSnackbarMessage(t("i18n_queue.notificationsIsEmpty"));
         }
         setOpenSnackbar(true);
     };
@@ -138,13 +139,6 @@ const Header: FC = () => {
                                 label: t("I18N_QUEUE_MANAGEMENT"),
                             }}
                         />
-                        {/* <PageLinks
-                            onClick={() => navigate("/manager/reports")}
-                            link={{
-                                to: "/manager/reports",
-                                label: t("I18N_STATISTICS"),
-                            }}
-                        /> */}
                     </LinksContainer>
                 </Stack>
             )}

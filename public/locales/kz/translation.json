@@ -98,6 +98,7 @@
         "windowStarted": "Терезе жұмысын бастады!",
         "startError": "Терезе жұмысын бастау кезінде қате пайда болды!",
         "resumeWork": "Жұмысқа оралу",
-        "windowPausedMessage": "Терезе кідіртілді"
+        "windowPausedMessage": "Терезе кідіртілді",
+        "notificationsIsEmpty": "Хабарламалар жоқ"
     }
 }
