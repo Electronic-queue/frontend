@@ -11,10 +11,8 @@ import { SULogoM } from "src/assets";
 import theme from "src/styles/theme";
 import { VALIDATION_RULES } from "src/config/validationConfig";
 import CustomButton from "src/components/Button";
-import {
-    useCreateReviewMutation,
-    useGetRecordIdByTokenQuery,
-} from "src/store/managerApi";
+import { useCreateReviewMutation } from "src/store/managerApi";
+import { useGetRecordIdByTokenQuery } from "src/store/userApi";
 import Dialog from "@mui/material/Dialog";
 import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";

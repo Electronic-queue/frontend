@@ -33,8 +33,8 @@ const ClientCard: FC<ClientCardProps> = ({
     onAccept,
     onComplete,
     callNext,
+    onRedirect,
     status,
-    loading,
 }) => {
     const { t } = useTranslation();
 
@@ -92,7 +92,7 @@ const ClientCard: FC<ClientCardProps> = ({
                     callNext={callNext}
                     onAccept={onAccept}
                     onComplete={onComplete}
-                    loading={loading}
+                    onRedirect={onRedirect}
                 />
             </ActionPanel>
         </CardContainer>

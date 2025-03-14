@@ -58,7 +58,7 @@
         "signUp": "Зарегистрироваться",
         "number": "Ваш номер №",
         "window": "Окно",
-        "peopleAhead": "Ваша очередь",
+        "peopleAhead": "Перед вами",
         "refuse": "Отказаться",
         "cancel": "Отменить",
         "confirm": "Подтвердить",
@@ -91,6 +91,13 @@
         "clientAccepted": "Клиент принят!",
         "serviceCompleted": "Услуга завершена!",
         "serviceRedirected": "Услуга перенаправлена!",
-        "redirectServiceAction": "Перенаправить"
+        "redirectServiceAction": "Перенаправить",
+        "windowPaused": "Окно поставлено на паузу!",
+        "pauseError": "Ошибка при постановке окна на паузу!",
+        "windowStarted": "Окно начало работу!",
+        "startError": "Ошибка при начале работы окна!",
+        "resumeWork": "Вернуться на работу",
+        "windowPausedMessage": "Окно на паузе",
+        "notificationsIsEmpty": "Нет уведомлений"
     }
 }

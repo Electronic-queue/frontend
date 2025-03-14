@@ -20,22 +20,13 @@ interface StatusButtonsProps {
     callNext: () => void;
     onAccept: () => void;
     onComplete: () => void;
-    loading: boolean;
+    onRedirect: (serviceIdRedirect: number) => void;
 }
 
-
-const IdleButton: FC<{ callNext: () => void; loading: boolean }> = ({
-    callNext,
-    loading,
-}) => {
+const IdleButton: FC<{ callNext: () => void }> = ({ callNext }) => {
     const { t } = useTranslation();
     return (
-        <CustomButton
-            variantType="primary"
-            sizeType="small"
-            onClick={callNext}
-            disabled={loading}
-        >
+        <CustomButton variantType="primary" sizeType="small" onClick={callNext}>
             {t("i18n_queue.callNext")}
         </CustomButton>
     );
@@ -53,8 +44,10 @@ const ButtonWrapperStyles = styled(Box)(({ theme }) => ({
     justifyContent: "flex-end",
 }));
 
-
-const CalledButtons: FC<{ onAccept: () => void }> = ({ onAccept }) => {
+const CalledButtons: FC<{
+    onAccept: () => void;
+    onRedirect: (serviceIdRedirect: number) => void;
+}> = ({ onAccept, onRedirect }) => {
     const { t } = useTranslation();
     const [isOpen, setIsOpen] = useState(false);
     const [searchValue, setSearchValue] = useState("");
@@ -65,7 +58,7 @@ const CalledButtons: FC<{ onAccept: () => void }> = ({ onAccept }) => {
     const [selectedServiceId, setSelectedServiceId] = useState<number | null>(
         null
     );
-
+    const { refetch } = useGetServiceListQuery();
     const { data, error, isLoading } = useGetServiceListQuery();
     const [redirectClient] = useRedirectClientMutation();
     const handleRedirect = async () => {
@@ -78,7 +71,8 @@ const CalledButtons: FC<{ onAccept: () => void }> = ({ onAccept }) => {
                 managerId: 6,
                 serviceId: selectedServiceId,
             }).unwrap();
-
+            refetch();
+            onRedirect(selectedServiceId);
             setIsOpen(false);
             setSnackbar({
                 open: true,
@@ -202,15 +196,16 @@ const StatusButtons: FC<StatusButtonsProps> = ({
     callNext,
     onAccept,
     onComplete,
-    loading,
+    onRedirect,
 }) => {
     switch (status) {
         case "idle":
-
-            return <IdleButton callNext={callNext} loading={loading} />;
+            return <IdleButton callNext={callNext} />;
 
         case "called":
-            return <CalledButtons onAccept={onAccept} />;
+            return (
+                <CalledButtons onAccept={onAccept} onRedirect={onRedirect} />
+            );
         case "accepted":
             return (
                 <CustomButton

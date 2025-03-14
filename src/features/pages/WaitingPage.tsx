@@ -7,11 +7,12 @@ import { SULogoM } from "src/assets";
 import theme from "src/styles/theme";
 import CustomButton from "src/components/Button";
 import ReusableModal from "src/components/ModalPage";
+
 import {
-    useGetRecordIdByTokenQuery,
     useGetClientRecordByIdQuery,
+    useGetRecordIdByTokenQuery,
     useUpdateQueueItemMutation,
-} from "src/store/managerApi";
+} from "src/store/userApi";
 import connection, { startSignalR } from "src/features/signalR";
 import { useDispatch, useSelector } from "react-redux";
 import { setToken, setRecordId } from "src/store/userAuthSlice";
@@ -88,19 +89,38 @@ const WaitingPage = () => {
         (state: RootState) => (state.user as any).recordId
     );
 
-    const { data: tokenData, isFetching: isFetchingRecordId } =
-        useGetRecordIdByTokenQuery();
+    const {
+        data: tokenData,
+        isFetching: isFetchingRecordId,
+        refetch,
+    } = useGetRecordIdByTokenQuery(undefined, {
+        refetchOnMountOrArgChange: true,
+    });
+
     const { data: clientRecord } = useGetClientRecordByIdQuery(recordId ?? 0, {
         skip: !recordId,
     });
+    useEffect(() => {}, [recordId]);
+
+    useEffect(() => {
+        if (recordId) {
+            refetch();
+        }
+    }, [recordId, refetch]);
 
     const [updateQueueItem, { isLoading: isUpdating }] =
         useUpdateQueueItemMutation();
     const [isOpen, toggleModal] = useReducer((open) => !open, false);
 
     useEffect(() => {
-        if (tokenData?.recordId && !recordId) {
-            dispatch(setRecordId(Number(tokenData.recordId)));
+        if (
+            tokenData &&
+            typeof tokenData.recordId === "number" &&
+            tokenData.recordId > 0 &&
+            tokenData.recordId !== recordId &&
+            tokenData.recordId > (recordId ?? 0)
+        ) {
+            dispatch(setRecordId(tokenData.recordId));
         }
     }, [tokenData, recordId, dispatch]);
 
@@ -109,7 +129,6 @@ const WaitingPage = () => {
 
         connection.on("ReceiveRecordCreated", (newRecord) => {
             if (newRecord.recordId === recordId) {
-
                 if (newRecord.clientNumber === -1) {
                     navigate("/call");
                 }
@@ -117,13 +136,17 @@ const WaitingPage = () => {
         });
 
         connection.on("RecieveUpdateRecord", (queueList) => {
-            if (!recordId) return;
-            const updatedItem = queueList.find(
+            const latestRecord = queueList.find(
                 (item: { recordId: number }) => item.recordId === recordId
             );
 
-            if (updatedItem && updatedItem.clientNumber === -1) {
-                navigate("/call");
+
+            if (latestRecord) {
+                dispatch(setRecordId(latestRecord.recordId));
+
+                if (latestRecord.clientNumber === -1) {
+                    navigate("/call");
+                }
 
             }
         });
@@ -131,6 +154,7 @@ const WaitingPage = () => {
         return () => {
             connection.off("ReceiveRecordCreated");
             connection.off("ReceiveUpdateRecord");
+            connection.off("SendToClients");
         };
     }, [recordId, navigate]);
 
@@ -143,7 +167,10 @@ const WaitingPage = () => {
         }
         localStorage.removeItem("token");
         localStorage.removeItem("recordId");
+        await refetch();
         dispatch(setToken(null));
+        connection.off("ReceiveRecordCreated");
+        connection.off("ReceiveUpdateRecord");
         dispatch(setRecordId(null));
         navigate("/");
     }, [recordId, dispatch, navigate, updateQueueItem]);
