@@ -22,9 +22,7 @@ import {
     useGetManagerIdQuery,
 } from "src/store/managerApi";
 import { Alert, Snackbar } from "@mui/material";
-import Skeleton from "@mui/material/Skeleton";
 import connection, { startSignalR } from "src/features/signalR";
-import { set } from "react-hook-form";
 type StatusType = "idle" | "called" | "accepted" | "redirected";
 
 const ButtonWrapper = styled(Box)(({ theme }) => ({
@@ -43,14 +41,14 @@ const StatusCardWrapper = styled(Stack)(({ theme }) => ({
     marginBottom: theme.spacing(6),
 }));
 
-const SkeletonStyles = styled(Box)(({ theme }) => ({
-    width: "1128px",
-    display: "flex",
-    justifyContent: "space-between",
-    padding: theme.spacing(4),
-    backgroundColor: theme.palette.background.paper,
-    boxShadow: theme.shadows[3],
-}));
+// const SkeletonStyles = styled(Box)(({ theme }) => ({
+//     width: "1128px",
+//     display: "flex",
+//     justifyContent: "space-between",
+//     padding: theme.spacing(4),
+//     backgroundColor: theme.palette.background.paper,
+//     boxShadow: theme.shadows[3],
+// }));
 
 const clientData1 = {
     clientNumber: "-",
@@ -80,6 +78,7 @@ const QueuePage: FC = () => {
 
     const managerId: number = 6;
     const [clientsSignalR, setClientsSignalR] = useState<any[]>([]);
+    const [managerStatic, setManagerStatic] = useState<any>(null);
 
     const {
         data: listOfClientsData = [],
@@ -130,16 +129,21 @@ const QueuePage: FC = () => {
         startSignalR();
         connection.on("ClientListByManagerId", (clientListSignalR) => {
             console.log("clientListSignalR", clientListSignalR);
-            console.log("fistName", clientListSignalR[0].firstName);
+
             setClientsSignalR(clientListSignalR);
         });
         connection.on("RecieveManagerStatic", (managerStatic) => {
             console.log("managerStatic", managerStatic);
+            if (managerStatic.managerId === managerIdData) {
+                setManagerStatic(managerStatic);
+            }
         });
+
         return () => {
             connection.off("ClientListByManagerId");
+            connection.off("RecieveManagerStatic");
         };
-    }, []);
+    }, [managerIdData]);
 
     const handlePauseWindow = async () => {
         try {
@@ -239,7 +243,7 @@ const QueuePage: FC = () => {
 
     const clientData = firstClient
         ? {
-              clientNumber: `${firstClient.recordId}`,
+              clientNumber: `${firstClient.ticketNumber}`,
               lastName: firstClient.lastName,
               firstName: firstClient.firstName,
               patronymic: firstClient.surname || "",
@@ -280,13 +284,26 @@ const QueuePage: FC = () => {
                     {t("i18n_queue.pause")}
                 </CustomButton>
             </ButtonWrapper>
-
-            <StatusCardWrapper>
-                <StatusCard variant="accepted" number={75} />
-                <StatusCard variant="not_accepted" number={3} />
-                <StatusCard variant="redirected" number={5} />
-                <StatusCard variant="in_anticipation" number={2} />
-            </StatusCardWrapper>
+            {managerStatic && (
+                <StatusCardWrapper>
+                    <StatusCard
+                        variant="accepted"
+                        number={managerStatic.serviced}
+                    />
+                    <StatusCard
+                        variant="not_accepted"
+                        number={managerStatic.rejected}
+                    />
+                    <StatusCard
+                        variant="redirected"
+                        number={managerStatic.redirected}
+                    />
+                    <StatusCard
+                        variant="in_anticipation"
+                        number={managerStatic.inLine}
+                    />
+                </StatusCardWrapper>
+            )}
 
             <ClientCard
                 clientData={firstClient ? clientData! : clientData1}
