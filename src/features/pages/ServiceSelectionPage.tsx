@@ -16,10 +16,9 @@ import SearchIcon from "@mui/icons-material/Search";
 import InputAdornment from "@mui/material/InputAdornment";
 import CustomButton from "src/components/Button";
 import Skeleton from "@mui/material/Skeleton";
-import {
-    useGetServiceListQuery,
-    useCreateRecordMutation,
-} from "src/store/managerApi";
+import { useGetServiceListQuery } from "src/store/managerApi";
+import { useCreateRecordMutation } from "src/store/userApi";
+
 import { useNavigate } from "react-router-dom";
 import { setRecordId, setToken } from "src/store/userAuthSlice";
 import i18n from "src/i18n";

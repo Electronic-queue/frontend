@@ -10,7 +10,7 @@ import mockData from "src/components/mock/MockWaitingData.json";
 import theme from "src/styles/theme";
 import { useNavigate } from "react-router-dom";
 import connection, { startSignalR } from "src/features/signalR";
-import { useGetRecordIdByTokenQuery } from "src/store/managerApi";
+import { useGetRecordIdByTokenQuery } from "src/store/userApi";
 
 const BackgroundContainer = styled(Box)(({ theme }) => ({
     display: "flex",

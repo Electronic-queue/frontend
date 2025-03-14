@@ -14,7 +14,7 @@ import {
     useGetClientRecordByIdQuery,
     useGetRecordIdByTokenQuery,
     useUpdateQueueItemMutation,
-} from "src/store/managerApi";
+} from "src/store/userApi";
 import { useDispatch } from "react-redux";
 import { setRecordId, setToken } from "src/store/userAuthSlice";
 
