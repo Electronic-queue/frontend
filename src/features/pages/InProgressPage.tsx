@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { Typography } from "@mui/material";
 import Stack from "@mui/material/Stack";
 import { styled } from "@mui/material/styles";
@@ -6,11 +6,13 @@ import Box from "@mui/material/Box";
 import { useTranslation } from "react-i18next";
 import { SULogoM } from "src/assets";
 
-import mockData from "src/components/mock/MockWaitingData.json";
 import theme from "src/styles/theme";
 import { useNavigate } from "react-router-dom";
 import connection, { startSignalR } from "src/features/signalR";
-import { useGetRecordIdByTokenQuery } from "src/store/userApi";
+import {
+    useGetRecordIdByTokenQuery,
+    useGetTicketNumberByTokenQuery,
+} from "src/store/userApi";
 
 const BackgroundContainer = styled(Box)(({ theme }) => ({
     display: "flex",
@@ -37,7 +39,8 @@ const InProgress = () => {
 
     const { data: recordData, isLoading: isRecordLoading } =
         useGetRecordIdByTokenQuery();
-
+    const { data: ticketNumber } = useGetTicketNumberByTokenQuery(undefined);
+    console.log(ticketNumber);
     useEffect(() => {
         if (isRecordLoading) return;
 
@@ -54,8 +57,8 @@ const InProgress = () => {
 
         connection.on("RecieveUpdateRecord", (queueList) => {
             const updatedItem = queueList.find(
-                (item: { recordId: number }) =>
-                    item.recordId === recordData?.recordId
+                (item: { ticketNumber: number }) =>
+                    item.ticketNumber === ticketNumber?.ticketNumber
             );
             if (updatedItem && updatedItem.clientNumber === -3) {
                 navigate("/rating");

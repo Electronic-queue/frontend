@@ -14,6 +14,7 @@ import {
     useGetClientRecordByIdQuery,
     useGetRecordIdByTokenQuery,
     useUpdateQueueItemMutation,
+    useGetTicketNumberByTokenQuery,
 } from "src/store/userApi";
 import { useDispatch } from "react-redux";
 import { setRecordId, setToken } from "src/store/userAuthSlice";
@@ -98,7 +99,8 @@ const CallPage = () => {
     const { data: tokenData } = useGetRecordIdByTokenQuery();
     const recordId = tokenData?.recordId ? Number(tokenData.recordId) : null;
     const [updateQueueItem] = useUpdateQueueItemMutation();
-
+    const { data: ticketNumber } = useGetTicketNumberByTokenQuery(undefined);
+    console.log(ticketNumber);
     const { data: clientRecord } = useGetClientRecordByIdQuery(recordId ?? 0, {
         skip: !recordId,
     });
@@ -111,7 +113,7 @@ const CallPage = () => {
         startSignalR();
         connection.on("ReceiveRecordCreated", (newRecord) => {
             if (
-                newRecord.recordId === recordId &&
+                newRecord.ticketNumber === ticketNumber &&
                 newRecord.clientNumber === -2
             ) {
                 navigate("/progress");
@@ -119,15 +121,15 @@ const CallPage = () => {
         });
         connection.on("RecieveUpdateRecord", (queueList) => {
             const updatedItem = queueList.find(
-                (item: { recordId: number | null }) =>
-                    item.recordId === recordId
+                (item: { ticketNumber: number | null }) =>
+                    item.ticketNumber === ticketNumber?.ticketNumber
             );
             if (updatedItem && updatedItem.clientNumber === -2) {
                 navigate("/progress");
             }
         });
         connection.on("RecieveUpdateRecord", (recordAccept) => {
-            if (recordAccept.recordId === recordId) {
+            if (recordAccept.ticketNumber === ticketNumber) {
                 navigate("/progress");
             }
         });
@@ -152,7 +154,7 @@ const CallPage = () => {
             connection.off("RecieveAcceptRecord");
             connection.off("RecieveRedirectClient");
         };
-    }, [recordId, navigate]);
+    }, [ticketNumber?.ticketNumber, navigate]);
 
     const handleModalOpen = () => setIsOpen(true);
     const handleClose = () => setIsOpen(false);

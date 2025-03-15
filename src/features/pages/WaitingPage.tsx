@@ -12,6 +12,7 @@ import {
     useGetClientRecordByIdQuery,
     useGetRecordIdByTokenQuery,
     useUpdateQueueItemMutation,
+    useGetTicketNumberByTokenQuery,
 } from "src/store/userApi";
 import connection, { startSignalR } from "src/features/signalR";
 import { useDispatch, useSelector } from "react-redux";
@@ -88,7 +89,8 @@ const WaitingPage = () => {
     const recordId = useSelector(
         (state: RootState) => (state.user as any).recordId
     );
-
+    const { data: ticketNumber } = useGetTicketNumberByTokenQuery(undefined);
+    console.log(ticketNumber);
     const {
         data: tokenData,
         isFetching: isFetchingRecordId,
@@ -128,35 +130,34 @@ const WaitingPage = () => {
         startSignalR();
 
         connection.on("ReceiveRecordCreated", (newRecord) => {
-            if (newRecord.recordId === recordId) {
+            if (newRecord.ticketNumber === ticketNumber?.ticketNumber) {
                 if (newRecord.clientNumber === -1) {
-                    navigate("/call");
+                    navigate("/call", { replace: true });
                 }
             }
         });
 
         connection.on("RecieveUpdateRecord", (queueList) => {
             const latestRecord = queueList.find(
-                (item: { recordId: number }) => item.recordId === recordId
+                (item: { ticketNumber: number }) =>
+                    item.ticketNumber === ticketNumber?.ticketNumber
             );
-
+            console.log("Проверка прошла! RecieveUpdateRecord ");
 
             if (latestRecord) {
-                dispatch(setRecordId(latestRecord.recordId));
+                dispatch(setRecordId(latestRecord.ticketNumber));
 
                 if (latestRecord.clientNumber === -1) {
-                    navigate("/call");
+                    navigate("/call", { replace: true });
                 }
-
             }
         });
 
         return () => {
             connection.off("ReceiveRecordCreated");
             connection.off("ReceiveUpdateRecord");
-            connection.off("SendToClients");
         };
-    }, [recordId, navigate]);
+    }, [ticketNumber?.ticketNumber, navigate]);
 
     const handleConfirmRefuse = useCallback(async () => {
         if (!recordId) return;
@@ -207,7 +208,8 @@ const WaitingPage = () => {
                     }}
                 >
                     <Typography variant="h4">
-                        {t("i18n_queue.number")} {clientRecord?.recordId || "-"}
+                        {t("i18n_queue.number")}{" "}
+                        {ticketNumber?.ticketNumber ?? "—"}
                     </Typography>
                 </Box>
 
@@ -216,15 +218,15 @@ const WaitingPage = () => {
                         <>
                             <Typography variant="h6">
                                 {t("i18n_queue.window")}:{" "}
-                                {clientRecord.windowNumber}
+                                {clientRecord?.windowNumber ?? "—"}
                             </Typography>
                             <Typography variant="h6">
                                 {t("i18n_queue.peopleAhead")}:{" "}
-                                {clientRecord.clientNumber}
+                                {clientRecord?.clientNumber ?? "—"}
                             </Typography>
                             <Typography variant="h6">
                                 {t("i18n_queue.expectedTime")}:{" "}
-                                {clientRecord.expectedAcceptanceTime}
+                                {clientRecord?.expectedAcceptanceTime ?? "—"}
                             </Typography>
                         </>
                     ) : (
