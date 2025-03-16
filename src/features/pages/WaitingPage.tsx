@@ -1,4 +1,4 @@
-import { useEffect, useReducer, useCallback } from "react";
+import { useEffect, useReducer, useCallback, useState } from "react";
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
 import { styled } from "@mui/material/styles";
@@ -50,6 +50,13 @@ interface RefuseModalProps {
     onClose: () => void;
     onConfirm: () => void;
 }
+interface ClientRecord {
+    recordId: number;
+    windowNumber: number;
+    clientNumber: number;
+    expectedAcceptanceTime: string;
+    ticketNumber: number;
+}
 
 const RefuseModal = ({ open, onClose, onConfirm }: RefuseModalProps) => {
     const { t } = useTranslation();
@@ -90,7 +97,8 @@ const WaitingPage = () => {
         (state: RootState) => (state.user as any).recordId
     );
     const { data: ticketNumber } = useGetTicketNumberByTokenQuery(undefined);
-    console.log(ticketNumber);
+    const [recordData, setRecordData] = useState<ClientRecord | null>(null);
+
     const {
         data: tokenData,
         isFetching: isFetchingRecordId,
@@ -102,7 +110,14 @@ const WaitingPage = () => {
     const { data: clientRecord } = useGetClientRecordByIdQuery(recordId ?? 0, {
         skip: !recordId,
     });
+    useEffect(() => {}, [clientRecord]);
+
     useEffect(() => {}, [recordId]);
+    useEffect(() => {
+        if (clientRecord && recordData === null) {
+            setRecordData(clientRecord);
+        }
+    }, [clientRecord, recordData]);
 
     useEffect(() => {
         if (recordId) {
@@ -119,8 +134,7 @@ const WaitingPage = () => {
             tokenData &&
             typeof tokenData.recordId === "number" &&
             tokenData.recordId > 0 &&
-            tokenData.recordId !== recordId &&
-            tokenData.recordId > (recordId ?? 0)
+            tokenData.recordId !== recordId
         ) {
             dispatch(setRecordId(tokenData.recordId));
         }
@@ -142,10 +156,10 @@ const WaitingPage = () => {
                 (item: { ticketNumber: number }) =>
                     item.ticketNumber === ticketNumber?.ticketNumber
             );
-            console.log("Проверка прошла! RecieveUpdateRecord ");
 
             if (latestRecord) {
-                dispatch(setRecordId(latestRecord.ticketNumber));
+                setRecordData(latestRecord);
+                dispatch(setRecordId(latestRecord.recordId));
 
                 if (latestRecord.clientNumber === -1) {
                     navigate("/call", { replace: true });
@@ -170,9 +184,9 @@ const WaitingPage = () => {
         localStorage.removeItem("recordId");
         await refetch();
         dispatch(setToken(null));
+        dispatch(setRecordId(null));
         connection.off("ReceiveRecordCreated");
         connection.off("ReceiveUpdateRecord");
-        dispatch(setRecordId(null));
         navigate("/");
     }, [recordId, dispatch, navigate, updateQueueItem]);
 
@@ -214,19 +228,19 @@ const WaitingPage = () => {
                 </Box>
 
                 <InfoBlock>
-                    {clientRecord ? (
+                    {recordData ? (
                         <>
                             <Typography variant="h6">
                                 {t("i18n_queue.window")}:{" "}
-                                {clientRecord?.windowNumber ?? "—"}
+                                {recordData.windowNumber ?? "—"}
                             </Typography>
                             <Typography variant="h6">
                                 {t("i18n_queue.peopleAhead")}:{" "}
-                                {clientRecord?.clientNumber ?? "—"}
+                                {recordData.clientNumber ?? "—"}
                             </Typography>
                             <Typography variant="h6">
                                 {t("i18n_queue.expectedTime")}:{" "}
-                                {clientRecord?.expectedAcceptanceTime ?? "—"}
+                                {recordData.expectedAcceptanceTime ?? "—"}
                             </Typography>
                         </>
                     ) : (
