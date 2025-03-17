@@ -72,18 +72,42 @@ const Header: FC = () => {
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const isMenuOpen = Boolean(anchorEl);
     const [notifications, setNotifications] = useState<string[]>([]);
+    const [notificationsManager, setNotificationsManager] = useState<string[]>(
+        []
+    );
 
     const [openSnackbar, setOpenSnackbar] = useState(false);
     const [snackbarMessage, setSnackbarMessage] = useState("");
 
     useEffect(() => {
-        connection.on("SendToClients", (notification) => {
-            if (notification) {
-                setNotifications((prev) => [...prev, notification.contentRu]);
+        connection.on("SendToClients", (notificationToClients) => {
+            if (notificationToClients) {
+                setNotifications((prev) => [
+                    ...prev,
+                    notificationToClients.contentRu,
+                ]);
+            }
+        });
+
+        connection.on("SendToClientsOnlyWn", (SendToClientsOnlyWn) => {
+            if (SendToClientsOnlyWn) {
+                setNotifications((prev) => [
+                    ...prev,
+                    SendToClientsOnlyWn.contentRu,
+                ]);
+            }
+        });
+        connection.on("SendToManagers", (SendToManagers) => {
+            if (SendToManagers) {
+                setNotificationsManager((prev) => [
+                    ...prev,
+                    SendToManagers.contentRu,
+                ]);
             }
         });
 
         return () => {
+            connection.off("SendToClientsOnlyWn");
             connection.off("SendToClients");
         };
     }, []);
@@ -94,6 +118,18 @@ const Header: FC = () => {
                 notifications[0] || t("i18n_queue.notificationsIsEmpty");
             setSnackbarMessage(message);
             setNotifications((prev) => prev.slice(1));
+        } else {
+            setSnackbarMessage(t("i18n_queue.notificationsIsEmpty"));
+        }
+        setOpenSnackbar(true);
+    };
+
+    const handleNotificationManagerClick = () => {
+        if (notificationsManager.length > 0) {
+            const message =
+                notificationsManager[0] || t("i18n_queue.notificationsIsEmpty");
+            setSnackbarMessage(message);
+            setNotificationsManager((prev) => prev.slice(1));
         } else {
             setSnackbarMessage(t("i18n_queue.notificationsIsEmpty"));
         }
@@ -147,9 +183,22 @@ const Header: FC = () => {
                 <LanguageSwitcher />
                 {!isMobile ? (
                     <>
+                        <NotificationBadge
+                            badgeContent={notificationsManager.length}
+                            color="primary"
+                        >
+                            <IconButton
+                                onClick={handleNotificationManagerClick}
+                            >
+                                <StyledNotificationCircle>
+                                    <NotificationsNoneIcon />
+                                </StyledNotificationCircle>
+                            </IconButton>
+                        </NotificationBadge>
                         <IconButton onClick={handleMenuOpen}>
                             <UserLogo />
                         </IconButton>
+
                         <Menu
                             anchorEl={anchorEl}
                             open={isMenuOpen}
@@ -193,7 +242,7 @@ const Header: FC = () => {
                     onClose={handleSnackbarClose}
                     severity="info"
                     sx={{
-                        width: "80%",
+                        width: "80",
                         "& .MuiAlert-message": {
                             fontSize: "0.875rem",
                         },

@@ -68,7 +68,6 @@ const CalledButtons: FC<{
         }
         try {
             const response = await redirectClient({
-                managerId: 6,
                 serviceId: selectedServiceId,
             }).unwrap();
             refetch();

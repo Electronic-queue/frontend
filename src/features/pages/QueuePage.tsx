@@ -124,7 +124,9 @@ const QueuePage: FC = () => {
     useEffect(() => {
         startSignalR();
         connection.on("ClientListByManagerId", (clientListSignalR) => {
-            setClientsSignalR(clientListSignalR);
+            if (clientListSignalR[0].managerId == managerIdData) {
+                setClientsSignalR(clientListSignalR);
+            }
         });
         connection.on("RecieveManagerStatic", (managerStatic) => {
             if (managerStatic.managerId === managerIdData) {
@@ -175,7 +177,6 @@ const QueuePage: FC = () => {
     const handleRedirectClient = async (serviceIdRedirect: number) => {
         try {
             await redirectClient({
-                managerId,
                 serviceId: serviceIdRedirect,
             }).unwrap();
 
