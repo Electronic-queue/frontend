@@ -16,7 +16,11 @@ import {
 } from "src/store/userApi";
 import connection, { startSignalR } from "src/features/signalR";
 import { useDispatch, useSelector } from "react-redux";
-import { setToken, setRecordId } from "src/store/userAuthSlice";
+import {
+    setToken,
+    setRecordId,
+    setTicketNumber,
+} from "src/store/userAuthSlice";
 import { useNavigate } from "react-router-dom";
 import Skeleton from "@mui/material/Skeleton";
 import { RootState } from "src/store/store";
@@ -93,10 +97,32 @@ const WaitingPage = () => {
     const { t } = useTranslation();
     const navigate = useNavigate();
     const dispatch = useDispatch();
-    const recordId = useSelector(
-        (state: RootState) => (state.user as any).recordId
+    const recordId = useSelector((state: RootState) => state.user.recordId);
+    const { data: ticketData } = useGetTicketNumberByTokenQuery(undefined);
+    const ticketNumber = useSelector(
+        (state: RootState) => state.user.ticketNumber
     );
-    const { data: ticketNumber } = useGetTicketNumberByTokenQuery(undefined);
+    useEffect(() => {
+        if (
+            ticketData?.ticketNumber &&
+            ticketData.ticketNumber !== ticketNumber
+        ) {
+            if (
+                ticketNumber !== null &&
+                ticketData.ticketNumber < ticketNumber
+            ) {
+                console.warn(
+                    "Игнорируем устаревшее значение ticketNumber:",
+                    ticketData.ticketNumber
+                );
+                return;
+            }
+            console.log("Обновляем ticketNumber:", ticketData.ticketNumber);
+            dispatch(setTicketNumber(ticketData.ticketNumber));
+        }
+    }, [ticketData, ticketNumber, dispatch]);
+
+    console.log("ticketNumber redux", ticketNumber);
     const [recordData, setRecordData] = useState<ClientRecord | null>(null);
 
     const {
@@ -104,7 +130,7 @@ const WaitingPage = () => {
         isFetching: isFetchingRecordId,
         refetch,
     } = useGetRecordIdByTokenQuery(undefined, {
-        refetchOnMountOrArgChange: true,
+        refetchOnMountOrArgChange: false,
     });
 
     const { data: clientRecord } = useGetClientRecordByIdQuery(recordId ?? 0, {
@@ -130,12 +156,15 @@ const WaitingPage = () => {
     const [isOpen, toggleModal] = useReducer((open) => !open, false);
 
     useEffect(() => {
-        if (
-            tokenData &&
-            typeof tokenData.recordId === "number" &&
-            tokenData.recordId > 0 &&
-            tokenData.recordId !== recordId
-        ) {
+        if (tokenData?.recordId && tokenData.recordId !== recordId) {
+            if (recordId !== null && tokenData.recordId < recordId) {
+                console.warn(
+                    "Игнорируем устаревшее значение recordId:",
+                    tokenData.recordId
+                );
+                return;
+            }
+
             dispatch(setRecordId(tokenData.recordId));
         }
     }, [tokenData, recordId, dispatch]);
@@ -144,7 +173,7 @@ const WaitingPage = () => {
         startSignalR();
 
         connection.on("ReceiveRecordCreated", (newRecord) => {
-            if (newRecord.ticketNumber === ticketNumber?.ticketNumber) {
+            if (newRecord.ticketNumber === ticketNumber) {
                 if (newRecord.clientNumber === -1) {
                     navigate("/call", { replace: true });
                 }
@@ -154,12 +183,11 @@ const WaitingPage = () => {
         connection.on("RecieveUpdateRecord", (queueList) => {
             const latestRecord = queueList.find(
                 (item: { ticketNumber: number }) =>
-                    item.ticketNumber === ticketNumber?.ticketNumber
+                    item.ticketNumber === ticketNumber
             );
 
             if (latestRecord) {
                 setRecordData(latestRecord);
-                dispatch(setRecordId(latestRecord.recordId));
 
                 if (latestRecord.clientNumber === -1) {
                     navigate("/call", { replace: true });
@@ -171,7 +199,7 @@ const WaitingPage = () => {
             connection.off("ReceiveRecordCreated");
             connection.off("ReceiveUpdateRecord");
         };
-    }, [ticketNumber?.ticketNumber, navigate]);
+    }, [ticketNumber, navigate]);
 
     const handleConfirmRefuse = useCallback(async () => {
         if (!recordId) return;
@@ -182,6 +210,8 @@ const WaitingPage = () => {
         }
         localStorage.removeItem("token");
         localStorage.removeItem("recordId");
+        localStorage.removeItem("ticketNumber");
+        dispatch(setTicketNumber(null));
         await refetch();
         dispatch(setToken(null));
         dispatch(setRecordId(null));
@@ -222,8 +252,7 @@ const WaitingPage = () => {
                     }}
                 >
                     <Typography variant="h4">
-                        {t("i18n_queue.number")}{" "}
-                        {ticketNumber?.ticketNumber ?? "—"}
+                        {t("i18n_queue.number")} {ticketNumber ?? "—"}
                     </Typography>
                 </Box>
 

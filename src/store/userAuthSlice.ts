@@ -6,6 +6,7 @@ interface UserState {
     token: string | null;
     recordId: number | null;
     connectionId: string | null;
+    ticketNumber: number | null;
 }
 
 const loadFromLocalStorage = (key: string): string | null => {
@@ -21,6 +22,7 @@ const initialState: UserState = {
     userInfo: null,
     serviceId: null,
     token: loadFromLocalStorage("token"),
+    ticketNumber: loadNumberFromLocalStorage("ticketNumber"),
     recordId: loadNumberFromLocalStorage("recordId"),
     connectionId: loadFromLocalStorage("connectionId"),
 };
@@ -47,25 +49,37 @@ const userSlice = createSlice({
                 ? localStorage.setItem("recordId", String(action.payload))
                 : localStorage.removeItem("recordId");
         },
-
+        setTicketNumber: (state, action: PayloadAction<number | null>) => {
+            state.ticketNumber = action.payload;
+            action.payload
+                ? localStorage.setItem("ticketNumber", String(action.payload))
+                : localStorage.removeItem("ticketNumber");
+        },
         setRecordData: (
             state,
             action: PayloadAction<{
                 recordId: number;
                 connectionId: string;
+                ticketNumber?: number;
             } | null>
         ) => {
             if (action.payload) {
-                const { recordId, connectionId } = action.payload;
+                const { recordId, connectionId, ticketNumber } = action.payload;
                 state.recordId = recordId;
                 state.connectionId = connectionId;
+                if (ticketNumber !== undefined) {
+                    state.ticketNumber = ticketNumber;
+                    localStorage.setItem("ticketNumber", String(ticketNumber));
+                }
                 localStorage.setItem("recordId", String(recordId));
                 localStorage.setItem("connectionId", connectionId);
             } else {
                 state.recordId = null;
                 state.connectionId = null;
+                state.ticketNumber = null;
                 localStorage.removeItem("recordId");
                 localStorage.removeItem("connectionId");
+                localStorage.removeItem("ticketNumber");
             }
         },
     },
@@ -77,5 +91,6 @@ export const {
     setToken,
     setRecordData,
     setRecordId,
+    setTicketNumber,
 } = userSlice.actions;
 export default userSlice.reducer;
