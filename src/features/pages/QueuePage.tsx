@@ -174,11 +174,11 @@ const QueuePage: FC = () => {
         } catch (err) {}
     };
 
-    const handleRedirectClient = async (serviceIdRedirect: number) => {
+    const handleRedirectClient = async () => {
         try {
-            await redirectClient({
-                serviceId: serviceIdRedirect,
-            }).unwrap();
+            // await redirectClient({
+            //     serviceId: serviceIdRedirect,
+            // }).unwrap();
 
             setSnackbar({
                 open: true,
