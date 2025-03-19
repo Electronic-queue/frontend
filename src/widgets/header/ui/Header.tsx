@@ -19,6 +19,22 @@ import LanguageSwitcher from "src/components/LanguageSwitcher";
 import { MediaContext } from "src/features/MediaProvider";
 import connection from "src/features/signalR";
 import NotificationsNoneIcon from "@mui/icons-material/NotificationsNone";
+import { useGetManagerIdQuery } from "src/store/managerApi";
+import i18n from "src/i18n";
+
+type notificationsForManager = {
+    contentEn: string;
+    contentKk: string;
+    contentRu: string;
+    managerId: string;
+    nameEn: string;
+    nameRu: string;
+    nameKk: string;
+    notificationId: string;
+    notificationTypeId: string;
+    windowNumber: string;
+};
+
 const HeaderContainer = styled(Stack)(({ theme }) => ({
     width: "100%",
     backgroundColor: "white",
@@ -72,12 +88,16 @@ const Header: FC = () => {
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const isMenuOpen = Boolean(anchorEl);
     const [notifications, setNotifications] = useState<string[]>([]);
-    const [notificationsManager, setNotificationsManager] = useState<string[]>(
-        []
-    );
+    const [notificationsManager, setNotificationsManager] = useState<
+        notificationsForManager[]
+    >([]);
+    const currentLanguage = i18n.language || "ru";
 
     const [openSnackbar, setOpenSnackbar] = useState(false);
     const [snackbarMessage, setSnackbarMessage] = useState("");
+    const { data: managerIdData } = useGetManagerIdQuery() as {
+        data?: string | undefined;
+    };
 
     useEffect(() => {
         connection.on("SendToClients", (notificationToClients) => {
@@ -105,10 +125,21 @@ const Header: FC = () => {
                 ]);
             }
         });
+        connection.on("SendToManagersOnlyWN", (SendToManagersOnlyWN) => {
+            console.log("SendToManagersOnlyWN", SendToManagersOnlyWN);
+            if (SendToManagersOnlyWN.managerId === managerIdData) {
+                setNotificationsManager((prev) => [
+                    ...prev,
+                    SendToManagersOnlyWN.contentRu,
+                ]);
+            }
+        });
 
         return () => {
             connection.off("SendToClientsOnlyWn");
             connection.off("SendToClients");
+            connection.off("SendToManagers");
+            connection.off("SendToManagersOnlyWN");
         };
     }, []);
 
@@ -155,6 +186,19 @@ const Header: FC = () => {
         navigate("/login");
     };
 
+    const getNotificationName = (
+        item: notificationsForManager,
+        lang: string
+    ) => {
+        switch (lang) {
+            case "en":
+                return item.contentEn;
+            case "kz":
+                return item.contentKk;
+            default:
+                return item.contentRu;
+        }
+    };
     return (
         <HeaderContainer
             direction={isMobile ? "row-reverse" : "row"}

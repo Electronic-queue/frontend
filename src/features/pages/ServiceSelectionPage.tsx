@@ -53,7 +53,9 @@ const ServiceSelection = () => {
         null
     );
 
-    const userInfo = useSelector((state: RootState) => state.user.userInfo);
+    const userInfo = useSelector(
+        (state: RootState) => (state.user as any).userInfo
+    );
 
     const services: Service[] = Array.isArray(data?.value)
         ? data.value.map((service: any) => ({

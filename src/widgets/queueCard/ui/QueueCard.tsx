@@ -21,6 +21,7 @@ const Header = styled(Box)(({ theme }) => ({
     display: "flex",
     justifyContent: "space-between",
     borderBottom: `1px solid ${theme.palette.divider}`,
+    marginBottom: theme.spacing(1),
 }));
 
 const InfoBlock = styled(Box)(({ theme }) => ({
@@ -49,7 +50,18 @@ const QueueCard: FC<QueueCardProps> = ({
             <InfoBlock>
                 <Box display="flex" justifyContent="space-between">
                     <Typography>{t("i18n_queue.service")}</Typography>
-                    <Typography fontWeight="bold">{service}</Typography>
+                    <Typography
+                        fontWeight="bold"
+                        noWrap
+                        sx={{
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            whiteSpace: "nowrap",
+                            maxWidth: 140,
+                        }}
+                    >
+                        {service}
+                    </Typography>
                 </Box>
                 <Box display="flex" justifyContent="space-between">
                     <Typography> {t("i18n_queue.rigistrationTime")}</Typography>

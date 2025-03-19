@@ -22,6 +22,7 @@ import {
 } from "src/store/managerApi";
 import { Alert, Snackbar } from "@mui/material";
 import connection, { startSignalR } from "src/features/signalR";
+import i18n from "src/i18n";
 type StatusType = "idle" | "called" | "accepted" | "redirected";
 
 type clientListSignalR = {
@@ -76,7 +77,7 @@ const QueuePage: FC = () => {
     const [isPauseModalOpen, setIsPauseModalOpen] = useState(false);
     const [isTimerModalOpen, setIsTimerModalOpen] = useState(false);
     const [acceptClient] = useAcceptClientMutation();
-    const [redirectClient] = useRedirectClientMutation();
+    const currentLanguage = i18n.language || "ru";
     const [callNext] = useCallNextMutation();
     const [completeClient] = useCompleteClientMutation();
     const [pauseWindow] = usePauseWindowMutation();
@@ -104,7 +105,7 @@ const QueuePage: FC = () => {
             setStatus(savedStatus as StatusType);
         }
     }, []);
-
+    console.log("signalR", clientsSignalR);
     const firstClient = clientsSignalR?.[0] || null;
 
     const { data: managerIdData } = useGetManagerIdQuery() as {
@@ -174,12 +175,8 @@ const QueuePage: FC = () => {
         } catch (err) {}
     };
 
-    const handleRedirectClient = async () => {
+    const handleRedirectClient = () => {
         try {
-            // await redirectClient({
-            //     serviceId: serviceIdRedirect,
-            // }).unwrap();
-
             setSnackbar({
                 open: true,
                 message: t("i18n_queue.clientRedirected"),
@@ -228,14 +225,23 @@ const QueuePage: FC = () => {
             }
         } catch (err) {}
     };
-
+    const getServiceName = (item: clientListSignalR, lang: string) => {
+        switch (lang) {
+            case "en":
+                return item.serviceNameEn;
+            case "kz":
+                return item.serviceNameKk;
+            default:
+                return item.serviceNameRu;
+        }
+    };
     const clientData = firstClient
         ? {
               clientNumber: `${firstClient.ticketNumber}`,
               lastName: firstClient.lastName,
               firstName: firstClient.firstName,
               patronymic: firstClient.surname || "",
-              service: firstClient.serviceNameRu,
+              service: getServiceName(firstClient, currentLanguage),
               iin: firstClient.iin,
           }
         : null;
@@ -270,26 +276,24 @@ const QueuePage: FC = () => {
                     {t("i18n_queue.pause")}
                 </CustomButton>
             </ButtonWrapper>
-            {managerStatic && (
-                <StatusCardWrapper>
-                    <StatusCard
-                        variant="accepted"
-                        number={managerStatic.serviced}
-                    />
-                    <StatusCard
-                        variant="not_accepted"
-                        number={managerStatic.rejected}
-                    />
-                    <StatusCard
-                        variant="redirected"
-                        number={managerStatic.redirected}
-                    />
-                    <StatusCard
-                        variant="in_anticipation"
-                        number={managerStatic.inLine}
-                    />
-                </StatusCardWrapper>
-            )}
+            <StatusCardWrapper>
+                <StatusCard
+                    variant="accepted"
+                    number={managerStatic?.serviced || 0}
+                />
+                <StatusCard
+                    variant="not_accepted"
+                    number={managerStatic?.rejected || 0}
+                />
+                <StatusCard
+                    variant="redirected"
+                    number={managerStatic?.redirected || 0}
+                />
+                <StatusCard
+                    variant="in_anticipation"
+                    number={managerStatic?.inLine || 0}
+                />
+            </StatusCardWrapper>
 
             <ClientCard
                 clientData={firstClient ? clientData! : clientData1}
@@ -312,24 +316,32 @@ const QueuePage: FC = () => {
                     paddingBottom: theme.spacing(3),
                 }}
             >
-                {Array.isArray(clientsSignalR) && clientsSignalR.length > 1 ? (
-                    clientsSignalR.slice(1, 5).map((item) => (
-                        <QueueCard
-                            key={item.ticketNumber}
-                            clientNumber={item.ticketNumber}
-                            service={item.serviceNameRu}
-                            bookingTime={new Date(
-                                item.createdOn ?? ""
-                            ).toLocaleTimeString([], {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                            })}
-                            expectedTime={item.expectedAcceptanceTime}
-                        />
-                    ))
-                ) : (
-                    <p>Нет данных</p>
-                )}
+                {Array.isArray(clientsSignalR) && clientsSignalR.length > 1
+                    ? clientsSignalR.slice(1, 5).map((item) => (
+                          <QueueCard
+                              key={item.ticketNumber}
+                              clientNumber={item.ticketNumber}
+                              service={getServiceName(item, currentLanguage)}
+                              bookingTime={new Date(
+                                  item.createdOn ?? ""
+                              ).toLocaleTimeString([], {
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                              })}
+                              expectedTime={item.expectedAcceptanceTime}
+                          />
+                      ))
+                    : Array(4)
+                          .fill(null)
+                          .map((_, index) => (
+                              <QueueCard
+                                  key={index}
+                                  clientNumber={0}
+                                  service="-"
+                                  bookingTime="-"
+                                  expectedTime="-"
+                              />
+                          ))}
             </Box>
 
             <ReusableModal
