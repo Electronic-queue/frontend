@@ -29,7 +29,14 @@ const InfoBlock = styled(Box)(({ theme }) => ({
     flexDirection: "column",
     gap: theme.spacing(2),
 }));
-
+const ServiceTypography = styled(Typography)(({}) => ({
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    whiteSpace: "nowrap",
+    maxWidth: 140,
+    fontWeight: "bold",
+    noWrap: true,
+}));
 const QueueCard: FC<QueueCardProps> = ({
     clientNumber,
     service,
@@ -50,18 +57,7 @@ const QueueCard: FC<QueueCardProps> = ({
             <InfoBlock>
                 <Box display="flex" justifyContent="space-between">
                     <Typography>{t("i18n_queue.service")}</Typography>
-                    <Typography
-                        fontWeight="bold"
-                        noWrap
-                        sx={{
-                            overflow: "hidden",
-                            textOverflow: "ellipsis",
-                            whiteSpace: "nowrap",
-                            maxWidth: 140,
-                        }}
-                    >
-                        {service}
-                    </Typography>
+                    <ServiceTypography>{service}</ServiceTypography>
                 </Box>
                 <Box display="flex" justifyContent="space-between">
                     <Typography> {t("i18n_queue.rigistrationTime")}</Typography>
