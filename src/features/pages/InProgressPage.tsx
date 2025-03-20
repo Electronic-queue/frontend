@@ -13,6 +13,8 @@ import {
     useGetRecordIdByTokenQuery,
     useGetTicketNumberByTokenQuery,
 } from "src/store/userApi";
+import { useSelector } from "react-redux";
+import { RootState } from "src/store/store";
 
 const BackgroundContainer = styled(Box)(({ theme }) => ({
     display: "flex",
@@ -39,8 +41,10 @@ const InProgress = () => {
 
     const { data: recordData, isLoading: isRecordLoading } =
         useGetRecordIdByTokenQuery();
-    const { data: ticketNumber } = useGetTicketNumberByTokenQuery(undefined);
-    console.log(ticketNumber);
+    const ticketNumber = useSelector(
+        (state: RootState) => state.user.ticketNumber
+    );
+
     useEffect(() => {
         if (isRecordLoading) return;
 
@@ -58,7 +62,7 @@ const InProgress = () => {
         connection.on("RecieveUpdateRecord", (queueList) => {
             const updatedItem = queueList.find(
                 (item: { ticketNumber: number }) =>
-                    item.ticketNumber === ticketNumber?.ticketNumber
+                    item.ticketNumber === ticketNumber
             );
             if (updatedItem && updatedItem.clientNumber === -3) {
                 navigate("/rating");

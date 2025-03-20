@@ -111,18 +111,14 @@ const WaitingPage = () => {
                 ticketNumber !== null &&
                 ticketData.ticketNumber < ticketNumber
             ) {
-                console.warn(
-                    "Игнорируем устаревшее значение ticketNumber:",
-                    ticketData.ticketNumber
-                );
+                console.warn("Игнорируем устаревшее значение ticketNumber");
                 return;
             }
-            console.log("Обновляем ticketNumber:", ticketData.ticketNumber);
+
             dispatch(setTicketNumber(ticketData.ticketNumber));
         }
     }, [ticketData, ticketNumber, dispatch]);
 
-    console.log("ticketNumber redux", ticketNumber);
     const [recordData, setRecordData] = useState<ClientRecord | null>(null);
 
     const {
@@ -158,10 +154,7 @@ const WaitingPage = () => {
     useEffect(() => {
         if (tokenData?.recordId && tokenData.recordId !== recordId) {
             if (recordId !== null && tokenData.recordId < recordId) {
-                console.warn(
-                    "Игнорируем устаревшее значение recordId:",
-                    tokenData.recordId
-                );
+                console.warn("Игнорируем устаревшее значение recordId");
                 return;
             }
 

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Typography } from "@mui/material";
 import Stack from "@mui/material/Stack";
 import { styled } from "@mui/material/styles";
@@ -105,11 +105,7 @@ const CallPage = () => {
     const recordId = tokenData?.recordId ? Number(tokenData.recordId) : null;
     const [updateQueueItem] = useUpdateQueueItemMutation();
     const { data: ticketNumber } = useGetTicketNumberByTokenQuery(undefined);
-    useEffect(() => {
-        if (ticketNumber?.ticketNumber) {
-            console.log("ticketNumber", ticketNumber);
-        }
-    }, [ticketNumber, dispatch]);
+
     const storedTicketNumber = useSelector(
         (state: RootState) => state.user.ticketNumber
     );
@@ -118,20 +114,6 @@ const CallPage = () => {
     });
 
     const windowNumber = clientRecord?.windowNumber ?? "-";
-    useEffect(() => {
-        if (
-            ticketNumber?.ticketNumber &&
-            ticketNumber.ticketNumber !== storedTicketNumber
-        ) {
-            console.log("ticketNumber", ticketNumber);
-        }
-    }, [ticketNumber, storedTicketNumber, dispatch]);
-
-    useEffect(() => {
-        if (ticketNumber?.ticketNumber) {
-            console.log("ticketNumber", ticketNumber);
-        }
-    }, [ticketNumber, dispatch]);
 
     useEffect(() => {}, [storedRecordId]);
     useEffect(() => {
@@ -160,7 +142,6 @@ const CallPage = () => {
         });
 
         connection.on("RecieveRedirectClient", (data) => {
-            console.log("redirect data", data);
             if (data.ticketNumber === storedTicketNumber) {
                 dispatch(setRecordId(data.newRecordId));
                 dispatch(setToken(data.token));

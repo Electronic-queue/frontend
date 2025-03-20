@@ -106,7 +106,7 @@ const QueuePage: FC = () => {
             setStatus(savedStatus as StatusType);
         }
     }, []);
-    console.log("signalR", clientsSignalR);
+
     const firstClient = clientsSignalR?.[0] || null;
 
     const { data: managerIdData } = useGetManagerIdQuery() as {
@@ -126,7 +126,6 @@ const QueuePage: FC = () => {
     useEffect(() => {
         startSignalR();
         connection.on("ClientListByManagerId", (clientListSignalR) => {
-            console.log(clientListSignalR);
             if (clientListSignalR[0].managerId == managerIdData) {
                 setClientsSignalR(clientListSignalR);
             }

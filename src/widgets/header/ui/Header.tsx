@@ -126,7 +126,6 @@ const Header: FC = () => {
             }
         });
         connection.on("SendToManagersOnlyWN", (SendToManagersOnlyWN) => {
-            console.log("SendToManagersOnlyWN", SendToManagersOnlyWN);
             if (SendToManagersOnlyWN.managerId === managerIdData) {
                 setNotificationsManager((prev) => [
                     ...prev,
