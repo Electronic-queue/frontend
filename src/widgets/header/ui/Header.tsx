@@ -88,9 +88,9 @@ const Header: FC = () => {
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const isMenuOpen = Boolean(anchorEl);
     const [notifications, setNotifications] = useState<string[]>([]);
-    const [notificationsManager, setNotificationsManager] = useState<
-        notificationsForManager[]
-    >([]);
+    const [notificationsManager, setNotificationsManager] = useState<string[]>(
+        []
+    );
     const currentLanguage = i18n.language || "ru";
 
     const [openSnackbar, setOpenSnackbar] = useState(false);

@@ -130,7 +130,7 @@ const WaitingPage = () => {
         isFetching: isFetchingRecordId,
         refetch,
     } = useGetRecordIdByTokenQuery(undefined, {
-        refetchOnMountOrArgChange: false,
+        refetchOnMountOrArgChange: true,
     });
 
     const { data: clientRecord } = useGetClientRecordByIdQuery(recordId ?? 0, {

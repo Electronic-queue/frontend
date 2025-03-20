@@ -38,6 +38,7 @@ type clientListSignalR = {
     iin: string;
     expectedAcceptanceTime: string;
     createdOn: string;
+    averageExecutionTime: number;
 };
 type managerStatic = {
     managerId: string;
@@ -125,6 +126,7 @@ const QueuePage: FC = () => {
     useEffect(() => {
         startSignalR();
         connection.on("ClientListByManagerId", (clientListSignalR) => {
+            console.log(clientListSignalR);
             if (clientListSignalR[0].managerId == managerIdData) {
                 setClientsSignalR(clientListSignalR);
             }
@@ -299,7 +301,7 @@ const QueuePage: FC = () => {
                 clientData={firstClient ? clientData! : clientData1}
                 serviceTime={
                     firstClient
-                        ? firstClient.expectedAcceptanceTime
+                        ? String(firstClient.averageExecutionTime)
                         : serviceTime1
                 }
                 onRedirect={handleRedirectClient}

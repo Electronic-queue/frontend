@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Typography } from "@mui/material";
 import Stack from "@mui/material/Stack";
 import { styled } from "@mui/material/styles";
@@ -16,12 +16,13 @@ import {
     useUpdateQueueItemMutation,
     useGetTicketNumberByTokenQuery,
 } from "src/store/userApi";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import {
     setRecordId,
     setTicketNumber,
     setToken,
 } from "src/store/userAuthSlice";
+import { RootState } from "src/store/store";
 
 const BackgroundContainer = styled(Box)(({ theme }) => ({
     display: "flex",
@@ -104,14 +105,35 @@ const CallPage = () => {
     const recordId = tokenData?.recordId ? Number(tokenData.recordId) : null;
     const [updateQueueItem] = useUpdateQueueItemMutation();
     const { data: ticketNumber } = useGetTicketNumberByTokenQuery(undefined);
+    useEffect(() => {
+        if (ticketNumber?.ticketNumber) {
+            console.log("ticketNumber", ticketNumber);
+        }
+    }, [ticketNumber, dispatch]);
+    const storedTicketNumber = useSelector(
+        (state: RootState) => state.user.ticketNumber
+    );
     const { data: clientRecord } = useGetClientRecordByIdQuery(recordId ?? 0, {
         skip: !recordId,
     });
 
     const windowNumber = clientRecord?.windowNumber ?? "-";
     useEffect(() => {
-        console.log("Updated storedRecordId:", storedRecordId);
-    }, [storedRecordId]);
+        if (
+            ticketNumber?.ticketNumber &&
+            ticketNumber.ticketNumber !== storedTicketNumber
+        ) {
+            console.log("ticketNumber", ticketNumber);
+        }
+    }, [ticketNumber, storedTicketNumber, dispatch]);
+
+    useEffect(() => {
+        if (ticketNumber?.ticketNumber) {
+            console.log("ticketNumber", ticketNumber);
+        }
+    }, [ticketNumber, dispatch]);
+
+    useEffect(() => {}, [storedRecordId]);
     useEffect(() => {
         startSignalR();
         connection.on("ReceiveRecordCreated", (newRecord) => {
@@ -125,23 +147,23 @@ const CallPage = () => {
         connection.on("RecieveUpdateRecord", (queueList) => {
             const updatedItem = queueList.find(
                 (item: { ticketNumber: number | null }) =>
-                    item.ticketNumber === ticketNumber?.ticketNumber
+                    item.ticketNumber === storedTicketNumber
             );
             if (updatedItem && updatedItem.clientNumber === -2) {
                 navigate("/progress");
             }
         });
         connection.on("RecieveUpdateRecord", (recordAccept) => {
-            if (recordAccept.ticketNumber === ticketNumber) {
+            if (recordAccept.ticketNumber === storedTicketNumber) {
                 navigate("/progress");
             }
         });
 
         connection.on("RecieveRedirectClient", (data) => {
-            console.log("Received Redirect Data:", data);
-
-            if (data.ticketNumber === ticketNumber?.ticketNumber) {
+            console.log("redirect data", data);
+            if (data.ticketNumber === storedTicketNumber) {
                 dispatch(setRecordId(data.newRecordId));
+                dispatch(setToken(data.token));
                 dispatch(setTicketNumber(data.newTicketNumber));
                 navigate("/wait");
             }
@@ -153,7 +175,7 @@ const CallPage = () => {
             connection.off("RecieveAcceptRecord");
             connection.off("RecieveRedirectClient");
         };
-    }, [ticketNumber?.ticketNumber, navigate]);
+    }, [storedTicketNumber, navigate]);
 
     const handleModalOpen = () => setIsOpen(true);
     const handleClose = () => setIsOpen(false);
@@ -187,7 +209,6 @@ const CallPage = () => {
         } catch (error) {
             alert(error);
         }
-        console.log("Removing recordId from Redux automatically:", recordId);
         localStorage.removeItem("token");
         localStorage.removeItem("recordId");
         localStorage.removeItem("ticketNumber");
