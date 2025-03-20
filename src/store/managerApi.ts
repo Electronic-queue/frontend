@@ -75,6 +75,15 @@ export const managerApi = createApi({
                 },
             }),
         }),
+        cancelQueue: builder.mutation<any, {}>({
+            query: ({}) => ({
+                url: "Manager/cancel-queue",
+                method: "POST",
+                params: {
+                    "api-version": "1",
+                },
+            }),
+        }),
         completeClient: builder.mutation<any, { managerId: number }>({
             query: ({ managerId }) => ({
                 url: "Manager/completeclient",
@@ -148,4 +157,5 @@ export const {
     usePauseWindowMutation,
     useStartWindowMutation,
     useGetManagerIdQuery,
+    useCancelQueueMutation,
 } = managerApi;

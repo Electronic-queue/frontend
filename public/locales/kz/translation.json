@@ -99,6 +99,9 @@
         "startError": "Терезе жұмысын бастау кезінде қате пайда болды!",
         "resumeWork": "Жұмысқа оралу",
         "windowPausedMessage": "Терезе кідіртілді",
-        "notificationsIsEmpty": "Хабарламалар жоқ"
+        "notificationsIsEmpty": "Хабарламалар жоқ",
+        "cancelQueue": "Кезекті болдырмау",
+        "queueCanceled": "Кезек жойылды",
+        "cancelError": "Кезекті болдырмау кезінде қате пайда болды"
     }
 }

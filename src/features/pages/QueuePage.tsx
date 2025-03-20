@@ -19,6 +19,7 @@ import {
     useGetRecordListByManagerQuery,
     usePauseWindowMutation,
     useGetManagerIdQuery,
+    useCancelQueueMutation,
 } from "src/store/managerApi";
 import { Alert, Snackbar } from "@mui/material";
 import connection, { startSignalR } from "src/features/signalR";
@@ -50,6 +51,7 @@ type managerStatic = {
 const ButtonWrapper = styled(Box)(({ theme }) => ({
     marginBottom: theme.spacing(3),
     display: "flex",
+    gap: theme.spacing(3),
     justifyContent: "flex-start",
     flexDirection: "row",
 }));
@@ -82,6 +84,7 @@ const QueuePage: FC = () => {
     const [callNext] = useCallNextMutation();
     const [completeClient] = useCompleteClientMutation();
     const [pauseWindow] = usePauseWindowMutation();
+    const [cancelQueue] = useCancelQueueMutation();
     const [snackbar, setSnackbar] = useState<{
         open: boolean;
         message: string;
@@ -159,6 +162,23 @@ const QueuePage: FC = () => {
             setSnackbar({
                 open: true,
                 message: t("i18n_queue.pauseError"),
+            });
+        }
+    };
+    const handleCancelQueue = async () => {
+        try {
+            await cancelQueue({}).unwrap();
+            setSnackbar({
+                open: true,
+                message: t("i18n_queue.queueCanceled"),
+            });
+            setStatus("idle");
+            sessionStorage.removeItem("clientStatus");
+        } catch (err) {
+            console.error("Error while canceling the queue:", err);
+            setSnackbar({
+                open: true,
+                message: t("i18n_queue.cancelError"),
             });
         }
     };
@@ -275,6 +295,13 @@ const QueuePage: FC = () => {
                     onClick={() => handlePauseModalOpen()}
                 >
                     {t("i18n_queue.pause")}
+                </CustomButton>
+                <CustomButton
+                    variantType="primary"
+                    sizeType="medium"
+                    onClick={() => handleCancelQueue()}
+                >
+                    {t("i18n_queue.cancelQueue")}
                 </CustomButton>
             </ButtonWrapper>
             <StatusCardWrapper>
