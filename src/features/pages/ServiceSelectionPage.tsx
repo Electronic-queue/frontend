@@ -29,13 +29,13 @@ const BackgroundContainer = styled(Box)(({ theme }) => ({
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: theme.palette.background.default,
-    paddingTop: theme.spacing(5),
+    paddingTop: theme.spacing(2),
 }));
 
 const FormContainer = styled(Stack)(({ theme }) => ({
     width: "100%",
     maxWidth: theme.spacing(50),
-    padding: theme.spacing(4),
+    padding: theme.spacing(1),
     backgroundColor: theme.palette.background.paper,
     borderRadius: theme.spacing(2),
     boxShadow: theme.shadows[2],
@@ -109,7 +109,7 @@ const ServiceSelection = () => {
 
     return (
         <BackgroundContainer>
-            <Box sx={{ paddingBottom: theme.spacing(5) }}>
+            <Box sx={{ paddingBottom: theme.spacing(2) }}>
                 <SULogoM />
             </Box>
             <FormContainer>
