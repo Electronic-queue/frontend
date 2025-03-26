@@ -10,12 +10,11 @@ export interface ClientData {
 export interface ClientCardProps {
     clientData: ClientData;
     serviceTime: string;
-    onRedirect: () => void;
+    onRedirect: (serviceIdRedirect: number) => void;
     onAccept: () => void;
     onComplete: () => void;
     callNext: () => void;
-    status: "idle" | "called" | "accepted";
-    loading: boolean;
+    status: "idle" | "called" | "accepted" | "redirected";
 }
 
 export interface ServiceData {

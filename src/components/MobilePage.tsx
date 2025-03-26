@@ -5,7 +5,6 @@ import Stack from "@mui/material/Stack";
 const MobileContainer = styled(Stack)(({ theme }) => ({
     margin: "0 auto",
     padding: theme.spacing(2),
-    height: "100vh",
     maxWidth: "400px",
     alignItems: "stretch",
 }));

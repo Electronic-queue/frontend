@@ -16,12 +16,11 @@ import SearchIcon from "@mui/icons-material/Search";
 import InputAdornment from "@mui/material/InputAdornment";
 import CustomButton from "src/components/Button";
 import Skeleton from "@mui/material/Skeleton";
-import {
-    useGetServiceListQuery,
-    useCreateRecordMutation,
-} from "src/store/managerApi";
+import { useGetServiceListQuery } from "src/store/managerApi";
+import { useCreateRecordMutation } from "src/store/userApi";
+
 import { useNavigate } from "react-router-dom";
-import { setToken } from "src/store/userAuthSlice";
+import { setRecordId, setToken } from "src/store/userAuthSlice";
 import i18n from "src/i18n";
 
 const BackgroundContainer = styled(Box)(({ theme }) => ({
@@ -54,7 +53,9 @@ const ServiceSelection = () => {
         null
     );
 
-    const userInfo = useSelector((state: RootState) => state.user.userInfo);
+    const userInfo = useSelector(
+        (state: RootState) => (state.user as any).userInfo
+    );
 
     const services: Service[] = Array.isArray(data?.value)
         ? data.value.map((service: any) => ({
@@ -94,6 +95,9 @@ const ServiceSelection = () => {
             if (response.token) {
                 localStorage.setItem("token", response.token);
                 dispatch(setToken(response.token));
+                dispatch(setRecordId(null));
+                localStorage.removeItem("recordId");
+
                 navigate("/wait");
             } else {
                 alert("Ошибка: не получен токен");

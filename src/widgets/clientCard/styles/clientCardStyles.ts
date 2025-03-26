@@ -31,8 +31,8 @@ export const TimeWrapper = styled(Box)(({ theme }) => ({
 }));
 
 export const ClientInfoWrapper = styled(Box)(({ theme }) => ({
-    display: "grid",
-    gridTemplateColumns: "1fr 1fr",
+    display: "flex",
+    justifyContent: "space-between",
     gap: theme.spacing(5),
     width: "100%",
 }));

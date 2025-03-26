@@ -8,7 +8,7 @@ export const managerApi = createApi({
     baseQuery: fetchBaseQuery({
         baseUrl: apiBaseUrl,
         prepareHeaders: (headers, { getState }) => {
-            const token = (getState() as RootState)?.user?.token;
+            const token = (getState() as RootState)?.auth?.token;
 
             if (token) {
                 headers.set("Authorization", `Bearer ${token}`);
@@ -21,7 +21,6 @@ export const managerApi = createApi({
             query: () => ({
                 url: "Manager/recordListByManager",
                 params: {
-                    managerId: 6,
                     "api-version": "1",
                 },
             }),
@@ -34,48 +33,19 @@ export const managerApi = createApi({
                 },
             }),
         }),
-        createRecord: builder.mutation<any, Partial<ManagerRecord>>({
-            query: (newRecord) => ({
-                url: "Record/create",
-                method: "POST",
+        getManagerId: builder.query<number, void>({
+            query: () => ({
+                url: "Manager/GetManagerId",
                 params: {
                     "api-version": "1",
                 },
-                body: {
-                    ...newRecord,
-                    CreatedBy: 2,
-                },
             }),
         }),
+
         getRecordById: builder.query<any, number>({
             query: (recordId) => ({
                 url: `Record/${recordId}`,
                 params: { "api-version": "1" },
-            }),
-        }),
-        getClientRecordById: builder.query<any, number>({
-            query: (recordId) => ({
-                url: `Record/GetClientRecord/${recordId}`,
-                params: { "api-version": "1" },
-            }),
-        }),
-        getRecordIdByToken: builder.query<
-            { recordId: number; connectionId: string },
-            void
-        >({
-            query: () => ({
-                url: "Record/getrecordidbytoken",
-                params: { "api-version": "1" },
-            }),
-        }),
-        updateQueueItem: builder.mutation<any, { id: number }>({
-            query: ({ id }) => ({
-                url: "QueueItem/update",
-                method: "POST",
-                params: {
-                    id,
-                    "api-version": "1",
-                },
             }),
         }),
 
@@ -86,23 +56,30 @@ export const managerApi = createApi({
             }),
         }),
 
-        acceptClient: builder.mutation<any, { managerId: number }>({
-            query: ({ managerId }) => ({
+        acceptClient: builder.mutation<any, {}>({
+            query: ({}) => ({
                 url: "Manager/acceptclient",
                 method: "POST",
                 params: {
-                    managerId,
                     "api-version": "1",
                 },
             }),
         }),
 
-        callNext: builder.mutation<any, { managerId: number }>({
-            query: ({ managerId }) => ({
+        callNext: builder.mutation<any, {}>({
+            query: ({}) => ({
                 url: "Manager/callnext",
                 method: "POST",
                 params: {
-                    managerId,
+                    "api-version": "1",
+                },
+            }),
+        }),
+        cancelQueue: builder.mutation<any, {}>({
+            query: ({}) => ({
+                url: "Manager/cancel-queue",
+                method: "POST",
+                params: {
                     "api-version": "1",
                 },
             }),
@@ -117,7 +94,40 @@ export const managerApi = createApi({
                 },
             }),
         }),
-
+        redirectClient: builder.mutation<any, { serviceId: number }>({
+            query: ({ serviceId }) => ({
+                url: "Manager/redirectclient",
+                method: "POST",
+                params: {
+                    serviceId,
+                    "api-version": "1",
+                },
+            }),
+        }),
+        pauseWindow: builder.mutation<
+            any,
+            { managerId: number; exceedingTime: number }
+        >({
+            query: ({ managerId, exceedingTime }) => ({
+                url: "Manager/pausewindow",
+                method: "POST",
+                params: {
+                    managerId,
+                    exceedingTime,
+                    "api-version": "1",
+                },
+            }),
+        }),
+        startWindow: builder.mutation<any, { managerId: number }>({
+            query: ({ managerId }) => ({
+                url: "Manager/startwindow",
+                method: "POST",
+                params: {
+                    managerId,
+                    "api-version": "1",
+                },
+            }),
+        }),
         createReview: builder.mutation<
             any,
             { recordId: number; rating: number; content: string }
@@ -137,14 +147,15 @@ export const managerApi = createApi({
 export const {
     useGetRecordListByManagerQuery,
     useGetServiceListQuery,
-    useCreateRecordMutation,
-    useGetRecordIdByTokenQuery,
     useGetRecordByIdQuery,
-    useGetClientRecordByIdQuery,
-    useUpdateQueueItemMutation,
     useCreateReviewMutation,
     useGetServiceByIdQuery,
     useAcceptClientMutation,
     useCallNextMutation,
     useCompleteClientMutation,
+    useRedirectClientMutation,
+    usePauseWindowMutation,
+    useStartWindowMutation,
+    useGetManagerIdQuery,
+    useCancelQueueMutation,
 } = managerApi;

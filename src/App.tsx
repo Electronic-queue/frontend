@@ -8,13 +8,14 @@ import MobilePage from "./components/MobilePage";
 import ClientRegisterPage from "./features/pages/ClientRegisterPage";
 import ServiceSelection from "./features/pages/ServiceSelectionPage";
 import WaitingPage from "./features/pages/WaitingPage";
-import CallPage from "./features/pages/CallPage";
+import CallPage from "src/features/pages/CallPage";
 import ServiceRating from "./features/pages/ServiceRating";
 import QueuePage from "./features/pages/QueuePage";
 import Page from "./components/Page";
 import RestrictedAccess from "./components/RestrictedAccess";
 import "./app.css";
 import InProgress from "./features/pages/InProgressPage";
+import ProtectedRoute from "src/components/ProtectedRoute";
 
 const App: FC = () => {
     const isMobile = useMediaQuery("(max-width: 768px)");
@@ -56,8 +57,14 @@ const MobileRoutes: FC = () => (
 
 const DesktopRoutes: FC = () => (
     <Routes>
-        <Route path="/manager/queue" element={<QueuePage />} />
-        {/* <Route path="/manager/reports" element={<StatisticPage />} /> */}
+        <Route
+            path="/manager/queue"
+            element={
+                <ProtectedRoute>
+                    <QueuePage />
+                </ProtectedRoute>
+            }
+        />
         <Route path="/*" element={<RestrictedAccess />} />
     </Routes>
 );

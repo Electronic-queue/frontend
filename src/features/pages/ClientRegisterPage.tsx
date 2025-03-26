@@ -54,7 +54,7 @@ const ClientRegisterPage = () => {
             iin: "",
             firstName: "",
             lastName: "",
-            middleName: "",
+            surname: "",
         },
     });
 
@@ -130,7 +130,7 @@ const ClientRegisterPage = () => {
                     />
 
                     <StyledTextField
-                        name="middleName"
+                        name="surname"
                         control={control}
                         rules={{
                             ...pattern(

@@ -90,6 +90,19 @@
         "stopWindow": "Stop window",
         "startQueue": "Start queue",
         "clientAccepted": "Client accepted!",
-        "serviceCompleted": "Service completed!"
+        "serviceCompleted": "Service completed!",
+        "serviceRedirected": "Service redirected!",
+        "redirectServiceAction": "Redirect ",
+        "windowPaused": "Window paused!",
+        "pauseError": "Error pausing the window!",
+        "windowStarted": "Window started!",
+        "startError": "Error starting the window!",
+        "resumeWork": "Resume work",
+        "windowPausedMessage": "Window paused",
+        "notificationsIsEmpty": "No notifications",
+        "cancelQueue": "Cancel queue",
+        "queueCanceled": "Queue canceled",
+        "cancelError": "Error canceling the queue",
+        "emptyQueue": "Queue is empty"
     }
 }

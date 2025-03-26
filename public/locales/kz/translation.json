@@ -90,6 +90,19 @@
         "stopWindow": "Терезені тоқтату",
         "startQueue": "Кезек басталды",
         "clientAccepted": "Клиент қабылданды!",
-        "serviceCompleted": "Қызмет аяқталды!"
+        "serviceCompleted": "Қызмет аяқталды!",
+        "serviceRedirected": "Қызмет қайта бағытталды!",
+        "redirectServiceAction": "Қайта бағыттау әрекеті",
+        "windowPaused": "Терезе кідіртілді!",
+        "pauseError": "Терезені кідірту кезінде қате пайда болды!",
+        "windowStarted": "Терезе жұмысын бастады!",
+        "startError": "Терезе жұмысын бастау кезінде қате пайда болды!",
+        "resumeWork": "Жұмысқа оралу",
+        "windowPausedMessage": "Терезе кідіртілді",
+        "notificationsIsEmpty": "Хабарламалар жоқ",
+        "cancelQueue": "Кезекті болдырмау",
+        "queueCanceled": "Кезек жойылды",
+        "cancelError": "Кезекті болдырмау кезінде қате пайда болды",
+        "emptyQueue": "Кезек бос"
     }
 }
