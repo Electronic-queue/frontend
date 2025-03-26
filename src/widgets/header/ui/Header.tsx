@@ -19,6 +19,22 @@ import LanguageSwitcher from "src/components/LanguageSwitcher";
 import { MediaContext } from "src/features/MediaProvider";
 import connection from "src/features/signalR";
 import NotificationsNoneIcon from "@mui/icons-material/NotificationsNone";
+import { useGetManagerIdQuery } from "src/store/managerApi";
+import i18n from "src/i18n";
+
+type notificationsForManager = {
+    contentEn: string;
+    contentKk: string;
+    contentRu: string;
+    managerId: string;
+    nameEn: string;
+    nameRu: string;
+    nameKk: string;
+    notificationId: string;
+    notificationTypeId: string;
+    windowNumber: string;
+};
+
 const HeaderContainer = styled(Stack)(({ theme }) => ({
     width: "100%",
     backgroundColor: "white",
@@ -72,19 +88,57 @@ const Header: FC = () => {
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const isMenuOpen = Boolean(anchorEl);
     const [notifications, setNotifications] = useState<string[]>([]);
+    const [notificationsManager, setNotificationsManager] = useState<string[]>(
+        []
+    );
+    const currentLanguage = i18n.language || "ru";
 
     const [openSnackbar, setOpenSnackbar] = useState(false);
     const [snackbarMessage, setSnackbarMessage] = useState("");
+    const { data: managerIdData } = useGetManagerIdQuery() as {
+        data?: string | undefined;
+    };
 
     useEffect(() => {
-        connection.on("SendToClients", (notification) => {
-            if (notification) {
-                setNotifications((prev) => [...prev, notification.contentRu]);
+        connection.on("SendToClients", (notificationToClients) => {
+            if (notificationToClients) {
+                setNotifications((prev) => [
+                    ...prev,
+                    notificationToClients.contentRu,
+                ]);
+            }
+        });
+
+        connection.on("SendToClientsOnlyWn", (SendToClientsOnlyWn) => {
+            if (SendToClientsOnlyWn) {
+                setNotifications((prev) => [
+                    ...prev,
+                    SendToClientsOnlyWn.contentRu,
+                ]);
+            }
+        });
+        connection.on("SendToManagers", (SendToManagers) => {
+            if (SendToManagers) {
+                setNotificationsManager((prev) => [
+                    ...prev,
+                    SendToManagers.contentRu,
+                ]);
+            }
+        });
+        connection.on("SendToManagersOnlyWN", (SendToManagersOnlyWN) => {
+            if (SendToManagersOnlyWN.managerId === managerIdData) {
+                setNotificationsManager((prev) => [
+                    ...prev,
+                    SendToManagersOnlyWN.contentRu,
+                ]);
             }
         });
 
         return () => {
+            connection.off("SendToClientsOnlyWn");
             connection.off("SendToClients");
+            connection.off("SendToManagers");
+            connection.off("SendToManagersOnlyWN");
         };
     }, []);
 
@@ -94,6 +148,18 @@ const Header: FC = () => {
                 notifications[0] || t("i18n_queue.notificationsIsEmpty");
             setSnackbarMessage(message);
             setNotifications((prev) => prev.slice(1));
+        } else {
+            setSnackbarMessage(t("i18n_queue.notificationsIsEmpty"));
+        }
+        setOpenSnackbar(true);
+    };
+
+    const handleNotificationManagerClick = () => {
+        if (notificationsManager.length > 0) {
+            const message =
+                notificationsManager[0] || t("i18n_queue.notificationsIsEmpty");
+            setSnackbarMessage(message);
+            setNotificationsManager((prev) => prev.slice(1));
         } else {
             setSnackbarMessage(t("i18n_queue.notificationsIsEmpty"));
         }
@@ -119,6 +185,19 @@ const Header: FC = () => {
         navigate("/login");
     };
 
+    const getNotificationName = (
+        item: notificationsForManager,
+        lang: string
+    ) => {
+        switch (lang) {
+            case "en":
+                return item.contentEn;
+            case "kz":
+                return item.contentKk;
+            default:
+                return item.contentRu;
+        }
+    };
     return (
         <HeaderContainer
             direction={isMobile ? "row-reverse" : "row"}
@@ -147,9 +226,22 @@ const Header: FC = () => {
                 <LanguageSwitcher />
                 {!isMobile ? (
                     <>
+                        <NotificationBadge
+                            badgeContent={notificationsManager.length}
+                            color="primary"
+                        >
+                            <IconButton
+                                onClick={handleNotificationManagerClick}
+                            >
+                                <StyledNotificationCircle>
+                                    <NotificationsNoneIcon />
+                                </StyledNotificationCircle>
+                            </IconButton>
+                        </NotificationBadge>
                         <IconButton onClick={handleMenuOpen}>
                             <UserLogo />
                         </IconButton>
+
                         <Menu
                             anchorEl={anchorEl}
                             open={isMenuOpen}
@@ -193,7 +285,7 @@ const Header: FC = () => {
                     onClose={handleSnackbarClose}
                     severity="info"
                     sx={{
-                        width: "80%",
+                        width: "80",
                         "& .MuiAlert-message": {
                             fontSize: "0.875rem",
                         },

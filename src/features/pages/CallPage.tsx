@@ -14,9 +14,15 @@ import {
     useGetClientRecordByIdQuery,
     useGetRecordIdByTokenQuery,
     useUpdateQueueItemMutation,
+    useGetTicketNumberByTokenQuery,
 } from "src/store/userApi";
-import { useDispatch } from "react-redux";
-import { setRecordId, setToken } from "src/store/userAuthSlice";
+import { useDispatch, useSelector } from "react-redux";
+import {
+    setRecordId,
+    setTicketNumber,
+    setToken,
+} from "src/store/userAuthSlice";
+import { RootState } from "src/store/store";
 
 const BackgroundContainer = styled(Box)(({ theme }) => ({
     display: "flex",
@@ -98,20 +104,23 @@ const CallPage = () => {
     const { data: tokenData } = useGetRecordIdByTokenQuery();
     const recordId = tokenData?.recordId ? Number(tokenData.recordId) : null;
     const [updateQueueItem] = useUpdateQueueItemMutation();
+    const { data: ticketNumber } = useGetTicketNumberByTokenQuery(undefined);
 
+    const storedTicketNumber = useSelector(
+        (state: RootState) => state.user.ticketNumber
+    );
     const { data: clientRecord } = useGetClientRecordByIdQuery(recordId ?? 0, {
         skip: !recordId,
     });
 
     const windowNumber = clientRecord?.windowNumber ?? "-";
-    useEffect(() => {
-        console.log("Updated storedRecordId:", storedRecordId);
-    }, [storedRecordId]);
+
+    useEffect(() => {}, [storedRecordId]);
     useEffect(() => {
         startSignalR();
         connection.on("ReceiveRecordCreated", (newRecord) => {
             if (
-                newRecord.recordId === recordId &&
+                newRecord.ticketNumber === ticketNumber &&
                 newRecord.clientNumber === -2
             ) {
                 navigate("/progress");
@@ -119,40 +128,35 @@ const CallPage = () => {
         });
         connection.on("RecieveUpdateRecord", (queueList) => {
             const updatedItem = queueList.find(
-                (item: { recordId: number | null }) =>
-                    item.recordId === recordId
+                (item: { ticketNumber: number | null }) =>
+                    item.ticketNumber === storedTicketNumber
             );
             if (updatedItem && updatedItem.clientNumber === -2) {
                 navigate("/progress");
             }
         });
         connection.on("RecieveUpdateRecord", (recordAccept) => {
-            if (recordAccept.recordId === recordId) {
+            if (recordAccept.ticketNumber === storedTicketNumber) {
                 navigate("/progress");
             }
         });
 
         connection.on("RecieveRedirectClient", (data) => {
-            console.log("Received Redirect Data:", data);
-
-            if (!data || typeof data.newRecordId !== "number") {
-                console.error("Invalid data received:", data);
-                return;
-            }
-
-            if (data.recordId === storedRecordId) {
+            if (data.ticketNumber === storedTicketNumber) {
                 dispatch(setRecordId(data.newRecordId));
-                console.log("Updating global recordId to:", data.newRecordId);
-                navigate("/wait", { state: { newRecordId: data.newRecordId } });
+                dispatch(setToken(data.token));
+                dispatch(setTicketNumber(data.newTicketNumber));
+                navigate("/wait");
             }
         });
+
         return () => {
             connection.off("ReceiveRecordCreated");
             connection.off("RecieveUpdateRecord");
             connection.off("RecieveAcceptRecord");
             connection.off("RecieveRedirectClient");
         };
-    }, [recordId, navigate]);
+    }, [storedTicketNumber, navigate]);
 
     const handleModalOpen = () => setIsOpen(true);
     const handleClose = () => setIsOpen(false);
@@ -169,8 +173,8 @@ const CallPage = () => {
             alert(error);
         }
         localStorage.removeItem("recordId");
-        console.log("Removing recordId from Redux:", recordId);
-
+        localStorage.removeItem("ticketNumber");
+        dispatch(setTicketNumber(null));
         localStorage.removeItem("token");
         setStoredRecordId(null);
         dispatch(setRecordId(null));
@@ -186,9 +190,10 @@ const CallPage = () => {
         } catch (error) {
             alert(error);
         }
-        console.log("Removing recordId from Redux automatically:", recordId);
         localStorage.removeItem("token");
         localStorage.removeItem("recordId");
+        localStorage.removeItem("ticketNumber");
+        dispatch(setTicketNumber(null));
         dispatch(setRecordId(null));
         dispatch(setToken(null));
         setIsOpen(false);

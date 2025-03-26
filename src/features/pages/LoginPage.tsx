@@ -131,9 +131,6 @@ const LoginPage: FC = () => {
 
             if (login.fulfilled.match(resultAction)) {
                 const token = resultAction.payload?.token;
-                if (token) {
-                    console.log("Токен:", token);
-                }
             }
         } catch (error) {
             console.error("Ошибка при входе:", error);

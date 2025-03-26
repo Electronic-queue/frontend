@@ -99,6 +99,10 @@
         "startError": "Error starting the window!",
         "resumeWork": "Resume work",
         "windowPausedMessage": "Window paused",
-        "notificationsIsEmpty": "No notifications"
+        "notificationsIsEmpty": "No notifications",
+        "cancelQueue": "Cancel queue",
+        "queueCanceled": "Queue canceled",
+        "cancelError": "Error canceling the queue",
+        "emptyQueue": "Queue is empty"
     }
 }

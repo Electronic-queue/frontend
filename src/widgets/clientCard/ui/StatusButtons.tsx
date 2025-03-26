@@ -12,8 +12,11 @@ import {
     useGetServiceListQuery,
     useRedirectClientMutation,
 } from "src/store/managerApi";
+
 import { t } from "i18next";
 import { Alert, Snackbar } from "@mui/material";
+import { Service } from "src/widgets/serviceList/ui/ServiceList";
+import i18n from "src/i18n";
 
 interface StatusButtonsProps {
     status: string;
@@ -43,7 +46,7 @@ const ButtonWrapperStyles = styled(Box)(({ theme }) => ({
     gap: theme.spacing(2),
     justifyContent: "flex-end",
 }));
-
+const currentLanguage = i18n.language || "ru";
 const CalledButtons: FC<{
     onAccept: () => void;
     onRedirect: (serviceIdRedirect: number) => void;
@@ -68,7 +71,6 @@ const CalledButtons: FC<{
         }
         try {
             const response = await redirectClient({
-                managerId: 6,
                 serviceId: selectedServiceId,
             }).unwrap();
             refetch();
@@ -83,10 +85,15 @@ const CalledButtons: FC<{
         }
     };
 
-    const services = Array.isArray(data?.value)
+    const services: Service[] = Array.isArray(data?.value)
         ? data.value.map((service: any) => ({
               id: service.serviceId,
-              name: service.nameRu,
+              name:
+                  currentLanguage === "kz"
+                      ? service.nameKk
+                      : currentLanguage === "en"
+                        ? service.nameEn
+                        : service.nameRu,
           }))
         : [];
 

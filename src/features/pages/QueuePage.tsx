@@ -19,9 +19,11 @@ import {
     useGetRecordListByManagerQuery,
     usePauseWindowMutation,
     useGetManagerIdQuery,
+    useCancelQueueMutation,
 } from "src/store/managerApi";
 import { Alert, Snackbar } from "@mui/material";
 import connection, { startSignalR } from "src/features/signalR";
+import i18n from "src/i18n";
 type StatusType = "idle" | "called" | "accepted" | "redirected";
 
 type clientListSignalR = {
@@ -37,6 +39,7 @@ type clientListSignalR = {
     iin: string;
     expectedAcceptanceTime: string;
     createdOn: string;
+    averageExecutionTime: number;
 };
 type managerStatic = {
     managerId: string;
@@ -48,6 +51,7 @@ type managerStatic = {
 const ButtonWrapper = styled(Box)(({ theme }) => ({
     marginBottom: theme.spacing(3),
     display: "flex",
+    gap: theme.spacing(3),
     justifyContent: "flex-start",
     flexDirection: "row",
 }));
@@ -76,14 +80,16 @@ const QueuePage: FC = () => {
     const [isPauseModalOpen, setIsPauseModalOpen] = useState(false);
     const [isTimerModalOpen, setIsTimerModalOpen] = useState(false);
     const [acceptClient] = useAcceptClientMutation();
-    const [redirectClient] = useRedirectClientMutation();
+    const currentLanguage = i18n.language || "ru";
     const [callNext] = useCallNextMutation();
     const [completeClient] = useCompleteClientMutation();
     const [pauseWindow] = usePauseWindowMutation();
+    const [cancelQueue] = useCancelQueueMutation();
     const [snackbar, setSnackbar] = useState<{
         open: boolean;
         message: string;
-    }>({ open: false, message: "" });
+        severity: "success" | "error" | "warning" | "info";
+    }>({ open: false, message: "", severity: "success" });
 
     const [status, setStatus] = useState<StatusType>("idle");
 
@@ -124,8 +130,17 @@ const QueuePage: FC = () => {
     useEffect(() => {
         startSignalR();
         connection.on("ClientListByManagerId", (clientListSignalR) => {
-            setClientsSignalR(clientListSignalR);
+            if (
+                Array.isArray(clientListSignalR) &&
+                clientListSignalR.length > 0
+            ) {
+                if (clientListSignalR[0].managerId == managerIdData) {
+                    setClientsSignalR(clientListSignalR);
+                }
+            } else {
+            }
         });
+
         connection.on("RecieveManagerStatic", (managerStatic) => {
             if (managerStatic.managerId === managerIdData) {
                 setManagerStatic(managerStatic);
@@ -149,12 +164,33 @@ const QueuePage: FC = () => {
             setSnackbar({
                 open: true,
                 message: t("i18n_queue.windowPaused"),
+                severity: "success",
             });
         } catch (error) {
             console.error("Error while pausing the window:", error);
             setSnackbar({
                 open: true,
                 message: t("i18n_queue.pauseError"),
+                severity: "error",
+            });
+        }
+    };
+    const handleCancelQueue = async () => {
+        try {
+            await cancelQueue({}).unwrap();
+            setSnackbar({
+                open: true,
+                message: t("i18n_queue.queueCanceled"),
+                severity: "success",
+            });
+            setStatus("idle");
+            sessionStorage.removeItem("clientStatus");
+        } catch (err) {
+            console.error("Error while canceling the queue:", err);
+            setSnackbar({
+                open: true,
+                message: t("i18n_queue.cancelError"),
+                severity: "error",
             });
         }
     };
@@ -165,6 +201,7 @@ const QueuePage: FC = () => {
             setSnackbar({
                 open: true,
                 message: t("i18n_queue.clientAccepted"),
+                severity: "success",
             });
 
             setStatus("accepted");
@@ -172,16 +209,12 @@ const QueuePage: FC = () => {
         } catch (err) {}
     };
 
-    const handleRedirectClient = async (serviceIdRedirect: number) => {
+    const handleRedirectClient = () => {
         try {
-            await redirectClient({
-                managerId,
-                serviceId: serviceIdRedirect,
-            }).unwrap();
-
             setSnackbar({
                 open: true,
                 message: t("i18n_queue.clientRedirected"),
+                severity: "success",
             });
 
             refetchClients();
@@ -193,20 +226,36 @@ const QueuePage: FC = () => {
                 setStatus("idle");
                 sessionStorage.removeItem("clientStatus");
             }
-        } catch (err) {
-            console.error("Ошибка при перенаправлении клиента:", err);
-        }
+        } catch (err) {}
     };
 
     const handleCallNextClient = async () => {
+        if (clientsSignalR.length === 0) {
+            setSnackbar({
+                open: true,
+                message: t("i18n_queue.emptyQueue"),
+                severity: "warning",
+            });
+            return;
+        }
         try {
             await callNext({}).unwrap();
-            setSnackbar({ open: true, message: t("i18n_queue.startQueue") });
+            setSnackbar({
+                open: true,
+                message: t("i18n_queue.startQueue"),
+                severity: "success",
+            });
 
             setStatus("called");
             sessionStorage.setItem("clientStatus", "called");
             refetchClients();
-        } catch (err) {}
+        } catch (err) {
+            setSnackbar({
+                open: true,
+                message: "Ошибка вызова клиента",
+                severity: "error",
+            });
+        }
     };
 
     const handleСompleteClient = async () => {
@@ -215,6 +264,7 @@ const QueuePage: FC = () => {
             setSnackbar({
                 open: true,
                 message: t("i18n_queue.serviceCompleted"),
+                severity: "success",
             });
             await refetchClients();
 
@@ -227,14 +277,23 @@ const QueuePage: FC = () => {
             }
         } catch (err) {}
     };
-
+    const getServiceName = (item: clientListSignalR, lang: string) => {
+        switch (lang) {
+            case "en":
+                return item.serviceNameEn;
+            case "kz":
+                return item.serviceNameKk;
+            default:
+                return item.serviceNameRu;
+        }
+    };
     const clientData = firstClient
         ? {
               clientNumber: `${firstClient.ticketNumber}`,
               lastName: firstClient.lastName,
               firstName: firstClient.firstName,
               patronymic: firstClient.surname || "",
-              service: firstClient.serviceNameRu,
+              service: getServiceName(firstClient, currentLanguage),
               iin: firstClient.iin,
           }
         : null;
@@ -249,11 +308,23 @@ const QueuePage: FC = () => {
             <Snackbar
                 open={snackbar.open}
                 autoHideDuration={3000}
-                onClose={() => setSnackbar({ open: false, message: "" })}
+                onClose={() =>
+                    setSnackbar({
+                        open: false,
+                        message: "",
+                        severity: "success",
+                    })
+                }
             >
                 <Alert
-                    severity="success"
-                    onClose={() => setSnackbar({ open: false, message: "" })}
+                    severity={snackbar.severity}
+                    onClose={() =>
+                        setSnackbar({
+                            open: false,
+                            message: "",
+                            severity: "success",
+                        })
+                    }
                     sx={{ fontSize: theme.typography.body1.fontSize }}
                 >
                     {snackbar.message}
@@ -268,33 +339,38 @@ const QueuePage: FC = () => {
                 >
                     {t("i18n_queue.pause")}
                 </CustomButton>
+                <CustomButton
+                    variantType="primary"
+                    sizeType="medium"
+                    onClick={() => handleCancelQueue()}
+                >
+                    {t("i18n_queue.cancelQueue")}
+                </CustomButton>
             </ButtonWrapper>
-            {managerStatic && (
-                <StatusCardWrapper>
-                    <StatusCard
-                        variant="accepted"
-                        number={managerStatic.serviced}
-                    />
-                    <StatusCard
-                        variant="not_accepted"
-                        number={managerStatic.rejected}
-                    />
-                    <StatusCard
-                        variant="redirected"
-                        number={managerStatic.redirected}
-                    />
-                    <StatusCard
-                        variant="in_anticipation"
-                        number={managerStatic.inLine}
-                    />
-                </StatusCardWrapper>
-            )}
+            <StatusCardWrapper>
+                <StatusCard
+                    variant="accepted"
+                    number={managerStatic?.serviced || 0}
+                />
+                <StatusCard
+                    variant="not_accepted"
+                    number={managerStatic?.rejected || 0}
+                />
+                <StatusCard
+                    variant="redirected"
+                    number={managerStatic?.redirected || 0}
+                />
+                <StatusCard
+                    variant="in_anticipation"
+                    number={managerStatic?.inLine || 0}
+                />
+            </StatusCardWrapper>
 
             <ClientCard
                 clientData={firstClient ? clientData! : clientData1}
                 serviceTime={
                     firstClient
-                        ? firstClient.expectedAcceptanceTime
+                        ? String(firstClient.averageExecutionTime)
                         : serviceTime1
                 }
                 onRedirect={handleRedirectClient}
@@ -311,24 +387,32 @@ const QueuePage: FC = () => {
                     paddingBottom: theme.spacing(3),
                 }}
             >
-                {Array.isArray(clientsSignalR) && clientsSignalR.length > 1 ? (
-                    clientsSignalR.slice(1, 5).map((item) => (
-                        <QueueCard
-                            key={item.ticketNumber}
-                            clientNumber={item.ticketNumber}
-                            service={item.serviceNameRu}
-                            bookingTime={new Date(
-                                item.createdOn ?? ""
-                            ).toLocaleTimeString([], {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                            })}
-                            expectedTime={item.expectedAcceptanceTime}
-                        />
-                    ))
-                ) : (
-                    <p>Нет данных</p>
-                )}
+                {Array.isArray(clientsSignalR) && clientsSignalR.length > 1
+                    ? clientsSignalR.slice(1, 5).map((item) => (
+                          <QueueCard
+                              key={item.ticketNumber}
+                              clientNumber={item.ticketNumber}
+                              service={getServiceName(item, currentLanguage)}
+                              bookingTime={new Date(
+                                  item.createdOn ?? ""
+                              ).toLocaleTimeString([], {
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                              })}
+                              expectedTime={item.expectedAcceptanceTime}
+                          />
+                      ))
+                    : Array(4)
+                          .fill(null)
+                          .map((_, index) => (
+                              <QueueCard
+                                  key={index}
+                                  clientNumber={0}
+                                  service="-"
+                                  bookingTime="-"
+                                  expectedTime="-"
+                              />
+                          ))}
             </Box>
 
             <ReusableModal

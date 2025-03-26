@@ -29,7 +29,11 @@ export const userApi = createApi({
             }),
         }),
         getRecordIdByToken: builder.query<
-            { recordId: number; connectionId: string },
+            {
+                ticketNumber: number;
+                recordId: number;
+                connectionId: string;
+            },
             void
         >({
             query: () => ({
@@ -53,6 +57,12 @@ export const userApi = createApi({
                 },
             }),
         }),
+        getTicketNumberByToken: builder.query({
+            query: () => ({
+                url: `Record/get-ticketnumber-bytoken`,
+                params: { "api-version": "1" },
+            }),
+        }),
         getUserProfile: builder.query<any, void>({
             query: () => ({
                 url: "User/profile",
@@ -68,4 +78,5 @@ export const {
     useGetRecordIdByTokenQuery,
     useGetClientRecordByIdQuery,
     useUpdateQueueItemMutation,
+    useGetTicketNumberByTokenQuery,
 } = userApi;
