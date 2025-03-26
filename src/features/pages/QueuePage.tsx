@@ -88,7 +88,8 @@ const QueuePage: FC = () => {
     const [snackbar, setSnackbar] = useState<{
         open: boolean;
         message: string;
-    }>({ open: false, message: "" });
+        severity: "success" | "error" | "warning" | "info";
+    }>({ open: false, message: "", severity: "success" });
 
     const [status, setStatus] = useState<StatusType>("idle");
 
@@ -129,10 +130,17 @@ const QueuePage: FC = () => {
     useEffect(() => {
         startSignalR();
         connection.on("ClientListByManagerId", (clientListSignalR) => {
-            if (clientListSignalR[0].managerId == managerIdData) {
-                setClientsSignalR(clientListSignalR);
+            if (
+                Array.isArray(clientListSignalR) &&
+                clientListSignalR.length > 0
+            ) {
+                if (clientListSignalR[0].managerId == managerIdData) {
+                    setClientsSignalR(clientListSignalR);
+                }
+            } else {
             }
         });
+
         connection.on("RecieveManagerStatic", (managerStatic) => {
             if (managerStatic.managerId === managerIdData) {
                 setManagerStatic(managerStatic);
@@ -156,12 +164,14 @@ const QueuePage: FC = () => {
             setSnackbar({
                 open: true,
                 message: t("i18n_queue.windowPaused"),
+                severity: "success",
             });
         } catch (error) {
             console.error("Error while pausing the window:", error);
             setSnackbar({
                 open: true,
                 message: t("i18n_queue.pauseError"),
+                severity: "error",
             });
         }
     };
@@ -171,6 +181,7 @@ const QueuePage: FC = () => {
             setSnackbar({
                 open: true,
                 message: t("i18n_queue.queueCanceled"),
+                severity: "success",
             });
             setStatus("idle");
             sessionStorage.removeItem("clientStatus");
@@ -179,6 +190,7 @@ const QueuePage: FC = () => {
             setSnackbar({
                 open: true,
                 message: t("i18n_queue.cancelError"),
+                severity: "error",
             });
         }
     };
@@ -189,6 +201,7 @@ const QueuePage: FC = () => {
             setSnackbar({
                 open: true,
                 message: t("i18n_queue.clientAccepted"),
+                severity: "success",
             });
 
             setStatus("accepted");
@@ -201,6 +214,7 @@ const QueuePage: FC = () => {
             setSnackbar({
                 open: true,
                 message: t("i18n_queue.clientRedirected"),
+                severity: "success",
             });
 
             refetchClients();
@@ -212,20 +226,36 @@ const QueuePage: FC = () => {
                 setStatus("idle");
                 sessionStorage.removeItem("clientStatus");
             }
-        } catch (err) {
-            console.error("Ошибка при перенаправлении клиента:", err);
-        }
+        } catch (err) {}
     };
 
     const handleCallNextClient = async () => {
+        if (clientsSignalR.length === 0) {
+            setSnackbar({
+                open: true,
+                message: t("i18n_queue.emptyQueue"),
+                severity: "warning",
+            });
+            return;
+        }
         try {
             await callNext({}).unwrap();
-            setSnackbar({ open: true, message: t("i18n_queue.startQueue") });
+            setSnackbar({
+                open: true,
+                message: t("i18n_queue.startQueue"),
+                severity: "success",
+            });
 
             setStatus("called");
             sessionStorage.setItem("clientStatus", "called");
             refetchClients();
-        } catch (err) {}
+        } catch (err) {
+            setSnackbar({
+                open: true,
+                message: "Ошибка вызова клиента",
+                severity: "error",
+            });
+        }
     };
 
     const handleСompleteClient = async () => {
@@ -234,6 +264,7 @@ const QueuePage: FC = () => {
             setSnackbar({
                 open: true,
                 message: t("i18n_queue.serviceCompleted"),
+                severity: "success",
             });
             await refetchClients();
 
@@ -277,11 +308,23 @@ const QueuePage: FC = () => {
             <Snackbar
                 open={snackbar.open}
                 autoHideDuration={3000}
-                onClose={() => setSnackbar({ open: false, message: "" })}
+                onClose={() =>
+                    setSnackbar({
+                        open: false,
+                        message: "",
+                        severity: "success",
+                    })
+                }
             >
                 <Alert
-                    severity="success"
-                    onClose={() => setSnackbar({ open: false, message: "" })}
+                    severity={snackbar.severity}
+                    onClose={() =>
+                        setSnackbar({
+                            open: false,
+                            message: "",
+                            severity: "success",
+                        })
+                    }
                     sx={{ fontSize: theme.typography.body1.fontSize }}
                 >
                     {snackbar.message}

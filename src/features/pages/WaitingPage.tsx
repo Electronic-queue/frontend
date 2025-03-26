@@ -107,14 +107,6 @@ const WaitingPage = () => {
             ticketData?.ticketNumber &&
             ticketData.ticketNumber !== ticketNumber
         ) {
-            if (
-                ticketNumber !== null &&
-                ticketData.ticketNumber < ticketNumber
-            ) {
-                console.warn("Игнорируем устаревшее значение ticketNumber");
-                return;
-            }
-
             dispatch(setTicketNumber(ticketData.ticketNumber));
         }
     }, [ticketData, ticketNumber, dispatch]);
@@ -153,11 +145,6 @@ const WaitingPage = () => {
 
     useEffect(() => {
         if (tokenData?.recordId && tokenData.recordId !== recordId) {
-            if (recordId !== null && tokenData.recordId < recordId) {
-                console.warn("Игнорируем устаревшее значение recordId");
-                return;
-            }
-
             dispatch(setRecordId(tokenData.recordId));
         }
     }, [tokenData, recordId, dispatch]);

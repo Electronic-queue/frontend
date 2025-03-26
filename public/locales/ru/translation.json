@@ -101,6 +101,7 @@
         "notificationsIsEmpty": "Нет уведомлений",
         "cancelQueue": "Отменить записи",
         "queueCanceled": "Очередь отменена",
-        "cancelError": "Ошибка при отмене очереди"
+        "cancelError": "Ошибка при отмене очереди",
+        "emptyQueue": "Очередь пуста"
     }
 }

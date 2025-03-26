@@ -102,6 +102,7 @@
         "notificationsIsEmpty": "No notifications",
         "cancelQueue": "Cancel queue",
         "queueCanceled": "Queue canceled",
-        "cancelError": "Error canceling the queue"
+        "cancelError": "Error canceling the queue",
+        "emptyQueue": "Queue is empty"
     }
 }

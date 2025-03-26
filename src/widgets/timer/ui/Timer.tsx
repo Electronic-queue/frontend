@@ -8,16 +8,15 @@ import { useTranslation } from "react-i18next";
 import { useStartWindowMutation } from "src/store/managerApi";
 import { styled } from "@mui/material/styles";
 
-const TimeLeftTypographyStyled = styled(Typography)<{ isCountingUp: boolean }>(
-    ({ theme, isCountingUp }) => ({
-        color: isCountingUp
-            ? theme.palette.error.main
-            : theme.palette.green.main,
-        marginTop: -120,
-        marginRight: 20,
-        fontSize: theme.typography.body2.fontSize,
-    })
-);
+const TimeLeftTypographyStyled = styled(Typography, {
+    shouldForwardProp: (prop) => prop !== "isCountingUp",
+})<{ isCountingUp: boolean }>(({ theme, isCountingUp }) => ({
+    color: isCountingUp ? theme.palette.error.main : theme.palette.green.main,
+    marginTop: -120,
+    marginRight: 20,
+    fontSize: theme.typography.body2.fontSize,
+}));
+
 const Timer: React.FC<TimerProps> = ({
     initialTime,
     onResume,
