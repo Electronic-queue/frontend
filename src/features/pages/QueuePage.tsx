@@ -305,19 +305,10 @@ const QueuePage: FC = () => {
 
     return (
         <>
-            <Snackbar
-                open={snackbar.open}
-                autoHideDuration={3000}
-                onClose={() =>
-                    setSnackbar({
-                        open: false,
-                        message: "",
-                        severity: "success",
-                    })
-                }
-            >
-                <Alert
-                    severity={snackbar.severity}
+            <Box sx={{ position: "fixed", bottom: 16, left: 16 }}>
+                <Snackbar
+                    open={snackbar.open}
+                    autoHideDuration={3000}
                     onClose={() =>
                         setSnackbar({
                             open: false,
@@ -325,11 +316,22 @@ const QueuePage: FC = () => {
                             severity: "success",
                         })
                     }
-                    sx={{ fontSize: theme.typography.body1.fontSize }}
                 >
-                    {snackbar.message}
-                </Alert>
-            </Snackbar>
+                    <Alert
+                        severity={snackbar.severity}
+                        onClose={() =>
+                            setSnackbar({
+                                open: false,
+                                message: "",
+                                severity: "success",
+                            })
+                        }
+                        sx={{ fontSize: theme.typography.body1.fontSize }}
+                    >
+                        {snackbar.message}
+                    </Alert>
+                </Snackbar>
+            </Box>
 
             <ButtonWrapper>
                 <CustomButton
@@ -387,32 +389,33 @@ const QueuePage: FC = () => {
                     paddingBottom: theme.spacing(3),
                 }}
             >
-                {Array.isArray(clientsSignalR) && clientsSignalR.length > 1
-                    ? clientsSignalR.slice(1, 5).map((item) => (
-                          <QueueCard
-                              key={item.ticketNumber}
-                              clientNumber={item.ticketNumber}
-                              service={getServiceName(item, currentLanguage)}
-                              bookingTime={new Date(
-                                  item.createdOn ?? ""
-                              ).toLocaleTimeString([], {
-                                  hour: "2-digit",
-                                  minute: "2-digit",
-                              })}
-                              expectedTime={item.expectedAcceptanceTime}
-                          />
-                      ))
-                    : Array(4)
-                          .fill(null)
-                          .map((_, index) => (
-                              <QueueCard
-                                  key={index}
-                                  clientNumber={0}
-                                  service="-"
-                                  bookingTime="-"
-                                  expectedTime="-"
-                              />
-                          ))}
+                {Array(4)
+                    .fill(null)
+                    .map((_, index) => {
+                        const item = clientsSignalR?.[index + 1];
+                        return item ? (
+                            <QueueCard
+                                key={item.ticketNumber}
+                                clientNumber={item.ticketNumber}
+                                service={getServiceName(item, currentLanguage)}
+                                bookingTime={new Date(
+                                    item.createdOn ?? ""
+                                ).toLocaleTimeString([], {
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                })}
+                                expectedTime={item.expectedAcceptanceTime}
+                            />
+                        ) : (
+                            <QueueCard
+                                key={`mock-${index}`}
+                                clientNumber={0}
+                                service="-"
+                                bookingTime="-"
+                                expectedTime="-"
+                            />
+                        );
+                    })}
             </Box>
 
             <ReusableModal
