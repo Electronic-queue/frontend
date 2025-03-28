@@ -69,7 +69,7 @@ const DesktopRoutes: FC = () => (
                 </ProtectedRoute>
             }
         />
-        <Route path="/*" element={<NotFound />} />
+        <Route path="/*" element={<RestrictedAccess />} />
     </Routes>
 );
 
