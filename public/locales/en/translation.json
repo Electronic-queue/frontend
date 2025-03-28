@@ -104,6 +104,7 @@
         "queueCanceled": "Queue canceled",
         "cancelError": "Error canceling the queue",
         "emptyQueue": "Queue is empty",
-        "beingReject": "Your record has been canceled as the manager's work shift has ended."
+        "beingReject": "Your record has been canceled as the manager's work shift has ended.",
+        "goBack": "Go back"
     }
 }
