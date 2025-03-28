@@ -16,6 +16,7 @@ import RestrictedAccess from "./components/RestrictedAccess";
 import "./app.css";
 import InProgress from "./features/pages/InProgressPage";
 import ProtectedRoute from "src/components/ProtectedRoute";
+import RejectPage from "./features/pages/RejectPage";
 
 const App: FC = () => {
     const isMobile = useMediaQuery("(max-width: 768px)");
@@ -52,6 +53,7 @@ const MobileRoutes: FC = () => (
         <Route path="/call" element={<CallPage />} />
         <Route path="/progress" element={<InProgress />} />
         <Route path="/rating" element={<ServiceRating />} />
+        <Route path="/rejected" element={<RejectPage />} />
     </Routes>
 );
 

@@ -168,7 +168,9 @@ const WaitingPage = () => {
 
             if (latestRecord) {
                 setRecordData(latestRecord);
-
+                if (latestRecord.clientNumber === -6) {
+                    navigate("/rejected", { replace: true });
+                }
                 if (latestRecord.clientNumber === -1) {
                     navigate("/call", { replace: true });
                 }
