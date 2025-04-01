@@ -266,17 +266,22 @@ const QueuePage: FC = () => {
                 message: t("i18n_queue.serviceCompleted"),
                 severity: "success",
             });
+
             await refetchClients();
 
             if (clientsSignalR.length > 1) {
                 setStatus("called");
                 sessionStorage.setItem("clientStatus", "called");
             } else {
+                setClientsSignalR([]);
                 setStatus("idle");
                 sessionStorage.removeItem("clientStatus");
             }
-        } catch (err) {}
+        } catch (err) {
+            console.error("Error completing client:", err);
+        }
     };
+
     const getServiceName = (item: clientListSignalR, lang: string) => {
         switch (lang) {
             case "en":
