@@ -86,8 +86,8 @@ const CalledButtons: FC<{
     };
 
     const services: Service[] = Array.isArray(data?.value)
-        ? data.value.map((service: any) => ({
-              id: service.serviceId,
+        ? data.value.map((service: any, index: number) => ({
+              id: index + 1,
               name:
                   currentLanguage === "kz"
                       ? service.nameKk
