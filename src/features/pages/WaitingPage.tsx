@@ -98,6 +98,7 @@ const WaitingPage = () => {
     const navigate = useNavigate();
     const dispatch = useDispatch();
     const recordId = useSelector((state: RootState) => state.user.recordId);
+    console.log(" wait page recordId ", recordId);
     const { data: ticketData } = useGetTicketNumberByTokenQuery(undefined);
     const ticketNumber = useSelector(
         (state: RootState) => state.user.ticketNumber
@@ -125,13 +126,18 @@ const WaitingPage = () => {
         skip: !recordId,
     });
     useEffect(() => {}, [clientRecord]);
+    useEffect(() => {
+        if (recordId) {
+            refetch();
+        }
+    }, [recordId, refetch]);
 
     useEffect(() => {}, [recordId]);
     useEffect(() => {
-        if (clientRecord && recordData === null) {
+        if (clientRecord) {
             setRecordData(clientRecord);
         }
-    }, [clientRecord, recordData]);
+    }, [clientRecord]);
 
     useEffect(() => {
         if (recordId) {
@@ -161,6 +167,7 @@ const WaitingPage = () => {
         });
 
         connection.on("RecieveUpdateRecord", (queueList) => {
+            console.log("RecieveUpdateRecord", queueList);
             const latestRecord = queueList.find(
                 (item: { ticketNumber: number }) =>
                     item.ticketNumber === ticketNumber
@@ -168,6 +175,7 @@ const WaitingPage = () => {
 
             if (latestRecord) {
                 setRecordData(latestRecord);
+                refetch();
                 if (latestRecord.clientNumber === -6) {
                     navigate("/rejected", { replace: true });
                 }
@@ -234,7 +242,8 @@ const WaitingPage = () => {
                     }}
                 >
                     <Typography variant="h4">
-                        {t("i18n_queue.number")} {ticketNumber ?? "—"}
+                        {t("i18n_queue.number")}{" "}
+                        {recordData?.ticketNumber ?? "—"}
                     </Typography>
                 </Box>
 

@@ -87,7 +87,8 @@ const CalledButtons: FC<{
 
     const services: Service[] = Array.isArray(data?.value)
         ? data.value.map((service: any, index: number) => ({
-              id: index + 1,
+              id: service.serviceId, // Реальный id для логики
+              displayId: index + 1, // Порядковый номер для отображения
               name:
                   currentLanguage === "kz"
                       ? service.nameKk
@@ -160,7 +161,7 @@ const CalledButtons: FC<{
                             <ReusableTable
                                 data={filteredData}
                                 columns={[
-                                    { accessorKey: "id", header: "№" },
+                                    { accessorKey: "displayId", header: "№" },
                                     {
                                         accessorKey: "name",
                                         header: t("i18n_queue.serviceName"),
