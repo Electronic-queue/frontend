@@ -187,6 +187,14 @@ const QueuePage: FC = () => {
                 message: t("i18n_queue.windowPaused"),
                 severity: "success",
             });
+            if (clientsSignalR.length > 1) {
+                setStatus("called");
+                sessionStorage.setItem("clientStatus", "called");
+            } else {
+                setClientsSignalR([]);
+                setStatus("idle");
+                sessionStorage.removeItem("clientStatus");
+            }
         } catch (error) {
             console.error("Error while pausing the window:", error);
             setSnackbar({
@@ -365,7 +373,6 @@ const QueuePage: FC = () => {
                     width: "100%",
                 }}
             >
-                {" "}
                 <ButtonWrapper>
                     <CustomButton
                         variantType="primary"
