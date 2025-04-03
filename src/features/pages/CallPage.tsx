@@ -114,7 +114,6 @@ const CallPage = () => {
     });
 
     const windowNumber = clientRecord?.windowNumber ?? "-";
-    console.log(" call page storedRecordId", storedRecordId);
     useEffect(() => {}, [storedRecordId]);
     useEffect(() => {
         startSignalR();
@@ -127,7 +126,6 @@ const CallPage = () => {
             }
         });
         connection.on("RecieveUpdateRecord", (queueList) => {
-            console.log(" call page RecieveUpdateRecord", queueList);
             const updatedItem = queueList.find(
                 (item: { ticketNumber: number | null }) =>
                     item.ticketNumber === storedTicketNumber
@@ -143,12 +141,12 @@ const CallPage = () => {
         });
 
         connection.on("RecieveRedirectClient", (data) => {
-            console.log("call page RecieveRedirectClient", data);
             if (data.ticketNumber === storedTicketNumber) {
                 dispatch(setRecordId(data.newRecordId));
                 dispatch(setToken(data.token));
                 dispatch(setTicketNumber(data.newTicketNumber));
                 navigate("/wait");
+                window.location.href = "/wait";
             }
         });
 

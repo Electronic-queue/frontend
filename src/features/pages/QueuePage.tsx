@@ -25,6 +25,7 @@ import { Alert, Snackbar } from "@mui/material";
 import connection, { startSignalR } from "src/features/signalR";
 import i18n from "src/i18n";
 type StatusType = "idle" | "called" | "accepted" | "redirected";
+import { GrUpdate } from "react-icons/gr";
 
 type clientListSignalR = {
     ticketNumber: number;
@@ -152,6 +153,26 @@ const QueuePage: FC = () => {
             connection.off("RecieveManagerStatic");
         };
     }, [managerIdData]);
+
+    const handleUpdateClientList = async () => {
+        try {
+            const { data } = await refetchClients();
+            if (data) {
+                setSnackbar({
+                    open: true,
+                    message: t("i18n_queue.clientListUpdated"),
+                    severity: "success",
+                });
+            }
+        } catch (error) {
+            console.error("Error updating client list:", error);
+            setSnackbar({
+                open: true,
+                message: t("i18n_queue.updateError"),
+                severity: "error",
+            });
+        }
+    };
 
     const handlePauseWindow = async () => {
         try {
@@ -337,23 +358,47 @@ const QueuePage: FC = () => {
                     </Alert>
                 </Snackbar>
             </Box>
+            <Box
+                sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    width: "100%",
+                }}
+            >
+                {" "}
+                <ButtonWrapper>
+                    <CustomButton
+                        variantType="primary"
+                        sizeType="medium"
+                        onClick={() => handlePauseModalOpen()}
+                    >
+                        {t("i18n_queue.pause")}
+                    </CustomButton>
+                    <CustomButton
+                        variantType="primary"
+                        sizeType="medium"
+                        onClick={() => handleCancelQueue()}
+                    >
+                        {t("i18n_queue.cancelQueue")}
+                    </CustomButton>
+                </ButtonWrapper>
+                <Box>
+                    <CustomButton
+                        variantType="primary"
+                        sizeType="medium"
+                        onClick={() => {
+                            setIsPauseModalOpen(false);
+                            handleUpdateClientList();
+                        }}
+                        sx={{
+                            marginRight: theme.spacing(3),
+                        }}
+                    >
+                        <GrUpdate />
+                    </CustomButton>
+                </Box>
+            </Box>
 
-            <ButtonWrapper>
-                <CustomButton
-                    variantType="primary"
-                    sizeType="medium"
-                    onClick={() => handlePauseModalOpen()}
-                >
-                    {t("i18n_queue.pause")}
-                </CustomButton>
-                <CustomButton
-                    variantType="primary"
-                    sizeType="medium"
-                    onClick={() => handleCancelQueue()}
-                >
-                    {t("i18n_queue.cancelQueue")}
-                </CustomButton>
-            </ButtonWrapper>
             <StatusCardWrapper>
                 <StatusCard
                     variant="accepted"

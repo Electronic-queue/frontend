@@ -98,11 +98,11 @@ const WaitingPage = () => {
     const navigate = useNavigate();
     const dispatch = useDispatch();
     const recordId = useSelector((state: RootState) => state.user.recordId);
-    console.log(" wait page recordId ", recordId);
     const { data: ticketData } = useGetTicketNumberByTokenQuery(undefined);
     const ticketNumber = useSelector(
         (state: RootState) => state.user.ticketNumber
     );
+
     useEffect(() => {
         if (
             ticketData?.ticketNumber &&
@@ -167,7 +167,6 @@ const WaitingPage = () => {
         });
 
         connection.on("RecieveUpdateRecord", (queueList) => {
-            console.log("RecieveUpdateRecord", queueList);
             const latestRecord = queueList.find(
                 (item: { ticketNumber: number }) =>
                     item.ticketNumber === ticketNumber
