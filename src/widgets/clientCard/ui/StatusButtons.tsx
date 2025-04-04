@@ -87,8 +87,8 @@ const CalledButtons: FC<{
 
     const services: Service[] = Array.isArray(data?.value)
         ? data.value.map((service: any, index: number) => ({
-              id: service.serviceId, // Реальный id для логики
-              displayId: index + 1, // Порядковый номер для отображения
+              id: service.serviceId,
+              displayId: index + 1,
               name:
                   currentLanguage === "kz"
                       ? service.nameKk
