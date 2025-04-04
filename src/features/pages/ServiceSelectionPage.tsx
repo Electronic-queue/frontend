@@ -109,7 +109,7 @@ const ServiceSelection = () => {
 
     return (
         <BackgroundContainer>
-            <Box sx={{ paddingBottom: theme.spacing(2) }}>
+            <Box>
                 <SULogoM />
             </Box>
             <FormContainer>
