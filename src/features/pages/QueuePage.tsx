@@ -26,7 +26,8 @@ import connection, { startSignalR } from "src/features/signalR";
 import i18n from "src/i18n";
 type StatusType = "idle" | "called" | "accepted" | "redirected";
 import { GrUpdate } from "react-icons/gr";
-
+import AutorenewIcon from "@mui/icons-material/Autorenew";
+import LoopIcon from "@mui/icons-material/Loop";
 type clientListSignalR = {
     ticketNumber: number;
     lastName: string;
@@ -389,7 +390,12 @@ const QueuePage: FC = () => {
                         {t("i18n_queue.cancelQueue")}
                     </CustomButton>
                 </ButtonWrapper>
-                <Box>
+                <Box
+                    sx={{
+                        display: "flex",
+                        alignItems: "center",
+                    }}
+                >
                     <CustomButton
                         variantType="primary"
                         sizeType="medium"
@@ -401,7 +407,7 @@ const QueuePage: FC = () => {
                             marginRight: theme.spacing(3),
                         }}
                     >
-                        <GrUpdate />
+                        <LoopIcon />
                     </CustomButton>
                 </Box>
             </Box>
