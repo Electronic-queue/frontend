@@ -68,7 +68,7 @@ const ClientRegisterPage = () => {
 
     return (
         <BackgroundContainer>
-            <Box sx={{ paddingBottom: theme.spacing(5) }}>
+            <Box sx={{ paddingBottom: theme.spacing(2) }}>
                 <SULogoM />
             </Box>
 
@@ -96,9 +96,10 @@ const ClientRegisterPage = () => {
                             ...pattern(
                                 /^\d{12}$/,
                                 t("i18n_register.iinLengthError")
-                            ), // Только 12 цифр
+                            ),
                         }}
                         labelKey="i18n_register.iin"
+                        numericOnly={true}
                     />
 
                     <StyledTextField
@@ -109,7 +110,7 @@ const ClientRegisterPage = () => {
                             ...pattern(
                                 /^[a-zA-Zа-яА-ЯёЁ-]+$/,
                                 t("i18n_register.invalidNameError")
-                            ), // Только буквы и дефисы, без пробелов
+                            ),
                             ...maxLength(40),
                         }}
                         labelKey="i18n_register.firstName"

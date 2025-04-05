@@ -9,6 +9,8 @@ interface StyledTextFieldProps {
     labelKey: string;
     fullWidth?: boolean;
     variant?: "outlined" | "filled" | "standard";
+    type?: string;
+    numericOnly?: boolean;
 }
 
 const StyledTextField: React.FC<StyledTextFieldProps> = ({
@@ -18,6 +20,8 @@ const StyledTextField: React.FC<StyledTextFieldProps> = ({
     labelKey,
     fullWidth = true,
     variant = "outlined",
+    type = "text",
+    numericOnly = false,
 }) => {
     const { t } = useTranslation();
 
@@ -26,7 +30,10 @@ const StyledTextField: React.FC<StyledTextFieldProps> = ({
             name={name}
             control={control}
             rules={rules}
-            render={({ field, fieldState: { error } }) => (
+            render={({
+                field: { onChange, ...field },
+                fieldState: { error },
+            }) => (
                 <TextField
                     {...field}
                     label={t(labelKey)}
@@ -34,6 +41,17 @@ const StyledTextField: React.FC<StyledTextFieldProps> = ({
                     error={!!error}
                     helperText={error?.message}
                     fullWidth={fullWidth}
+                    type={numericOnly ? "tel" : type}
+                    inputProps={
+                        numericOnly
+                            ? { inputMode: "numeric", pattern: "[0-9]*" }
+                            : {}
+                    }
+                    onChange={(e) => {
+                        let value = e.target.value;
+                        if (numericOnly) value = value.replace(/\D/g, "");
+                        onChange(value);
+                    }}
                 />
             )}
         />

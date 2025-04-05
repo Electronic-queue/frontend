@@ -144,9 +144,7 @@ const ServiceRating = () => {
                     disabled={rating === 0 || isLoading}
                     onClick={handleSubmit}
                 >
-                    {isLoading
-                        ? t("i18n_queue.submitting")
-                        : t("i18n_queue.submit")}
+                    {t("i18n_queue.submit")}
                 </CustomButton>
             </FormContainer>
 

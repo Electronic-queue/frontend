@@ -114,7 +114,6 @@ const CallPage = () => {
     });
 
     const windowNumber = clientRecord?.windowNumber ?? "-";
-
     useEffect(() => {}, [storedRecordId]);
     useEffect(() => {
         startSignalR();
@@ -147,6 +146,7 @@ const CallPage = () => {
                 dispatch(setToken(data.token));
                 dispatch(setTicketNumber(data.newTicketNumber));
                 navigate("/wait");
+                window.location.href = "/wait";
             }
         });
 
