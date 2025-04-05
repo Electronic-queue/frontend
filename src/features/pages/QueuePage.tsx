@@ -25,7 +25,7 @@ import { Alert, Snackbar } from "@mui/material";
 import connection, { startSignalR } from "src/features/signalR";
 import i18n from "src/i18n";
 type StatusType = "idle" | "called" | "accepted" | "redirected";
-
+import LoopIcon from "@mui/icons-material/Loop";
 type clientListSignalR = {
     ticketNumber: number;
     lastName: string;
@@ -153,6 +153,26 @@ const QueuePage: FC = () => {
         };
     }, [managerIdData]);
 
+    const handleUpdateClientList = async () => {
+        try {
+            const { data } = await refetchClients();
+            if (data) {
+                setSnackbar({
+                    open: true,
+                    message: t("i18n_queue.clientListUpdated"),
+                    severity: "success",
+                });
+            }
+        } catch (error) {
+            console.error("Error updating client list:", error);
+            setSnackbar({
+                open: true,
+                message: t("i18n_queue.updateError"),
+                severity: "error",
+            });
+        }
+    };
+
     const handlePauseWindow = async () => {
         try {
             await pauseWindow({
@@ -166,6 +186,14 @@ const QueuePage: FC = () => {
                 message: t("i18n_queue.windowPaused"),
                 severity: "success",
             });
+            if (clientsSignalR.length > 1) {
+                setStatus("called");
+                sessionStorage.setItem("clientStatus", "called");
+            } else {
+                setClientsSignalR([]);
+                setStatus("idle");
+                sessionStorage.removeItem("clientStatus");
+            }
         } catch (error) {
             console.error("Error while pausing the window:", error);
             setSnackbar({
@@ -266,17 +294,22 @@ const QueuePage: FC = () => {
                 message: t("i18n_queue.serviceCompleted"),
                 severity: "success",
             });
+
             await refetchClients();
 
             if (clientsSignalR.length > 1) {
                 setStatus("called");
                 sessionStorage.setItem("clientStatus", "called");
             } else {
+                setClientsSignalR([]);
                 setStatus("idle");
                 sessionStorage.removeItem("clientStatus");
             }
-        } catch (err) {}
+        } catch (err) {
+            console.error("Error completing client:", err);
+        }
     };
+
     const getServiceName = (item: clientListSignalR, lang: string) => {
         switch (lang) {
             case "en":
@@ -305,19 +338,10 @@ const QueuePage: FC = () => {
 
     return (
         <>
-            <Snackbar
-                open={snackbar.open}
-                autoHideDuration={3000}
-                onClose={() =>
-                    setSnackbar({
-                        open: false,
-                        message: "",
-                        severity: "success",
-                    })
-                }
-            >
-                <Alert
-                    severity={snackbar.severity}
+            <Box sx={{ position: "fixed", bottom: 16, left: 16 }}>
+                <Snackbar
+                    open={snackbar.open}
+                    autoHideDuration={3000}
                     onClose={() =>
                         setSnackbar({
                             open: false,
@@ -325,28 +349,67 @@ const QueuePage: FC = () => {
                             severity: "success",
                         })
                     }
-                    sx={{ fontSize: theme.typography.body1.fontSize }}
                 >
-                    {snackbar.message}
-                </Alert>
-            </Snackbar>
+                    <Alert
+                        severity={snackbar.severity}
+                        onClose={() =>
+                            setSnackbar({
+                                open: false,
+                                message: "",
+                                severity: "success",
+                            })
+                        }
+                        sx={{ fontSize: theme.typography.body1.fontSize }}
+                    >
+                        {snackbar.message}
+                    </Alert>
+                </Snackbar>
+            </Box>
+            <Box
+                sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    width: "100%",
+                }}
+            >
+                <ButtonWrapper>
+                    <CustomButton
+                        variantType="primary"
+                        sizeType="medium"
+                        onClick={() => handlePauseModalOpen()}
+                    >
+                        {t("i18n_queue.pause")}
+                    </CustomButton>
+                    <CustomButton
+                        variantType="primary"
+                        sizeType="medium"
+                        onClick={() => handleCancelQueue()}
+                    >
+                        {t("i18n_queue.cancelQueue")}
+                    </CustomButton>
+                </ButtonWrapper>
+                <Box
+                    sx={{
+                        display: "flex",
+                        alignItems: "center",
+                    }}
+                >
+                    <CustomButton
+                        variantType="primary"
+                        sizeType="medium"
+                        onClick={() => {
+                            setIsPauseModalOpen(false);
+                            handleUpdateClientList();
+                        }}
+                        sx={{
+                            marginRight: theme.spacing(3),
+                        }}
+                    >
+                        <LoopIcon />
+                    </CustomButton>
+                </Box>
+            </Box>
 
-            <ButtonWrapper>
-                <CustomButton
-                    variantType="primary"
-                    sizeType="medium"
-                    onClick={() => handlePauseModalOpen()}
-                >
-                    {t("i18n_queue.pause")}
-                </CustomButton>
-                <CustomButton
-                    variantType="primary"
-                    sizeType="medium"
-                    onClick={() => handleCancelQueue()}
-                >
-                    {t("i18n_queue.cancelQueue")}
-                </CustomButton>
-            </ButtonWrapper>
             <StatusCardWrapper>
                 <StatusCard
                     variant="accepted"
@@ -387,32 +450,33 @@ const QueuePage: FC = () => {
                     paddingBottom: theme.spacing(3),
                 }}
             >
-                {Array.isArray(clientsSignalR) && clientsSignalR.length > 1
-                    ? clientsSignalR.slice(1, 5).map((item) => (
-                          <QueueCard
-                              key={item.ticketNumber}
-                              clientNumber={item.ticketNumber}
-                              service={getServiceName(item, currentLanguage)}
-                              bookingTime={new Date(
-                                  item.createdOn ?? ""
-                              ).toLocaleTimeString([], {
-                                  hour: "2-digit",
-                                  minute: "2-digit",
-                              })}
-                              expectedTime={item.expectedAcceptanceTime}
-                          />
-                      ))
-                    : Array(4)
-                          .fill(null)
-                          .map((_, index) => (
-                              <QueueCard
-                                  key={index}
-                                  clientNumber={0}
-                                  service="-"
-                                  bookingTime="-"
-                                  expectedTime="-"
-                              />
-                          ))}
+                {Array(4)
+                    .fill(null)
+                    .map((_, index) => {
+                        const item = clientsSignalR?.[index + 1];
+                        return item ? (
+                            <QueueCard
+                                key={item.ticketNumber}
+                                clientNumber={item.ticketNumber}
+                                service={getServiceName(item, currentLanguage)}
+                                bookingTime={new Date(
+                                    item.createdOn ?? ""
+                                ).toLocaleTimeString([], {
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                })}
+                                expectedTime={item.expectedAcceptanceTime}
+                            />
+                        ) : (
+                            <QueueCard
+                                key={`mock-${index}`}
+                                clientNumber={0}
+                                service="-"
+                                bookingTime="-"
+                                expectedTime="-"
+                            />
+                        );
+                    })}
             </Box>
 
             <ReusableModal

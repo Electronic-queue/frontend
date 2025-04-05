@@ -192,6 +192,7 @@ const LoginPage: FC = () => {
                                         {...field}
                                         label={t("i18n_login.username")}
                                         variant="outlined"
+                                        autoCapitalize="false"
                                         fullWidth
                                         error={!!fieldState.error}
                                         helperText={fieldState.error?.message}
@@ -210,6 +211,7 @@ const LoginPage: FC = () => {
                                         label={t("i18n_login.password")}
                                         type="password"
                                         variant="outlined"
+                                        autoComplete="false"
                                         fullWidth
                                         error={!!fieldState.error}
                                         helperText={fieldState.error?.message}

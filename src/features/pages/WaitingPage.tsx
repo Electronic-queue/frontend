@@ -102,6 +102,7 @@ const WaitingPage = () => {
     const ticketNumber = useSelector(
         (state: RootState) => state.user.ticketNumber
     );
+
     useEffect(() => {
         if (
             ticketData?.ticketNumber &&
@@ -125,13 +126,18 @@ const WaitingPage = () => {
         skip: !recordId,
     });
     useEffect(() => {}, [clientRecord]);
+    useEffect(() => {
+        if (recordId) {
+            refetch();
+        }
+    }, [recordId, refetch]);
 
     useEffect(() => {}, [recordId]);
     useEffect(() => {
-        if (clientRecord && recordData === null) {
+        if (clientRecord) {
             setRecordData(clientRecord);
         }
-    }, [clientRecord, recordData]);
+    }, [clientRecord]);
 
     useEffect(() => {
         if (recordId) {
@@ -168,7 +174,10 @@ const WaitingPage = () => {
 
             if (latestRecord) {
                 setRecordData(latestRecord);
-
+                refetch();
+                if (latestRecord.clientNumber === -6) {
+                    navigate("/rejected", { replace: true });
+                }
                 if (latestRecord.clientNumber === -1) {
                     navigate("/call", { replace: true });
                 }
@@ -232,7 +241,8 @@ const WaitingPage = () => {
                     }}
                 >
                     <Typography variant="h4">
-                        {t("i18n_queue.number")} {ticketNumber ?? "—"}
+                        {t("i18n_queue.number")}{" "}
+                        {recordData?.ticketNumber ?? "—"}
                     </Typography>
                 </Box>
 

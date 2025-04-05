@@ -22,10 +22,14 @@ export const login = createAsyncThunk(
         thunkAPI
     ) => {
         try {
-            const response = await axios.get(
+            const response = await axios.post(
                 "http://queue-main-api.satbayevproject.kz/api/Manager/login",
+                { login, password },
                 {
-                    params: { login, password, "api-version": "1" },
+                    params: { "api-version": "1" },
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
                 }
             );
             return response.data;
