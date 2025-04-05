@@ -25,8 +25,6 @@ import { Alert, Snackbar } from "@mui/material";
 import connection, { startSignalR } from "src/features/signalR";
 import i18n from "src/i18n";
 type StatusType = "idle" | "called" | "accepted" | "redirected";
-import { GrUpdate } from "react-icons/gr";
-import AutorenewIcon from "@mui/icons-material/Autorenew";
 import LoopIcon from "@mui/icons-material/Loop";
 type clientListSignalR = {
     ticketNumber: number;
