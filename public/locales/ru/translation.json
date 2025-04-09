@@ -19,7 +19,15 @@
         "notFoundEmail": "Не нашли письмо? Проверьте спам",
         "email": "Ваша эл.почта",
         "enterEmeil": "Введите эл-почту",
-        "invalidEmail": "Неверный формат эл-почты"
+        "invalidEmail": "Неверный формат эл-почты",
+        "ressetPassword": "Сбросить пароль",
+        "changePassword": "Изменить пароль",
+        "newPassword": "Новый пароль",
+        "minLengthPassword": "Минимальная длина пароля 8  символов",
+        "confirmPasswordRequired": "Подтверждение пароля обязательно",
+        "confirmPassword": "Подтвердите пароль",
+        "linkAlreadyUsed": "Ссылка уже использовалась",
+        "successEmail": "Письмо успешно отправлено!"
     },
     "i18n_register": {
         "title": "Регистрация",

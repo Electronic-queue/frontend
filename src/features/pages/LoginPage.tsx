@@ -16,6 +16,7 @@ import theme from "src/styles/theme";
 import ReusableModal from "src/components/ModalPage";
 import { useValidationRules } from "src/hooks/useValidationRules";
 import StyledTextField from "src/hooks/StyledTextField";
+import { useForgotPasswordMutation } from "src/store/managerApi";
 
 const BackgroundContainer = styled(Box)(() => ({
     backgroundImage: `url(${QueueBackground})`,
@@ -112,6 +113,12 @@ const LoginPage: FC = () => {
         defaultValues: {
             username: "",
             password: "",
+        },
+    });
+    const { control: resetControl, handleSubmit: handleResetSubmit } = useForm<{
+        email: string;
+    }>({
+        defaultValues: {
             email: "",
         },
     });
@@ -145,6 +152,13 @@ const LoginPage: FC = () => {
 
     const [isDisabled, setIsDisabled] = useState(false);
     const [remainingTime, setRemainingTime] = useState(60);
+    const [resetStatusMessage, setResetStatusMessage] = useState<string | null>(
+        null
+    );
+    const [resetErrorMessage, setResetErrorMessage] = useState<string | null>(
+        null
+    );
+    const [isResetting, setIsResetting] = useState(false);
 
     useEffect(() => {
         let timer: ReturnType<typeof setInterval>;
@@ -160,10 +174,32 @@ const LoginPage: FC = () => {
 
         return () => clearInterval(timer);
     }, [isDisabled, remainingTime]);
+    const [forgotPassword] = useForgotPasswordMutation();
 
-    const onSubmitResetPassword = (data: { email: string }) => {
-        setIsDisabled(true);
+    const onSubmitResetPassword = async (data: { email: string }) => {
+        setResetStatusMessage(null);
+        setResetErrorMessage(null);
+        setIsResetting(true);
+
+        try {
+            const res = await forgotPassword({ email: data.email }).unwrap();
+            console.log("Email sent successfully:", res);
+            setResetStatusMessage("success");
+            setIsDisabled(true);
+        } catch (err: any) {
+            console.error(
+                "Ошибка при сбросе пароля:",
+                err?.data?.detail || err
+            );
+            setResetErrorMessage(
+                err?.data?.detail || t("i18n_login.unknownError")
+            );
+            setIsDisabled(false);
+        } finally {
+            setIsResetting(false);
+        }
     };
+
     const { required, pattern, maxLength, minLength } = useValidationRules();
 
     return (
@@ -264,11 +300,11 @@ const LoginPage: FC = () => {
                 showCloseButton={false}
             >
                 <ModalPageWrapper>
-                    <form onSubmit={handleSubmit(onSubmitResetPassword)}>
+                    <form onSubmit={handleResetSubmit(onSubmitResetPassword)}>
                         <ModalInnerWrapper>
-                            <StyledTextField
+                            <Controller
                                 name="email"
-                                control={control}
+                                control={resetControl}
                                 rules={{
                                     ...required,
                                     ...pattern(
@@ -276,21 +312,39 @@ const LoginPage: FC = () => {
                                         t("i18n_login.invalidEmail")
                                     ),
                                 }}
-                                labelKey="i18n_login.email"
+                                render={({ field, fieldState }) => (
+                                    <TextField
+                                        {...field}
+                                        label={t("i18n_login.email")}
+                                        variant="outlined"
+                                        fullWidth
+                                        error={!!fieldState.error}
+                                        helperText={fieldState.error?.message}
+                                    />
+                                )}
                             />
 
                             <CustomButton
                                 variantType="primary"
                                 size="small"
                                 type="submit"
-                                disabled={isDisabled}
+                                disabled={
+                                    isResetting ||
+                                    (isDisabled &&
+                                        resetStatusMessage === "success")
+                                }
                                 sx={{ width: 400 }}
                             >
-                                {isDisabled
-                                    ? `${t("i18n_login.resendEmail")} `
-                                    : t("i18n_login.sendResetPasswordEmail")}
+                                {isResetting
+                                    ? t("i18n_login.loading")
+                                    : isDisabled &&
+                                        resetStatusMessage === "success"
+                                      ? `${t("i18n_login.resendEmail")}`
+                                      : t("i18n_login.sendResetPasswordEmail")}
                             </CustomButton>
-                            {isDisabled && (
+
+                            {(resetStatusMessage === "success" ||
+                                resetErrorMessage) && (
                                 <Box
                                     sx={{
                                         display: "flex",
@@ -298,24 +352,48 @@ const LoginPage: FC = () => {
                                         textAlign: "center",
                                     }}
                                 >
-                                    <Typography
-                                        sx={{
-                                            color: theme.palette.grey[600],
-                                            fontSize:
-                                                theme.typography.body1.fontSize,
-                                        }}
-                                    >
-                                        {t("i18n_login.retry")} {remainingTime}
-                                    </Typography>
-                                    <Typography
-                                        sx={{
-                                            color: theme.palette.grey[600],
-                                            fontSize:
-                                                theme.typography.body1.fontSize,
-                                        }}
-                                    >
-                                        {t("i18n_login.notFoundEmail")}
-                                    </Typography>
+                                    {resetStatusMessage === "success" && (
+                                        <>
+                                            <Typography
+                                                sx={{
+                                                    color: theme.palette
+                                                        .grey[600],
+                                                    fontSize:
+                                                        theme.typography.body1
+                                                            .fontSize,
+                                                }}
+                                            >
+                                                {t("i18n_login.successEmail")}
+                                                <br />
+                                                {t("i18n_login.retry")}
+                                                {" " + remainingTime}
+                                            </Typography>
+                                            <Typography
+                                                sx={{
+                                                    color: theme.palette
+                                                        .grey[600],
+                                                    fontSize:
+                                                        theme.typography.body1
+                                                            .fontSize,
+                                                }}
+                                            >
+                                                {t("i18n_login.notFoundEmail")}
+                                            </Typography>
+                                        </>
+                                    )}
+
+                                    {resetErrorMessage && (
+                                        <Typography
+                                            sx={{
+                                                color: theme.palette.error.main,
+                                                fontSize:
+                                                    theme.typography.body1
+                                                        .fontSize,
+                                            }}
+                                        >
+                                            {resetErrorMessage}
+                                        </Typography>
+                                    )}
                                 </Box>
                             )}
                         </ModalInnerWrapper>

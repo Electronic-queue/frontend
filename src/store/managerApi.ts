@@ -118,6 +118,37 @@ export const managerApi = createApi({
                 },
             }),
         }),
+        forgotPassword: builder.mutation<any, { email: string }>({
+            query: ({ email }) => ({
+                url: "User/forgot-password",
+                method: "POST",
+                params: {
+                    "api-version": "1",
+                },
+                body: { email },
+            }),
+        }),
+        changePassword: builder.mutation<
+            any,
+            { accessToken: string; password: string }
+        >({
+            query: ({ accessToken, password }) => ({
+                url: "User/change-password",
+                method: "POST",
+                params: {
+                    "api-version": "1",
+                },
+                body: {
+                    accessToken,
+                    password,
+                },
+
+                headers: {
+                    "Content-Type": "application/json",
+                },
+            }),
+        }),
+
         startWindow: builder.mutation<any, { managerId: number }>({
             query: ({ managerId }) => ({
                 url: "Manager/startwindow",
@@ -158,4 +189,6 @@ export const {
     useStartWindowMutation,
     useGetManagerIdQuery,
     useCancelQueueMutation,
+    useForgotPasswordMutation,
+    useChangePasswordMutation,
 } = managerApi;

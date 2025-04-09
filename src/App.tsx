@@ -18,6 +18,7 @@ import InProgress from "./features/pages/InProgressPage";
 import ProtectedRoute from "src/components/ProtectedRoute";
 import RejectPage from "./features/pages/RejectPage";
 import NotFound from "./features/pages/NotFound";
+import RessetPassowd from "./features/pages/ResetPassword";
 
 const App: FC = () => {
     const isMobile = useMediaQuery("(max-width: 768px)");
@@ -27,6 +28,8 @@ const App: FC = () => {
             <Header />
             <Routes>
                 <Route path="/login" element={<LoginPage />} />
+                <Route path="/ressetpassword" element={<RessetPassowd />} />
+
                 <Route
                     path="/*"
                     element={
