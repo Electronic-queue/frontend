@@ -18,16 +18,17 @@
         "retry": "Retry in",
         "notFoundEmail": "Didn't find the email? Check your spam",
         "email": "Your email",
-        "enterEmeil": "Enter your email",
+        "enterEmail": "Enter your email",
         "invalidEmail": "Invalid email format",
-        "ressetPassword": "Reset password",
+        "resetPassword": "Reset password",
         "changePassword": "Change password",
         "newPassword": "New password",
         "minLengthPassword": "Minimum password length is 8 characters",
         "confirmPasswordRequired": "Password confirmation is required",
         "confirmPassword": "Confirm password",
-        "linkAlreadyUsed": "The link has already been used",
-        "successEmail": "Email successfully sent!"
+        "linkAlreadyUsed": "The link has already been used, please request a new one: ",
+        "successEmail": "Email successfully sent!",
+        "goToLogin": "Go to login"
     },
     "i18n_register": {
         "title": "Registration",

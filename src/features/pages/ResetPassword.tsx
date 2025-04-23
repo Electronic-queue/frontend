@@ -2,7 +2,7 @@ import { FC, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "../../store/store";
 
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useForm, Controller } from "react-hook-form";
 import { styled } from "@mui/material/styles";
 import Box from "@mui/material/Box";
@@ -16,6 +16,7 @@ import { useChangePasswordMutation } from "src/store/managerApi";
 import { useSearchParams } from "react-router-dom";
 import { Visibility, VisibilityOff } from "@mui/icons-material"; // импорт иконок
 import { IconButton, InputAdornment } from "@mui/material";
+import ReusableModal from "src/components/ModalPage";
 
 const BackgroundContainer = styled(Box)(() => ({
     backgroundImage: `url(${QueueBackground})`,
@@ -84,12 +85,13 @@ const RessetPassowd: FC = () => {
     const [searchParams] = useSearchParams();
     const tokenFromUrl = searchParams.get("token");
     const [changePassword, { isLoading }] = useChangePasswordMutation();
-
+    const [isOpen, setIsOpen] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const dispatch: AppDispatch = useDispatch();
     const navigate = useNavigate();
     const [apiError, setApiError] = useState<string | null>(null);
-
+    const handleModalOpen = () => setIsOpen(true);
+    const handleClose = () => setIsOpen(false);
     const handleClickShowPassword = () => {
         setShowPassword((prev) => !prev);
     };
@@ -136,7 +138,8 @@ const RessetPassowd: FC = () => {
             setApiError(error?.data?.message || t("i18n_login.defaultError"));
 
             if (error?.status === 403) {
-                alert(t("i18n_login.linkAlreadyUsed"));
+                handleModalOpen();
+                setApiError(t("i18n_login.restoreAccessText"));
             }
         }
     };
@@ -278,6 +281,31 @@ const RessetPassowd: FC = () => {
                                     ? t("i18n_login.loading")
                                     : t("i18n_login.changePassword")}
                             </CustomButton>
+
+                            <ReusableModal
+                                open={isOpen}
+                                onClose={handleClose}
+                                title={t("i18n_login.linkAlreadyUsed")}
+                                width={645}
+                                showCloseButton={false}
+                            >
+                                <Box
+                                    sx={{
+                                        display: "flex",
+                                        flexDirection: "column",
+                                        gap: 2,
+                                        textAlign: "center",
+                                        padding: 2,
+                                    }}
+                                >
+                                    <CustomButton
+                                        variantType="primary"
+                                        onClick={() => navigate("/login")}
+                                    >
+                                        {t("i18n_login.goToLogin")}
+                                    </CustomButton>
+                                </Box>
+                            </ReusableModal>
                         </FormContainer>
                     </form>
                 </LoginCard>

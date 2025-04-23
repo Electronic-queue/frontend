@@ -11,6 +11,7 @@
         "loading": "Жүктелуде...",
         "forgotPassword": "Құпиясөзді ұмыттыңыз ба?",
         "restoreAccess": "Қолжетімділікті қалпына келтіру",
+
         "title": "Аутентификация",
         "restoreAccessTitle": "Қолжетімділікті қалпына келтіру",
         "sendResetPasswordEmail": "Құпиясөзді қалпына келтіру үшін хат жіберу",
@@ -26,8 +27,9 @@
         "minLengthPassword": "Құпиясөздің минималды ұзындығы 8 символ",
         "confirmPasswordRequired": "Құпиясөзді растау міндетті",
         "confirmPassword": "Құпиясөзді растаңыз",
-        "linkAlreadyUsed": "Сілтеме бұрын қолданылған",
-        "successEmail": "Хат сәтті жіберілді!"
+        "linkAlreadyUsed": "Сілтеме бұрыннан пайдаланылған, жаңасын сұраңыз:",
+        "successEmail": "Хат сәтті жіберілді!",
+        "goToLogin": "Кіру бетіне өту"
     },
     "i18n_register": {
         "title": "Тіркеу",

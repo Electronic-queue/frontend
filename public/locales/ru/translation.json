@@ -13,6 +13,8 @@
         "restoreAccess": "Восстановить доступ",
         "title": "Авторизация",
         "restoreAccessTitle": "Восстановление доступа",
+        "linkAlreadyUsed": "Ссылка уже использовалась, запросите новую: ",
+        "goToLogin": "Перейти к странице авторизации",
         "sendResetPasswordEmail": "Выслать письмо для сброса пароля",
         "resendEmail": "Выслать письмо повторно",
         "retry": "Повторите попытку через",
@@ -26,7 +28,7 @@
         "minLengthPassword": "Минимальная длина пароля 8  символов",
         "confirmPasswordRequired": "Подтверждение пароля обязательно",
         "confirmPassword": "Подтвердите пароль",
-        "linkAlreadyUsed": "Ссылка уже использовалась",
+        "linkExpired": "Ссылка уже устарела, запросите новую: http://queue-client.satbayevproject.kz/login",
         "successEmail": "Письмо успешно отправлено!"
     },
     "i18n_register": {
