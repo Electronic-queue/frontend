@@ -121,10 +121,11 @@ const WaitingPage = () => {
     } = useGetRecordIdByTokenQuery(undefined, {
         refetchOnMountOrArgChange: true,
     });
-
+    console.log("tokenData", tokenData);
     const { data: clientRecord } = useGetClientRecordByIdQuery(recordId ?? 0, {
         skip: !recordId,
     });
+    console.log("clientRecord", clientRecord);
     useEffect(() => {}, [clientRecord]);
     useEffect(() => {
         if (recordId) {
@@ -159,6 +160,7 @@ const WaitingPage = () => {
         startSignalR();
 
         connection.on("ReceiveRecordCreated", (newRecord) => {
+            console.log("Received new record:", newRecord);
             if (newRecord.ticketNumber === ticketNumber) {
                 if (newRecord.clientNumber === -1) {
                     navigate("/call", { replace: true });
@@ -167,6 +169,7 @@ const WaitingPage = () => {
         });
 
         connection.on("RecieveUpdateRecord", (queueList) => {
+            console.log("Received updated queue list:", queueList);
             const latestRecord = queueList.find(
                 (item: { ticketNumber: number }) =>
                     item.ticketNumber === ticketNumber
