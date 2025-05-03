@@ -337,6 +337,8 @@ const QueuePage: FC = () => {
         setSelectedTime(1);
     };
 
+    const [rotateIcon, setRotateIcon] = useState(false);
+
     return (
         <>
             <Box sx={{ position: "fixed", bottom: 16, left: 16 }}>
@@ -401,12 +403,21 @@ const QueuePage: FC = () => {
                         onClick={() => {
                             setIsPauseModalOpen(false);
                             handleUpdateClientList();
+                            setRotateIcon(true);
+                            setTimeout(() => setRotateIcon(false), 500);
                         }}
                         sx={{
                             marginRight: theme.spacing(3),
                         }}
                     >
-                        <LoopIcon />
+                        <LoopIcon
+                            sx={{
+                                transition: "transform 0.5s ease",
+                                transform: rotateIcon
+                                    ? "rotate(180deg)"
+                                    : "rotate(0deg)",
+                            }}
+                        />
                     </CustomButton>
                 </Box>
             </Box>
