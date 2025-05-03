@@ -245,7 +245,7 @@ const WaitingPage = () => {
                 >
                     <Typography variant="h4">
                         {t("i18n_queue.number")}{" "}
-                        {recordData?.ticketNumber ?? "—"}
+                        {ticketNumber ? `${ticketNumber}` : ""}
                     </Typography>
                 </Box>
 
