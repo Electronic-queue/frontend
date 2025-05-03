@@ -130,7 +130,6 @@ const QueuePage: FC = () => {
     useEffect(() => {
         startSignalR();
         connection.on("ClientListByManagerId", (clientListSignalR) => {
-            console.log("ClientListByManagerId", clientListSignalR);
             if (
                 Array.isArray(clientListSignalR) &&
                 clientListSignalR.length > 0

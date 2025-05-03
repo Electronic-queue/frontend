@@ -131,7 +131,6 @@ const RessetPassowd: FC = () => {
                 password: data.ressetPassword,
             }).unwrap();
 
-            console.log("Password changed successfully:", response);
             navigate("/login");
         } catch (error: any) {
             console.error("Error during password reset:", error);
