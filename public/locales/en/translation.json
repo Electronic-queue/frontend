@@ -115,5 +115,9 @@
         "emptyQueue": "Queue is empty",
         "beingReject": "Your record has been canceled as the manager's work shift has ended.",
         "goBack": "Go back"
+    },
+    "i18n_landing": {
+        "officeRegistrar": "Office registration",
+        "admissionsOffice": "Admissions office"
     }
 }

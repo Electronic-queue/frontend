@@ -4,9 +4,11 @@ import Stack from "@mui/material/Stack";
 
 const MobileContainer = styled(Stack)(({ theme }) => ({
     margin: "0 auto",
-    padding: theme.spacing(2),
-    maxWidth: "400px",
+    maxWidth: "100%",
     alignItems: "stretch",
+    "& > *": {
+        width: "100%",
+    },
 }));
 
 const MobilePage = ({ children }: PropsWithChildren<{}>) => (
