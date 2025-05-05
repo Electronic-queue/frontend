@@ -19,6 +19,7 @@ import ProtectedRoute from "src/components/ProtectedRoute";
 import RejectPage from "./features/pages/RejectPage";
 import NotFound from "./features/pages/NotFound";
 import RessetPassowd from "./features/pages/ResetPassword";
+import Landing from "./features/pages/Landing";
 
 const App: FC = () => {
     const isMobile = useMediaQuery("(max-width: 768px)");
@@ -51,6 +52,7 @@ const App: FC = () => {
 
 const MobileRoutes: FC = () => (
     <Routes>
+        <Route path="/landing" element={<Landing />} />
         <Route path="/" element={<ClientRegisterPage />} />
         <Route path="/selection" element={<ServiceSelection />} />
         <Route path="/wait" element={<WaitingPage />} />

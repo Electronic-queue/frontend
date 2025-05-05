@@ -183,7 +183,6 @@ const LoginPage: FC = () => {
 
         try {
             const res = await forgotPassword({ email: data.email }).unwrap();
-            console.log("Email sent successfully:", res);
             setResetStatusMessage("success");
             setIsDisabled(true);
         } catch (err: any) {
