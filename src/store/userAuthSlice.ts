@@ -7,6 +7,7 @@ interface UserState {
     recordId: number | null;
     connectionId: string | null;
     ticketNumber: number | null;
+    queueTypeId: string | null;
 }
 
 const loadFromLocalStorage = (key: string): string | null => {
@@ -25,6 +26,7 @@ const initialState: UserState = {
     ticketNumber: loadNumberFromLocalStorage("ticketNumber"),
     recordId: loadNumberFromLocalStorage("recordId"),
     connectionId: loadFromLocalStorage("connectionId"),
+    queueTypeId: loadFromLocalStorage("queueTypeId"),
 };
 
 const userSlice = createSlice({
@@ -54,6 +56,12 @@ const userSlice = createSlice({
             action.payload
                 ? localStorage.setItem("ticketNumber", String(action.payload))
                 : localStorage.removeItem("ticketNumber");
+        },
+        setQueueTypeId: (state, action: PayloadAction<string | null>) => {
+            state.queueTypeId = action.payload;
+            action.payload
+                ? localStorage.setItem("queueTypeId", action.payload)
+                : localStorage.removeItem("queueTypeId");
         },
         setRecordData: (
             state,
@@ -92,5 +100,6 @@ export const {
     setRecordData,
     setRecordId,
     setTicketNumber,
+    setQueueTypeId,
 } = userSlice.actions;
 export default userSlice.reducer;

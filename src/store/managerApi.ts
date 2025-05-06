@@ -25,14 +25,20 @@ export const managerApi = createApi({
                 },
             }),
         }),
-        getServiceList: builder.query<any, void>({
-            query: () => ({
+        getServiceList: builder.mutation<any, string>({
+            query: (queueTypeId) => ({
                 url: "Service",
+                method: "POST",
                 params: {
                     "api-version": "1",
                 },
+                body: JSON.stringify(queueTypeId),
+                headers: {
+                    "Content-Type": "application/json",
+                },
             }),
         }),
+
         getManagerId: builder.query<number, void>({
             query: () => ({
                 url: "Manager/GetManagerId",
@@ -104,6 +110,19 @@ export const managerApi = createApi({
                 },
             }),
         }),
+        getServicesForManager: builder.mutation<any, void>({
+            query: () => ({
+                url: "Service/get-services-for-manager",
+                method: "POST",
+                params: {
+                    "api-version": "1",
+                },
+                headers: {
+                    "Content-Type": "application/json",
+                },
+            }),
+        }),
+
         pauseWindow: builder.mutation<
             any,
             { managerId: number; exceedingTime: number }
@@ -159,6 +178,16 @@ export const managerApi = createApi({
                 },
             }),
         }),
+
+        getQueueType: builder.query<any, void>({
+            query: () => ({
+                url: "QueueType",
+                params: {
+                    "api-version": "1",
+                },
+            }),
+        }),
+
         createReview: builder.mutation<
             any,
             { recordId: number; rating: number; content: string }
@@ -177,7 +206,6 @@ export const managerApi = createApi({
 
 export const {
     useGetRecordListByManagerQuery,
-    useGetServiceListQuery,
     useGetRecordByIdQuery,
     useCreateReviewMutation,
     useGetServiceByIdQuery,
@@ -191,4 +219,7 @@ export const {
     useCancelQueueMutation,
     useForgotPasswordMutation,
     useChangePasswordMutation,
+    useGetQueueTypeQuery,
+    useGetServiceListMutation,
+    useGetServicesForManagerMutation,
 } = managerApi;
