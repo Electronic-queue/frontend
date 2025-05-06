@@ -18,19 +18,31 @@ const BackgroundContainer = styled(Box)(({ theme }) => ({
     alignItems: "center",
     justifyContent: "center",
     background: "linear-gradient(to left, #ADD8E6, white 50%)",
-    paddingTop: theme.spacing(5),
+    paddingTop: theme.spacing(-5),
 }));
-
 const FormContainer = styled(Stack)(({ theme }) => ({
+    position: "relative",
     width: "95%",
     height: "565px",
     maxWidth: theme.spacing(50),
     padding: theme.spacing(3),
     borderRadius: theme.spacing(2),
     boxShadow: theme.shadows[2],
+    overflow: "hidden",
+    zIndex: 1,
+}));
+
+const BlurBackground = styled(Box)(({ theme }) => ({
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    borderRadius: theme.spacing(2),
     backgroundColor: "rgba(255, 255, 255, 0.1)",
     border: "1px solid rgba(36, 34, 207, 0.18)",
-    textAlign: "center",
+    backdropFilter: "blur(8px)",
+    zIndex: 0,
 }));
 
 const Landing = () => {
@@ -53,12 +65,25 @@ const Landing = () => {
 
     return (
         <BackgroundContainer>
-            <Box>
+            <Box
+                sx={{
+                    marginBottom: theme.spacing(-1.3),
+                }}
+            >
                 <StudentsIcon />
             </Box>
 
             <FormContainer>
-                <Box sx={{ paddingBottom: theme.spacing(5) }}>
+                <BlurBackground />
+
+                <Box
+                    sx={{
+                        paddingBottom: theme.spacing(5),
+                        zIndex: 1,
+                        display: "flex",
+                        justifyContent: "center",
+                    }}
+                >
                     <SULogoM />
                 </Box>
 
@@ -67,7 +92,7 @@ const Landing = () => {
                         display: "flex",
                         flexDirection: "column",
                         gap: theme.spacing(2),
-                        zIndex: "1",
+                        zIndex: 1,
                     }}
                 >
                     {isQueueLoading && (
@@ -82,28 +107,21 @@ const Landing = () => {
                         </Typography>
                     )}
 
-                    {queueTypeData?.value?.map(
-                        (queueType: {
-                            queueTypeId: string;
-                            nameRu: string;
-                            nameEn: string;
-                            nameKk: string;
-                        }) => (
-                            <CustomButton
-                                key={queueType.queueTypeId}
-                                variantType="primary"
-                                onClick={() =>
-                                    handleSelectQueueType(queueType.queueTypeId)
-                                }
-                            >
-                                {currentLanguage === "ru"
-                                    ? queueType.nameRu
-                                    : currentLanguage === "en"
-                                      ? queueType.nameEn
-                                      : queueType.nameKk}
-                            </CustomButton>
-                        )
-                    )}
+                    {queueTypeData?.value?.map((queueType: any) => (
+                        <CustomButton
+                            key={queueType.queueTypeId}
+                            variantType="primary"
+                            onClick={() =>
+                                handleSelectQueueType(queueType.queueTypeId)
+                            }
+                        >
+                            {currentLanguage === "ru"
+                                ? queueType.nameRu
+                                : currentLanguage === "en"
+                                  ? queueType.nameEn
+                                  : queueType.nameKk}
+                        </CustomButton>
+                    ))}
                 </Box>
             </FormContainer>
         </BackgroundContainer>
