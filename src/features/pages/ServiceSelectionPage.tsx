@@ -57,8 +57,6 @@ const ServiceSelection = () => {
     const [selectedService, setSelectedService] = useState<Service | null>(
         null
     );
-    console.log("queueTypeId", queueTypeId);
-    console.log("data", data);
 
     const userInfo = useSelector(
         (state: RootState) => (state.user as any).userInfo

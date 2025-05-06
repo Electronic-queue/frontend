@@ -52,8 +52,8 @@ const App: FC = () => {
 
 const MobileRoutes: FC = () => (
     <Routes>
-        <Route path="/landing" element={<Landing />} />
-        <Route path="/" element={<ClientRegisterPage />} />
+        <Route path="/" element={<Landing />} />
+        <Route path="/register" element={<ClientRegisterPage />} />
         <Route path="/selection" element={<ServiceSelection />} />
         <Route path="/wait" element={<WaitingPage />} />
         <Route path="/call" element={<CallPage />} />

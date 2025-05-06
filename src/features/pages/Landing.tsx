@@ -1,20 +1,16 @@
-import { useEffect } from "react";
 import { Typography } from "@mui/material";
 import Stack from "@mui/material/Stack";
 import { styled } from "@mui/material/styles";
 import Box from "@mui/material/Box";
 import { useTranslation } from "react-i18next";
 import { StudentsIcon, SULogoM } from "src/assets";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import { setQueueTypeId } from "src/store/userAuthSlice";
-
 import theme from "src/styles/theme";
 import { useNavigate } from "react-router-dom";
-import connection, { startSignalR } from "src/features/signalR";
-import { useGetRecordIdByTokenQuery } from "src/store/userApi";
 import { useGetQueueTypeQuery } from "src/store/managerApi";
-import { RootState } from "src/store/store";
 import CustomButton from "src/components/Button";
+import i18n from "src/i18n";
 
 const BackgroundContainer = styled(Box)(({ theme }) => ({
     display: "flex",
@@ -47,50 +43,13 @@ const Landing = () => {
         isLoading: isQueueLoading,
         error: queueError,
     } = useGetQueueTypeQuery();
-    const { data: recordData, isLoading: isRecordLoading } =
-        useGetRecordIdByTokenQuery();
-
-    const ticketNumber = useSelector(
-        (state: RootState) => state.user.ticketNumber
-    );
-
-    // Безопасный лог:
-    console.log("queueTypeData", queueTypeData?.value);
-
-    useEffect(() => {
-        if (isRecordLoading) return;
-
-        startSignalR();
-
-        connection.on("ReceiveRecordCreated", (newRecord) => {
-            if (
-                newRecord.recordId === recordData?.recordId &&
-                newRecord.clientNumber === -3
-            ) {
-                navigate("/rating");
-            }
-        });
-
-        connection.on("RecieveUpdateRecord", (queueList) => {
-            const updatedItem = queueList.find(
-                (item: { ticketNumber: number }) =>
-                    item.ticketNumber === ticketNumber
-            );
-            if (updatedItem && updatedItem.clientNumber === -3) {
-                navigate("/rating");
-            }
-        });
-
-        return () => {
-            connection.off("ReceiveRecordCreated");
-            connection.off("ReceiveUpdateRecord");
-        };
-    }, [navigate, recordData, isRecordLoading, ticketNumber]);
 
     const handleSelectQueueType = (queueTypeId: string) => {
         dispatch(setQueueTypeId(queueTypeId));
-        navigate("/");
+        navigate("/register");
     };
+
+    const currentLanguage = i18n.language || "ru";
 
     return (
         <BackgroundContainer>
@@ -127,6 +86,8 @@ const Landing = () => {
                         (queueType: {
                             queueTypeId: string;
                             nameRu: string;
+                            nameEn: string;
+                            nameKk: string;
                         }) => (
                             <CustomButton
                                 key={queueType.queueTypeId}
@@ -135,7 +96,11 @@ const Landing = () => {
                                     handleSelectQueueType(queueType.queueTypeId)
                                 }
                             >
-                                {queueType.nameRu}
+                                {currentLanguage === "ru"
+                                    ? queueType.nameRu
+                                    : currentLanguage === "en"
+                                      ? queueType.nameEn
+                                      : queueType.nameKk}
                             </CustomButton>
                         )
                     )}
