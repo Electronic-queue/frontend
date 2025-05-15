@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { setServiceId } from "src/store/userSlice";
 import { RootState } from "src/store/store";
@@ -16,12 +16,12 @@ import SearchIcon from "@mui/icons-material/Search";
 import InputAdornment from "@mui/material/InputAdornment";
 import CustomButton from "src/components/Button";
 import Skeleton from "@mui/material/Skeleton";
-import { useGetServiceListQuery } from "src/store/managerApi";
 import { useCreateRecordMutation } from "src/store/userApi";
 
 import { useNavigate } from "react-router-dom";
 import { setRecordId, setToken } from "src/store/userAuthSlice";
 import i18n from "src/i18n";
+import { useGetServiceListMutation } from "src/store/managerApi";
 
 const BackgroundContainer = styled(Box)(({ theme }) => ({
     display: "flex",
@@ -44,10 +44,15 @@ const FormContainer = styled(Stack)(({ theme }) => ({
 const ServiceSelection = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
+    const queueTypeId = useSelector(
+        (state: RootState) => state.user.queueTypeId
+    );
+
     const { t } = useTranslation();
     const currentLanguage = i18n.language || "ru";
     const [search, setSearch] = useState("");
-    const { data, error, isLoading } = useGetServiceListQuery();
+    const [getServiceList, { data, error, isLoading }] =
+        useGetServiceListMutation();
     const [createRecord] = useCreateRecordMutation();
     const [selectedService, setSelectedService] = useState<Service | null>(
         null
@@ -57,8 +62,8 @@ const ServiceSelection = () => {
         (state: RootState) => (state.user as any).userInfo
     );
 
-    const services: Service[] = Array.isArray(data?.value)
-        ? data.value.map((service: any) => ({
+    const services: Service[] = Array.isArray(data)
+        ? data.map((service: any) => ({
               id: service.serviceId,
               name:
                   currentLanguage === "kz"
@@ -66,6 +71,12 @@ const ServiceSelection = () => {
                       : currentLanguage === "en"
                         ? service.nameEn
                         : service.nameRu,
+              description:
+                  currentLanguage === "kz"
+                      ? service.descriptionKk
+                      : currentLanguage === "en"
+                        ? service.descriptionEn
+                        : service.descriptionRu,
           }))
         : [];
 
@@ -73,6 +84,11 @@ const ServiceSelection = () => {
         service.name.toLowerCase().includes(search.toLowerCase())
     );
 
+    useEffect(() => {
+        if (queueTypeId) {
+            getServiceList(queueTypeId);
+        }
+    }, [queueTypeId, getServiceList]);
     const handleSubmit = async () => {
         if (!selectedService) {
             alert("Услуга не выбрана");
@@ -84,7 +100,7 @@ const ServiceSelection = () => {
             return;
         }
 
-        dispatch(setServiceId(selectedService.id));
+        dispatch(setServiceId(selectedService.id as any));
 
         try {
             const response = await createRecord({

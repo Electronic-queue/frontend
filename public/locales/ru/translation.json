@@ -13,13 +13,23 @@
         "restoreAccess": "Восстановить доступ",
         "title": "Авторизация",
         "restoreAccessTitle": "Восстановление доступа",
+        "linkAlreadyUsed": "Ссылка уже использовалась, запросите новую: ",
+        "goToLogin": "Перейти к странице авторизации",
         "sendResetPasswordEmail": "Выслать письмо для сброса пароля",
         "resendEmail": "Выслать письмо повторно",
         "retry": "Повторите попытку через",
         "notFoundEmail": "Не нашли письмо? Проверьте спам",
         "email": "Ваша эл.почта",
         "enterEmeil": "Введите эл-почту",
-        "invalidEmail": "Неверный формат эл-почты"
+        "invalidEmail": "Неверный формат эл-почты",
+        "ressetPassword": "Сбросить пароль",
+        "changePassword": "Изменить пароль",
+        "newPassword": "Новый пароль",
+        "minLengthPassword": "Минимальная длина пароля 8  символов",
+        "confirmPasswordRequired": "Подтверждение пароля обязательно",
+        "confirmPassword": "Подтвердите пароль",
+        "linkExpired": "Ссылка уже устарела, запросите новую: http://queue-client.satbayevproject.kz/login",
+        "successEmail": "Письмо успешно отправлено!"
     },
     "i18n_register": {
         "title": "Регистрация",
@@ -105,5 +115,9 @@
         "emptyQueue": "Очередь пуста",
         "beingReject": "Ваша запись была отменена, так как рабочая смена менеджера завершилась.",
         "goBack": "Вернуться назад"
+    },
+    "i18n_landing": {
+        "officeRegistrar": "Офис регистратор",
+        "admissionsOffice": "Приемная комиссия"
     }
 }

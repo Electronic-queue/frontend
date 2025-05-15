@@ -18,8 +18,17 @@
         "retry": "Retry in",
         "notFoundEmail": "Didn't find the email? Check your spam",
         "email": "Your email",
-        "enterEmeil": "Enter your email",
-        "invalidEmail": "Invalid email format"
+        "enterEmail": "Enter your email",
+        "invalidEmail": "Invalid email format",
+        "resetPassword": "Reset password",
+        "changePassword": "Change password",
+        "newPassword": "New password",
+        "minLengthPassword": "Minimum password length is 8 characters",
+        "confirmPasswordRequired": "Password confirmation is required",
+        "confirmPassword": "Confirm password",
+        "linkAlreadyUsed": "The link has already been used, please request a new one: ",
+        "successEmail": "Email successfully sent!",
+        "goToLogin": "Go to login"
     },
     "i18n_register": {
         "title": "Registration",
@@ -106,5 +115,9 @@
         "emptyQueue": "Queue is empty",
         "beingReject": "Your record has been canceled as the manager's work shift has ended.",
         "goBack": "Go back"
+    },
+    "i18n_landing": {
+        "officeRegistrar": "Office registration",
+        "admissionsOffice": "Admissions office"
     }
 }

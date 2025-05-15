@@ -9,8 +9,8 @@ import ReusableTable from "src/components/Table";
 import theme from "src/styles/theme";
 import { styled } from "@mui/material/styles";
 import {
-    useGetServiceListQuery,
     useRedirectClientMutation,
+    useGetServicesForManagerMutation,
 } from "src/store/managerApi";
 
 import { t } from "i18next";
@@ -46,7 +46,9 @@ const ButtonWrapperStyles = styled(Box)(({ theme }) => ({
     gap: theme.spacing(2),
     justifyContent: "flex-end",
 }));
+
 const currentLanguage = i18n.language || "ru";
+
 const CalledButtons: FC<{
     onAccept: () => void;
     onRedirect: (serviceIdRedirect: number) => void;
@@ -54,26 +56,35 @@ const CalledButtons: FC<{
     const { t } = useTranslation();
     const [isOpen, setIsOpen] = useState(false);
     const [searchValue, setSearchValue] = useState("");
-    const [snackbar, setSnackbar] = useState<{
-        open: boolean;
-        message: string;
-    }>({ open: false, message: "" });
+    const [snackbar, setSnackbar] = useState({
+        open: false,
+        message: "",
+    });
     const [selectedServiceId, setSelectedServiceId] = useState<number | null>(
         null
     );
-    const { refetch } = useGetServiceListQuery();
-    const { data, error, isLoading } = useGetServiceListQuery();
+
+    const [getServicesForManager, { data, error, isLoading }] =
+        useGetServicesForManagerMutation();
+
     const [redirectClient] = useRedirectClientMutation();
+
+    const handleOpen = async () => {
+        try {
+            await getServicesForManager().unwrap();
+            setIsOpen(true);
+        } catch (err) {
+            console.error("Ошибка загрузки услуг:", err);
+        }
+    };
+
     const handleRedirect = async () => {
         if (!selectedServiceId) {
             console.warn("Не выбрана услуга!");
             return;
         }
         try {
-            const response = await redirectClient({
-                serviceId: selectedServiceId,
-            }).unwrap();
-            refetch();
+            await redirectClient({ serviceId: selectedServiceId }).unwrap();
             onRedirect(selectedServiceId);
             setIsOpen(false);
             setSnackbar({
@@ -85,8 +96,8 @@ const CalledButtons: FC<{
         }
     };
 
-    const services: Service[] = Array.isArray(data?.value)
-        ? data.value.map((service: any, index: number) => ({
+    const services: Service[] = Array.isArray(data)
+        ? data.map((service: any, index: number) => ({
               id: service.serviceId,
               displayId: index + 1,
               name:
@@ -98,7 +109,7 @@ const CalledButtons: FC<{
           }))
         : [];
 
-    const filteredData = services.filter((service: { name: string }) =>
+    const filteredData = services.filter((service) =>
         service.name.toLowerCase().includes(searchValue.toLowerCase())
     );
 
@@ -117,10 +128,11 @@ const CalledButtons: FC<{
                     {snackbar.message}
                 </Alert>
             </Snackbar>
+
             <CustomButton
                 variantType="primary"
                 sizeType="small"
-                onClick={() => setIsOpen(true)}
+                onClick={handleOpen}
             >
                 {t("i18n_queue.redirect")}
             </CustomButton>
@@ -209,7 +221,6 @@ const StatusButtons: FC<StatusButtonsProps> = ({
     switch (status) {
         case "idle":
             return <IdleButton callNext={callNext} />;
-
         case "called":
             return (
                 <CalledButtons onAccept={onAccept} onRedirect={onRedirect} />

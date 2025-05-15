@@ -18,6 +18,8 @@ import InProgress from "./features/pages/InProgressPage";
 import ProtectedRoute from "src/components/ProtectedRoute";
 import RejectPage from "./features/pages/RejectPage";
 import NotFound from "./features/pages/NotFound";
+import RessetPassowd from "./features/pages/ResetPassword";
+import Landing from "./features/pages/Landing";
 
 const App: FC = () => {
     const isMobile = useMediaQuery("(max-width: 768px)");
@@ -27,6 +29,8 @@ const App: FC = () => {
             <Header />
             <Routes>
                 <Route path="/login" element={<LoginPage />} />
+                <Route path="/ressetpassword" element={<RessetPassowd />} />
+
                 <Route
                     path="/*"
                     element={
@@ -48,7 +52,8 @@ const App: FC = () => {
 
 const MobileRoutes: FC = () => (
     <Routes>
-        <Route path="/" element={<ClientRegisterPage />} />
+        <Route path="/" element={<Landing />} />
+        <Route path="/register" element={<ClientRegisterPage />} />
         <Route path="/selection" element={<ServiceSelection />} />
         <Route path="/wait" element={<WaitingPage />} />
         <Route path="/call" element={<CallPage />} />

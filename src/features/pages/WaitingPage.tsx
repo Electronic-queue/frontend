@@ -24,6 +24,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import Skeleton from "@mui/material/Skeleton";
 import { RootState } from "src/store/store";
+import i18n from "src/i18n";
 
 const BackgroundContainer = styled(Box)(({ theme }) => ({
     display: "flex",
@@ -46,7 +47,7 @@ const FormContainer = styled(Box)(({ theme }) => ({
 const InfoBlock = styled(Box)(({ theme }) => ({
     display: "flex",
     flexDirection: "column",
-    gap: theme.spacing(3),
+    gap: theme.spacing(2),
 }));
 
 interface RefuseModalProps {
@@ -57,6 +58,9 @@ interface RefuseModalProps {
 interface ClientRecord {
     recordId: number;
     windowNumber: number;
+    nameRu: string;
+    nameKk: string;
+    nameEn: string;
     clientNumber: number;
     expectedAcceptanceTime: string;
     ticketNumber: number;
@@ -99,6 +103,12 @@ const WaitingPage = () => {
     const dispatch = useDispatch();
     const recordId = useSelector((state: RootState) => state.user.recordId);
     const { data: ticketData } = useGetTicketNumberByTokenQuery(undefined);
+    const wasRedirected = useSelector(
+        (state: RootState) => state.user.wasRedirected
+    );
+    const cabinetNameRu = useSelector((state: RootState) => state.user.nameRu);
+    const cabinetNameKk = useSelector((state: RootState) => state.user.nameKk);
+    const cabinetNameEn = useSelector((state: RootState) => state.user.nameEn);
     const ticketNumber = useSelector(
         (state: RootState) => state.user.ticketNumber
     );
@@ -121,10 +131,10 @@ const WaitingPage = () => {
     } = useGetRecordIdByTokenQuery(undefined, {
         refetchOnMountOrArgChange: true,
     });
-
     const { data: clientRecord } = useGetClientRecordByIdQuery(recordId ?? 0, {
         skip: !recordId,
     });
+    console.log("clientRecord", clientRecord);
     useEffect(() => {}, [clientRecord]);
     useEffect(() => {
         if (recordId) {
@@ -167,6 +177,7 @@ const WaitingPage = () => {
         });
 
         connection.on("RecieveUpdateRecord", (queueList) => {
+            console.log("RecieveUpdateRecord", queueList);
             const latestRecord = queueList.find(
                 (item: { ticketNumber: number }) =>
                     item.ticketNumber === ticketNumber
@@ -226,6 +237,22 @@ const WaitingPage = () => {
             </BackgroundContainer>
         );
     }
+    console.log("cabinetNameRu", cabinetNameRu);
+    console.log("cabinetNameKk", cabinetNameKk);
+    console.log("cabinetNameEn", cabinetNameEn);
+    console.log("wasRedirected", wasRedirected);
+    const displayedName =
+        i18n.language === "kz"
+            ? wasRedirected
+                ? cabinetNameKk
+                : recordData?.nameKk
+            : i18n.language === "en"
+              ? wasRedirected
+                  ? cabinetNameEn
+                  : recordData?.nameEn
+              : wasRedirected
+                ? cabinetNameRu
+                : recordData?.nameRu;
 
     return (
         <BackgroundContainer>
@@ -242,13 +269,17 @@ const WaitingPage = () => {
                 >
                     <Typography variant="h4">
                         {t("i18n_queue.number")}{" "}
-                        {recordData?.ticketNumber ?? "—"}
+                        {ticketNumber ? `${ticketNumber}` : ""}
                     </Typography>
                 </Box>
 
                 <InfoBlock>
                     {recordData ? (
                         <>
+                            <Typography variant="h6">
+                                {displayedName?.trim() ? displayedName : "—"}
+                            </Typography>
+
                             <Typography variant="h6">
                                 {t("i18n_queue.window")}:{" "}
                                 {recordData.windowNumber ?? "—"}

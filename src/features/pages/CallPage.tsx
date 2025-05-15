@@ -21,6 +21,8 @@ import {
     setRecordId,
     setTicketNumber,
     setToken,
+    setNames,
+    setWasRedirected,
 } from "src/store/userAuthSlice";
 import { RootState } from "src/store/store";
 
@@ -34,10 +36,13 @@ const BackgroundContainer = styled(Box)(({ theme }) => ({
 }));
 
 const FormContainer = styled(Stack)(({ theme }) => ({
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
     width: "100%",
     maxWidth: theme.spacing(50),
     padding: theme.spacing(4),
-    backgroundColor: theme.palette.background.paper,
+    backgroundColor: "#39CB21",
     borderRadius: theme.spacing(2),
     boxShadow: theme.shadows[2],
     textAlign: "center",
@@ -78,16 +83,13 @@ const Timer: React.FC<TimerProps> = ({ onTimeout }) => {
     }, [timeLeft, onTimeout]);
 
     return (
-        <BackgroundContainer>
+        <FormContainer>
             <TitleBox>
-                <Typography
-                    variant="h1"
-                    sx={{ color: theme.palette.error.main }}
-                >
+                <Typography variant="h1" sx={{ color: "white" }}>
                     {timeLeft}
                 </Typography>
             </TitleBox>
-        </BackgroundContainer>
+        </FormContainer>
     );
 };
 
@@ -141,10 +143,19 @@ const CallPage = () => {
         });
 
         connection.on("RecieveRedirectClient", (data) => {
+            console.log(data);
             if (data.ticketNumber === storedTicketNumber) {
                 dispatch(setRecordId(data.newRecordId));
                 dispatch(setToken(data.token));
                 dispatch(setTicketNumber(data.newTicketNumber));
+                dispatch(
+                    setNames({
+                        nameEn: data.nameEn,
+                        nameKk: data.nameKk,
+                        nameRu: data.nameRu,
+                    })
+                );
+                dispatch(setWasRedirected(true));
                 navigate("/wait");
                 window.location.href = "/wait";
             }
@@ -208,7 +219,10 @@ const CallPage = () => {
             <FormContainer>
                 {!expired ? (
                     <>
-                        <Typography variant="h4" sx={{ marginBottom: 2 }}>
+                        <Typography
+                            variant="h4"
+                            sx={{ marginBottom: 2, color: "white" }}
+                        >
                             {t("i18n_queue.approachWindow")} {windowNumber}
                         </Typography>
                         <Timer
@@ -220,7 +234,6 @@ const CallPage = () => {
                         <Box sx={{ paddingTop: theme.spacing(5) }}>
                             <CustomButton
                                 variantType="danger"
-                                fullWidth
                                 onClick={handleModalOpen}
                             >
                                 {t("i18n_queue.refuse")}
@@ -235,10 +248,7 @@ const CallPage = () => {
                             gap: theme.spacing(2),
                         }}
                     >
-                        <Typography
-                            variant="h5"
-                            sx={{ color: theme.palette.error.main }}
-                        >
+                        <Typography variant="h5" sx={{ color: "white" }}>
                             {t("i18n_queue.timeoutMessage")}
                         </Typography>
                         <CustomButton

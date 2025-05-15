@@ -1,7 +1,7 @@
 import { List, ListItemButton, ListItemText } from "@mui/material";
 
 export interface Service {
-    id: number;
+    id: string;
     name: string;
 }
 
