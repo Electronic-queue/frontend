@@ -8,8 +8,13 @@ interface UserState {
     connectionId: string | null;
     ticketNumber: number | null;
     queueTypeId: string | null;
+    nameEn: string | null;
+    nameKk: string | null;
+    nameRu: string | null;
+    wasRedirected: boolean;
 }
 
+// Helpers
 const loadFromLocalStorage = (key: string): string | null => {
     return localStorage.getItem(key);
 };
@@ -19,6 +24,19 @@ const loadNumberFromLocalStorage = (key: string): number | null => {
     return value ? Number(value) : null;
 };
 
+const loadBooleanFromLocalStorage = (key: string): boolean => {
+    return localStorage.getItem(key) === "true";
+};
+
+const persist = (key: string, value: string | null) => {
+    if (value !== null) {
+        localStorage.setItem(key, value);
+    } else {
+        localStorage.removeItem(key);
+    }
+};
+
+// Initial state
 const initialState: UserState = {
     userInfo: null,
     serviceId: null,
@@ -27,6 +45,10 @@ const initialState: UserState = {
     recordId: loadNumberFromLocalStorage("recordId"),
     connectionId: loadFromLocalStorage("connectionId"),
     queueTypeId: loadFromLocalStorage("queueTypeId"),
+    nameEn: loadFromLocalStorage("nameEn"),
+    nameKk: loadFromLocalStorage("nameKk"),
+    nameRu: loadFromLocalStorage("nameRu"),
+    wasRedirected: loadBooleanFromLocalStorage("wasRedirected"),
 };
 
 const userSlice = createSlice({
@@ -41,27 +63,25 @@ const userSlice = createSlice({
         },
         setToken: (state, action: PayloadAction<string | null>) => {
             state.token = action.payload;
-            action.payload
-                ? localStorage.setItem("token", action.payload)
-                : localStorage.removeItem("token");
+            persist("token", action.payload);
         },
         setRecordId: (state, action: PayloadAction<number | null>) => {
             state.recordId = action.payload;
-            action.payload
-                ? localStorage.setItem("recordId", String(action.payload))
-                : localStorage.removeItem("recordId");
+            persist(
+                "recordId",
+                action.payload !== null ? String(action.payload) : null
+            );
         },
         setTicketNumber: (state, action: PayloadAction<number | null>) => {
             state.ticketNumber = action.payload;
-            action.payload
-                ? localStorage.setItem("ticketNumber", String(action.payload))
-                : localStorage.removeItem("ticketNumber");
+            persist(
+                "ticketNumber",
+                action.payload !== null ? String(action.payload) : null
+            );
         },
         setQueueTypeId: (state, action: PayloadAction<string | null>) => {
             state.queueTypeId = action.payload;
-            action.payload
-                ? localStorage.setItem("queueTypeId", action.payload)
-                : localStorage.removeItem("queueTypeId");
+            persist("queueTypeId", action.payload);
         },
         setRecordData: (
             state,
@@ -77,10 +97,10 @@ const userSlice = createSlice({
                 state.connectionId = connectionId;
                 if (ticketNumber !== undefined) {
                     state.ticketNumber = ticketNumber;
-                    localStorage.setItem("ticketNumber", String(ticketNumber));
+                    persist("ticketNumber", String(ticketNumber));
                 }
-                localStorage.setItem("recordId", String(recordId));
-                localStorage.setItem("connectionId", connectionId);
+                persist("recordId", String(recordId));
+                persist("connectionId", connectionId);
             } else {
                 state.recordId = null;
                 state.connectionId = null;
@@ -90,6 +110,26 @@ const userSlice = createSlice({
                 localStorage.removeItem("ticketNumber");
             }
         },
+        setNames: (
+            state,
+            action: PayloadAction<{
+                nameEn: string;
+                nameKk: string;
+                nameRu: string;
+            }>
+        ) => {
+            const { nameEn, nameKk, nameRu } = action.payload;
+            state.nameEn = nameEn;
+            state.nameKk = nameKk;
+            state.nameRu = nameRu;
+            persist("nameEn", nameEn);
+            persist("nameKk", nameKk);
+            persist("nameRu", nameRu);
+        },
+        setWasRedirected: (state, action: PayloadAction<boolean>) => {
+            state.wasRedirected = action.payload;
+            localStorage.setItem("wasRedirected", String(action.payload));
+        },
     },
 });
 
@@ -97,9 +137,12 @@ export const {
     setUserInfo,
     setServiceId,
     setToken,
-    setRecordData,
     setRecordId,
     setTicketNumber,
     setQueueTypeId,
+    setRecordData,
+    setNames,
+    setWasRedirected,
 } = userSlice.actions;
+
 export default userSlice.reducer;

@@ -21,6 +21,8 @@ import {
     setRecordId,
     setTicketNumber,
     setToken,
+    setNames,
+    setWasRedirected,
 } from "src/store/userAuthSlice";
 import { RootState } from "src/store/store";
 
@@ -141,10 +143,19 @@ const CallPage = () => {
         });
 
         connection.on("RecieveRedirectClient", (data) => {
+            console.log(data);
             if (data.ticketNumber === storedTicketNumber) {
                 dispatch(setRecordId(data.newRecordId));
                 dispatch(setToken(data.token));
                 dispatch(setTicketNumber(data.newTicketNumber));
+                dispatch(
+                    setNames({
+                        nameEn: data.nameEn,
+                        nameKk: data.nameKk,
+                        nameRu: data.nameRu,
+                    })
+                );
+                dispatch(setWasRedirected(true));
                 navigate("/wait");
                 window.location.href = "/wait";
             }

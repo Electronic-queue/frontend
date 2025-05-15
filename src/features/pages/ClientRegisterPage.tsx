@@ -34,9 +34,9 @@ const FormContainer = styled(Stack)(({ theme }) => ({
 
 interface FormValues {
     iin: string;
-    firstName: string;
-    lastName: string;
-    middleName?: string;
+    firstName?: string;
+    lastName?: string;
+    surname?: string;
 }
 
 const ClientRegisterPage = () => {
@@ -44,6 +44,9 @@ const ClientRegisterPage = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const userInfo = useSelector((state: RootState) => state.user.userInfo);
+    const queueTypeId = useSelector(
+        (state: RootState) => state.user.queueTypeId
+    );
 
     const {
         control,
@@ -58,13 +61,29 @@ const ClientRegisterPage = () => {
         },
     });
 
-    const { required, pattern, maxLength, minLength } = useValidationRules();
+    const { required, pattern, maxLength } = useValidationRules();
 
     const onSubmit = (data: FormValues) => {
-        dispatch(setUserInfo(data));
+        const ONLY_IIN_TYPE = "7e734f7d-5639-4826-9a00-6b11938762aa";
 
+        const payload =
+            queueTypeId === ONLY_IIN_TYPE
+                ? { ...data, firstName: "", lastName: "", surname: "" }
+                : data;
+
+        dispatch(
+            setUserInfo({
+                ...payload,
+                firstName: payload.firstName || "",
+                lastName: payload.lastName || "",
+                surname: payload.surname || "",
+            })
+        );
         navigate("/selection");
     };
+
+    const ONLY_IIN_TYPE = "7e734f7d-5639-4826-9a00-6b11938762aa";
+    const showFullNameFields = queueTypeId !== ONLY_IIN_TYPE;
 
     return (
         <BackgroundContainer>
@@ -102,46 +121,50 @@ const ClientRegisterPage = () => {
                         numericOnly={true}
                     />
 
-                    <StyledTextField
-                        name="firstName"
-                        control={control}
-                        rules={{
-                            ...required,
-                            ...pattern(
-                                /^[a-zA-Zа-яА-ЯёЁ-]+$/,
-                                t("i18n_register.invalidNameError")
-                            ),
-                            ...maxLength(40),
-                        }}
-                        labelKey="i18n_register.firstName"
-                    />
+                    {showFullNameFields && (
+                        <>
+                            <StyledTextField
+                                name="firstName"
+                                control={control}
+                                rules={{
+                                    ...required,
+                                    ...pattern(
+                                        /^[a-zA-Zа-яА-ЯёЁ-]+$/,
+                                        t("i18n_register.invalidNameError")
+                                    ),
+                                    ...maxLength(40),
+                                }}
+                                labelKey="i18n_register.firstName"
+                            />
 
-                    <StyledTextField
-                        name="lastName"
-                        control={control}
-                        rules={{
-                            ...required,
-                            ...pattern(
-                                /^[a-zA-Zа-яА-ЯёЁ-]+$/,
-                                t("i18n_register.invalidNameError")
-                            ),
-                            ...maxLength(40),
-                        }}
-                        labelKey="i18n_register.lastName"
-                    />
+                            <StyledTextField
+                                name="lastName"
+                                control={control}
+                                rules={{
+                                    ...required,
+                                    ...pattern(
+                                        /^[a-zA-Zа-яА-ЯёЁ-]+$/,
+                                        t("i18n_register.invalidNameError")
+                                    ),
+                                    ...maxLength(40),
+                                }}
+                                labelKey="i18n_register.lastName"
+                            />
 
-                    <StyledTextField
-                        name="surname"
-                        control={control}
-                        rules={{
-                            ...pattern(
-                                /^[a-zA-Zа-яА-ЯёЁ-]+$/,
-                                t("i18n_register.invalidNameError")
-                            ),
-                            ...maxLength(40),
-                        }}
-                        labelKey="i18n_register.middleName"
-                    />
+                            <StyledTextField
+                                name="surname"
+                                control={control}
+                                rules={{
+                                    ...pattern(
+                                        /^[a-zA-Zа-яА-ЯёЁ-]+$/,
+                                        t("i18n_register.invalidNameError")
+                                    ),
+                                    ...maxLength(40),
+                                }}
+                                labelKey="i18n_register.middleName"
+                            />
+                        </>
+                    )}
                 </Box>
 
                 <Box sx={{ paddingTop: theme.spacing(5) }}>
