@@ -8,3 +8,4 @@ export { ReactComponent as SULogoM } from "./su-logo-m.svg";
 export { ReactComponent as PhoneIcon } from "./phoneIcon.svg";
 export { ReactComponent as NotFoundPageIcon } from "./404.svg";
 export { ReactComponent as StudentsIcon } from "./StudentsIcon.svg";
+export { ReactComponent as SuLogo } from "./suLogo.svg";

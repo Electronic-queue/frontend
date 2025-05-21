@@ -143,7 +143,6 @@ const CallPage = () => {
         });
 
         connection.on("RecieveRedirectClient", (data) => {
-            console.log(data);
             if (data.ticketNumber === storedTicketNumber) {
                 dispatch(setRecordId(data.newRecordId));
                 dispatch(setToken(data.token));

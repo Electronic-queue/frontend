@@ -12,6 +12,7 @@ interface UserState {
     nameKk: string | null;
     nameRu: string | null;
     wasRedirected: boolean;
+    fcmToken: string | null;
 }
 
 // Helpers
@@ -49,6 +50,7 @@ const initialState: UserState = {
     nameKk: loadFromLocalStorage("nameKk"),
     nameRu: loadFromLocalStorage("nameRu"),
     wasRedirected: loadBooleanFromLocalStorage("wasRedirected"),
+    fcmToken: loadFromLocalStorage("fcmToken"),
 };
 
 const userSlice = createSlice({
@@ -83,6 +85,11 @@ const userSlice = createSlice({
             state.queueTypeId = action.payload;
             persist("queueTypeId", action.payload);
         },
+        setFcmToken: (state, action: PayloadAction<string | null>) => {
+            state.fcmToken = action.payload;
+            persist("fcmToken", action.payload);
+        },
+
         setRecordData: (
             state,
             action: PayloadAction<{
@@ -143,6 +150,7 @@ export const {
     setRecordData,
     setNames,
     setWasRedirected,
+    setFcmToken,
 } = userSlice.actions;
 
 export default userSlice.reducer;
