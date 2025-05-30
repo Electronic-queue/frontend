@@ -128,24 +128,25 @@ const QueuePage: FC = () => {
     }, [clientsSignalR]);
 
     useEffect(() => {
-        startSignalR();
-        connection.on("ClientListByManagerId", (clientListSignalR) => {
-            if (
-                Array.isArray(clientListSignalR) &&
-                clientListSignalR.length > 0
-            ) {
-                if (clientListSignalR[0].managerId == managerIdData) {
-                    setClientsSignalR(clientListSignalR);
+        (async () => {
+            await startSignalR();
+            connection.on("ClientListByManagerId", (clientListSignalR) => {
+                if (
+                    Array.isArray(clientListSignalR) &&
+                    clientListSignalR.length > 0
+                ) {
+                    if (clientListSignalR[0].managerId == managerIdData) {
+                        setClientsSignalR(clientListSignalR);
+                    }
+                } else {
                 }
-            } else {
-            }
-        });
-
-        connection.on("RecieveManagerStatic", (managerStatic) => {
-            if (managerStatic.managerId === managerIdData) {
-                setManagerStatic(managerStatic);
-            }
-        });
+            });
+            connection.on("RecieveManagerStatic", (managerStatic) => {
+                if (managerStatic.managerId === managerIdData) {
+                    setManagerStatic(managerStatic);
+                }
+            });
+        })();
 
         return () => {
             connection.off("ClientListByManagerId");

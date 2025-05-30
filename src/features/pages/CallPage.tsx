@@ -42,7 +42,7 @@ const FormContainer = styled(Stack)(({ theme }) => ({
     width: "100%",
     maxWidth: theme.spacing(50),
     padding: theme.spacing(4),
-    backgroundColor: "#39CB21",
+    backgroundColor: theme.palette.background.default,
     borderRadius: theme.spacing(2),
     boxShadow: theme.shadows[2],
     textAlign: "center",
@@ -85,7 +85,7 @@ const Timer: React.FC<TimerProps> = ({ onTimeout }) => {
     return (
         <FormContainer>
             <TitleBox>
-                <Typography variant="h1" sx={{ color: "white" }}>
+                <Typography variant="h1" sx={{ color: "red" }}>
                     {timeLeft}
                 </Typography>
             </TitleBox>
@@ -220,7 +220,7 @@ const CallPage = () => {
                     <>
                         <Typography
                             variant="h4"
-                            sx={{ marginBottom: 2, color: "white" }}
+                            sx={{ marginBottom: 2, color: "black" }}
                         >
                             {t("i18n_queue.approachWindow")} {windowNumber}
                         </Typography>

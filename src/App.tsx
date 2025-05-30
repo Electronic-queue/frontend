@@ -1,89 +1,65 @@
-import { FC, useEffect } from "react";
+import { FC } from "react";
 import { Routes, Route } from "react-router-dom";
 import { useMediaQuery } from "@mui/material";
+import { SnackbarProvider } from "notistack";
+
 import Header from "src/widgets/header/ui/Header";
 import MediaProvider from "src/features/MediaProvider";
-import LoginPage from "./features/pages/LoginPage";
-import MobilePage from "./components/MobilePage";
-import ClientRegisterPage from "./features/pages/ClientRegisterPage";
-import ServiceSelection from "./features/pages/ServiceSelectionPage";
-import WaitingPage from "./features/pages/WaitingPage";
+
+import LoginPage from "src/features/pages/LoginPage";
+import MobilePage from "src/components/MobilePage";
+import ClientRegisterPage from "src/features/pages/ClientRegisterPage";
+import ServiceSelection from "src/features/pages/ServiceSelectionPage";
+import WaitingPage from "src/features/pages/WaitingPage";
 import CallPage from "src/features/pages/CallPage";
-import ServiceRating from "./features/pages/ServiceRating";
-import QueuePage from "./features/pages/QueuePage";
-import Page from "./components/Page";
-import RestrictedAccess from "./components/RestrictedAccess";
-import "./app.css";
-import InProgress from "./features/pages/InProgressPage";
+import ServiceRating from "src/features/pages/ServiceRating";
+import QueuePage from "src/features/pages/QueuePage";
+import Page from "src/components/Page";
+import RestrictedAccess from "src/components/RestrictedAccess";
+import InProgress from "src/features/pages/InProgressPage";
 import ProtectedRoute from "src/components/ProtectedRoute";
-import RejectPage from "./features/pages/RejectPage";
-import NotFound from "./features/pages/NotFound";
-import RessetPassowd from "./features/pages/ResetPassword";
-import Landing from "./features/pages/Landing";
-import { requestNotificationPermission } from "./widgets/push-notifications";
-import { useDispatch } from "react-redux";
-import { onMessage } from "firebase/messaging";
-import { messaging } from "./widgets/firebase";
+import RejectPage from "src/features/pages/RejectPage";
+import NotFound from "src/features/pages/NotFound";
+import RessetPassowd from "src/features/pages/ResetPassword";
+import Landing from "src/features/pages/Landing";
+
+import { useNotificationSetup } from "src/hooks/useNotificationSetup";
+
+import "./app.css";
+
+const NotificationListener: FC = () => {
+    useNotificationSetup();
+    return null;
+};
+
 const App: FC = () => {
-    const dispatch = useDispatch();
-    useEffect(() => {
-        const unsubscribe = onMessage(messaging, (payload) => {
-            const { title, body } = payload.notification || {};
-
-            if (Notification.permission === "granted" && title && body) {
-                new Notification(title, {
-                    body,
-                    icon: "src\assets\suLogo.svg",
-                    tag: payload.messageId,
-                });
-            }
-        });
-
-        return () => unsubscribe();
-    }, []);
-
-    useEffect(() => {
-        const registerServiceWorkerAndRequestPermission = async () => {
-            try {
-                const registration = await navigator.serviceWorker.register(
-                    "/firebase-messaging-sw.js"
-                );
-
-                await requestNotificationPermission(dispatch, registration);
-            } catch (error) {
-                console.error("Ошибка при регистрации service worker:", error);
-            }
-        };
-
-        if ("serviceWorker" in navigator) {
-            registerServiceWorkerAndRequestPermission();
-        }
-    }, [dispatch]);
-
     const isMobile = useMediaQuery("(max-width: 768px)");
 
     return (
-        <MediaProvider>
-            <Header />
-            <Routes>
-                <Route path="/login" element={<LoginPage />} />
-                <Route path="/ressetpassword" element={<RessetPassowd />} />
-                <Route
-                    path="/*"
-                    element={
-                        isMobile ? (
-                            <MobilePage>
-                                <MobileRoutes />
-                            </MobilePage>
-                        ) : (
-                            <Page>
-                                <DesktopRoutes />
-                            </Page>
-                        )
-                    }
-                />
-            </Routes>
-        </MediaProvider>
+        <SnackbarProvider maxSnack={3}>
+            <NotificationListener />
+            <MediaProvider>
+                <Header />
+                <Routes>
+                    <Route path="/login" element={<LoginPage />} />
+                    <Route path="/ressetpassword" element={<RessetPassowd />} />
+                    <Route
+                        path="/*"
+                        element={
+                            isMobile ? (
+                                <MobilePage>
+                                    <MobileRoutes />
+                                </MobilePage>
+                            ) : (
+                                <Page>
+                                    <DesktopRoutes />
+                                </Page>
+                            )
+                        }
+                    />
+                </Routes>
+            </MediaProvider>
+        </SnackbarProvider>
     );
 };
 
