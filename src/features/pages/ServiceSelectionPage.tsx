@@ -61,6 +61,9 @@ const ServiceSelection = () => {
     const userInfo = useSelector(
         (state: RootState) => (state.user as any).userInfo
     );
+    const userFcmToken = useSelector(
+        (state: RootState) => (state.user as any).fcmToken
+    );
 
     const services: Service[] = Array.isArray(data)
         ? data.map((service: any) => ({
@@ -106,6 +109,7 @@ const ServiceSelection = () => {
             const response = await createRecord({
                 ...userInfo,
                 serviceId: selectedService.id,
+                fcmToken: userFcmToken,
             }).unwrap();
 
             if (response.token) {

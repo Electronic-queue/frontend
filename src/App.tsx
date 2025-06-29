@@ -1,31 +1,49 @@
-import { Routes, Route, useLocation } from "react-router-dom";
+
 import { FC } from "react";
+import { Routes, Route } from "react-router-dom";
 import { useMediaQuery } from "@mui/material";
+import { SnackbarProvider } from "notistack";
+
 import Header from "src/widgets/header/ui/Header";
 import MediaProvider from "src/features/MediaProvider";
-import LoginPage from "./features/pages/LoginPage";
-import MobilePage from "./components/MobilePage";
-import ClientRegisterPage from "./features/pages/ClientRegisterPage";
-import ServiceSelection from "./features/pages/ServiceSelectionPage";
-import WaitingPage from "./features/pages/WaitingPage";
+
+import LoginPage from "src/features/pages/LoginPage";
+import MobilePage from "src/components/MobilePage";
+import ClientRegisterPage from "src/features/pages/ClientRegisterPage";
+import ServiceSelection from "src/features/pages/ServiceSelectionPage";
+import WaitingPage from "src/features/pages/WaitingPage";
 import CallPage from "src/features/pages/CallPage";
-import ServiceRating from "./features/pages/ServiceRating";
-import QueuePage from "./features/pages/QueuePage";
-import Page from "./components/Page";
-import RestrictedAccess from "./components/RestrictedAccess";
-import "./app.css";
-import InProgress from "./features/pages/InProgressPage";
+import ServiceRating from "src/features/pages/ServiceRating";
+import QueuePage from "src/features/pages/QueuePage";
+import Page from "src/components/Page";
+import RestrictedAccess from "src/components/RestrictedAccess";
+import InProgress from "src/features/pages/InProgressPage";
 import ProtectedRoute from "src/components/ProtectedRoute";
-import RejectPage from "./features/pages/RejectPage";
-import NotFound from "./features/pages/NotFound";
-import RessetPassowd from "./features/pages/ResetPassword";
-import Landing from "./features/pages/Landing";
+
+import RejectPage from "src/features/pages/RejectPage";
+import NotFound from "src/features/pages/NotFound";
+import RessetPassowd from "src/features/pages/ResetPassword";
+import Landing from "src/features/pages/Landing";
+
+import { useNotificationSetup } from "src/hooks/useNotificationSetup";
+
+import "./app.css";
+
+const NotificationListener: FC = () => {
+    useNotificationSetup();
+    return null;
+};
+
 import MonitorPage from "./features/pages/MonitorPage";
+
 
 const App: FC = () => {
     const isMobile = useMediaQuery("(max-width: 768px)");
     const location = useLocation();
     return (
+
+        <SnackbarProvider maxSnack={3}>
+          <NotificationListener />
         <MediaProvider>
             {location.pathname !== "/monitor" && <Header />}
             <Routes>
@@ -48,6 +66,8 @@ const App: FC = () => {
                 />
             </Routes>
         </MediaProvider>
+            </SnackbarProvider>
+
     );
 };
 

@@ -134,7 +134,7 @@ const WaitingPage = () => {
     const { data: clientRecord } = useGetClientRecordByIdQuery(recordId ?? 0, {
         skip: !recordId,
     });
-    console.log("clientRecord", clientRecord);
+
     useEffect(() => {}, [clientRecord]);
     useEffect(() => {
         if (recordId) {
@@ -177,7 +177,6 @@ const WaitingPage = () => {
         });
 
         connection.on("RecieveUpdateRecord", (queueList) => {
-            console.log("RecieveUpdateRecord", queueList);
             const latestRecord = queueList.find(
                 (item: { ticketNumber: number }) =>
                     item.ticketNumber === ticketNumber
@@ -237,10 +236,7 @@ const WaitingPage = () => {
             </BackgroundContainer>
         );
     }
-    console.log("cabinetNameRu", cabinetNameRu);
-    console.log("cabinetNameKk", cabinetNameKk);
-    console.log("cabinetNameEn", cabinetNameEn);
-    console.log("wasRedirected", wasRedirected);
+
     const displayedName =
         i18n.language === "kz"
             ? wasRedirected
