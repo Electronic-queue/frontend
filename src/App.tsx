@@ -1,6 +1,5 @@
-
 import { FC } from "react";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, useLocation } from "react-router-dom";
 import { useMediaQuery } from "@mui/material";
 import { SnackbarProvider } from "notistack";
 
@@ -36,38 +35,35 @@ const NotificationListener: FC = () => {
 
 import MonitorPage from "./features/pages/MonitorPage";
 
-
 const App: FC = () => {
     const isMobile = useMediaQuery("(max-width: 768px)");
     const location = useLocation();
     return (
-
         <SnackbarProvider maxSnack={3}>
-          <NotificationListener />
-        <MediaProvider>
-            {location.pathname !== "/monitor" && <Header />}
-            <Routes>
-                <Route path="/login" element={<LoginPage />} />
-                <Route path="/ressetpassword" element={<RessetPassowd />} />
-                <Route path="/monitor" element={<MonitorPage />} />
-                <Route
-                    path="/*"
-                    element={
-                        isMobile ? (
-                            <MobilePage>
-                                <MobileRoutes />
-                            </MobilePage>
-                        ) : (
-                            <Page>
-                                <DesktopRoutes />
-                            </Page>
-                        )
-                    }
-                />
-            </Routes>
-        </MediaProvider>
-            </SnackbarProvider>
-
+            <NotificationListener />
+            <MediaProvider>
+                {location.pathname !== "/monitor" && <Header />}
+                <Routes>
+                    <Route path="/login" element={<LoginPage />} />
+                    <Route path="/ressetpassword" element={<RessetPassowd />} />
+                    <Route path="/monitor" element={<MonitorPage />} />
+                    <Route
+                        path="/*"
+                        element={
+                            isMobile ? (
+                                <MobilePage>
+                                    <MobileRoutes />
+                                </MobilePage>
+                            ) : (
+                                <Page>
+                                    <DesktopRoutes />
+                                </Page>
+                            )
+                        }
+                    />
+                </Routes>
+            </MediaProvider>
+        </SnackbarProvider>
     );
 };
 
