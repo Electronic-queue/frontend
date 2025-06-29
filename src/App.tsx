@@ -1,3 +1,4 @@
+
 import { FC } from "react";
 import { Routes, Route } from "react-router-dom";
 import { useMediaQuery } from "@mui/material";
@@ -18,6 +19,7 @@ import Page from "src/components/Page";
 import RestrictedAccess from "src/components/RestrictedAccess";
 import InProgress from "src/features/pages/InProgressPage";
 import ProtectedRoute from "src/components/ProtectedRoute";
+
 import RejectPage from "src/features/pages/RejectPage";
 import NotFound from "src/features/pages/NotFound";
 import RessetPassowd from "src/features/pages/ResetPassword";
@@ -32,34 +34,40 @@ const NotificationListener: FC = () => {
     return null;
 };
 
+import MonitorPage from "./features/pages/MonitorPage";
+
+
 const App: FC = () => {
     const isMobile = useMediaQuery("(max-width: 768px)");
-
+    const location = useLocation();
     return (
+
         <SnackbarProvider maxSnack={3}>
-            <NotificationListener />
-            <MediaProvider>
-                <Header />
-                <Routes>
-                    <Route path="/login" element={<LoginPage />} />
-                    <Route path="/ressetpassword" element={<RessetPassowd />} />
-                    <Route
-                        path="/*"
-                        element={
-                            isMobile ? (
-                                <MobilePage>
-                                    <MobileRoutes />
-                                </MobilePage>
-                            ) : (
-                                <Page>
-                                    <DesktopRoutes />
-                                </Page>
-                            )
-                        }
-                    />
-                </Routes>
-            </MediaProvider>
-        </SnackbarProvider>
+          <NotificationListener />
+        <MediaProvider>
+            {location.pathname !== "/monitor" && <Header />}
+            <Routes>
+                <Route path="/login" element={<LoginPage />} />
+                <Route path="/ressetpassword" element={<RessetPassowd />} />
+                <Route path="/monitor" element={<MonitorPage />} />
+                <Route
+                    path="/*"
+                    element={
+                        isMobile ? (
+                            <MobilePage>
+                                <MobileRoutes />
+                            </MobilePage>
+                        ) : (
+                            <Page>
+                                <DesktopRoutes />
+                            </Page>
+                        )
+                    }
+                />
+            </Routes>
+        </MediaProvider>
+            </SnackbarProvider>
+
     );
 };
 
