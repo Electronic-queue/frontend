@@ -1,4 +1,4 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, useLocation } from "react-router-dom";
 import { FC } from "react";
 import { useMediaQuery } from "@mui/material";
 import Header from "src/widgets/header/ui/Header";
@@ -20,17 +20,18 @@ import RejectPage from "./features/pages/RejectPage";
 import NotFound from "./features/pages/NotFound";
 import RessetPassowd from "./features/pages/ResetPassword";
 import Landing from "./features/pages/Landing";
+import MonitorPage from "./features/pages/MonitorPage";
 
 const App: FC = () => {
     const isMobile = useMediaQuery("(max-width: 768px)");
-
+    const location = useLocation();
     return (
         <MediaProvider>
-            <Header />
+            {location.pathname !== "/monitor" && <Header />}
             <Routes>
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/ressetpassword" element={<RessetPassowd />} />
-
+                <Route path="/monitor" element={<MonitorPage />} />
                 <Route
                     path="/*"
                     element={
