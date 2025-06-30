@@ -1,33 +1,40 @@
 import {
     Box,
+    Button,
     Table,
     TableBody,
     TableCell,
     TableContainer,
     TableHead,
     TableRow,
+    Typography,
     styled,
 } from "@mui/material";
+import { useEffect, useState } from "react";
+import { useSelector } from "react-redux";
+import { RootState } from "src/store/store";
 import SULogoCustom from "src/assets/su-logoCustom";
+import { useGetQueueTypeByTokenQuery } from "src/store/managerApi";
+import { useGetQueueForClientsQuery } from "src/store/managerApi";
+import connection, { startSignalR } from "src/features/signalR";
 
-// 🔹 Типизация данных талонов
 type Ticket = {
     ticket: string;
     room: string;
     window: string;
 };
 
-// 🔹 Пример данных (в будущем — из SignalR)
-const ticketData: Ticket[] = [
-    { ticket: "233", room: "04", window: "01" },
-    { ticket: "34", room: "04", window: "02" },
-    { ticket: "35", room: "04", window: "03" },
-    { ticket: "36", room: "04", window: "04" },
-];
+type WatchQueueClient = {
+    queueTypeId: string;
+    windowNumber: number;
+    nameRu: string;
+    nameKk: string;
+    nameEn: string;
+    ticketNumber: number;
+};
 
 const MAX_ROWS = 5;
 
-// 🔧 Фикс: всегда берём последние MAX_ROWS * 2 записей
 const getTableData = (data: Ticket[]) => {
     const MAX = MAX_ROWS * 2;
     const sliced = data.length > MAX ? data.slice(-MAX) : data;
@@ -38,7 +45,6 @@ const getTableData = (data: Ticket[]) => {
     };
 };
 
-// 🔵 Styled Components
 const PageContainer = styled(Box)(({ theme }) => ({
     display: "flex",
     flexDirection: "column",
@@ -51,20 +57,24 @@ const PageContainer = styled(Box)(({ theme }) => ({
 const MainContent = styled(Box)(({ theme }) => ({
     display: "flex",
     gap: theme.spacing(6),
-    alignItems: "center",
     justifyContent: "center",
     width: "100%",
     flex: 1,
 }));
+const VideoAndDateWrapper = styled(Box)(({ theme }) => ({
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+}));
 
 const VideoWrapper = styled(Box)(({ theme }) => ({
-    width: 460,
-    height: 320,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#ddd",
-    borderRadius: theme.spacing(1),
+    // width: 460,
+    // height: 320,
+    // display: "flex",
+    // alignItems: "center",
+    // justifyContent: "center",
+    // // backgroundColor: "#ddd",
+    // borderRadius: theme.spacing(1),
 }));
 
 const TablesWrapper = styled(Box)(({ theme }) => ({
@@ -110,8 +120,87 @@ const QueueTable = ({ data }: { data: Ticket[] }) => (
 );
 
 const MonitorPage = () => {
+    const [currentTime, setCurrentTime] = useState(new Date());
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setCurrentTime(new Date());
+        }, 1000);
+        return () => clearInterval(interval);
+    }, []);
+
+    const formattedDate = new Intl.DateTimeFormat("ru-RU", {
+        timeZone: "Asia/Almaty",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+    }).format(currentTime);
+
+    const formattedTime = new Intl.DateTimeFormat("ru-RU", {
+        timeZone: "Asia/Almaty",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+    }).format(currentTime);
+
+    const { data: queueData } = useGetQueueForClientsQuery();
+
+    const [queueSignalRData, setQueueSignalRData] = useState<
+        WatchQueueClient[]
+    >([]);
+    const queueTypeId = useSelector(
+        (state: RootState) => state.user.queueTypeId
+    );
+
+    const {
+        data: queueTypeData,
+        isLoading,
+        error,
+    } = useGetQueueTypeByTokenQuery();
+
+    useEffect(() => {
+        const connectSignalR = async () => {
+            await startSignalR();
+            connection.on(
+                "QueueForWatchClients",
+                (queueData: WatchQueueClient[]) => {
+                    if (Array.isArray(queueData)) {
+                        const filtered = queueData.filter(
+                            (q) => q.queueTypeId == queueTypeId
+                        );
+                        console.log("Filtered Queue Data:", filtered);
+                        setQueueSignalRData(filtered);
+                    }
+                }
+            );
+        };
+
+        connectSignalR();
+
+        return () => {
+            connection.off("QueueForWatchClients");
+        };
+    }, [queueTypeId]);
+
+    const ticketData: Ticket[] = queueSignalRData.map((item) => ({
+        ticket: item.ticketNumber.toString(),
+        room: item.nameRu, // Можно обновить, если появятся данные
+        window: item.windowNumber.toString(),
+    }));
+
     const { left, right } = getTableData(ticketData);
 
+    if (isLoading) {
+        return <div>Loading...</div>;
+    }
+
+    if (error) {
+        return <div>Error loading queue type data</div>;
+    }
+
+    const updateData = (): void => {
+        console.log(queueData);
+    };
     return (
         <PageContainer>
             <Box sx={{ mb: 4 }}>
@@ -123,18 +212,27 @@ const MonitorPage = () => {
                     <QueueTable data={left} />
                     <QueueTable data={right} />
                 </TablesWrapper>
-
-                <VideoWrapper>
-                    <iframe
-                        width="420"
-                        height="280"
-                        src="https://www.youtube.com/embed/K6Dm6po-QW4?si=wacWTyFOydyv5gcq"
-                        title="YouTube video player"
-                        frameBorder="0"
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                        allowFullScreen
-                    ></iframe>
-                </VideoWrapper>
+                <VideoAndDateWrapper>
+                    <VideoWrapper>
+                        <iframe
+                            width="520"
+                            height="280"
+                            src="https://www.youtube.com/embed/K6Dm6po-QW4?si=wacWTyFOydyv5gcq"
+                            title="YouTube video player"
+                            frameBorder="0"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                            allowFullScreen
+                        ></iframe>
+                    </VideoWrapper>
+                    <Box sx={{ textAlign: "center", mt: 2 }}>
+                        <Typography variant="h3">
+                            Дата: {formattedDate}
+                        </Typography>
+                        <Typography variant="h3">
+                            Время: {formattedTime}
+                        </Typography>
+                    </Box>
+                </VideoAndDateWrapper>
             </MainContent>
         </PageContainer>
     );

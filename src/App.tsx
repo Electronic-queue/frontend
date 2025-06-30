@@ -46,7 +46,14 @@ const App: FC = () => {
                 <Routes>
                     <Route path="/login" element={<LoginPage />} />
                     <Route path="/ressetpassword" element={<RessetPassowd />} />
-                    <Route path="/monitor" element={<MonitorPage />} />
+                    <Route
+                        path="/monitor"
+                        element={
+                            <ProtectedRoute>
+                                <MonitorPage />
+                            </ProtectedRoute>
+                        }
+                    />
                     <Route
                         path="/*"
                         element={

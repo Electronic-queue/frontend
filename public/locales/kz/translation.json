@@ -111,6 +111,7 @@
         "windowPausedMessage": "Терезе кідіртілді",
         "notificationsIsEmpty": "Хабарламалар жоқ",
         "cancelQueue": "Кезекті болдырмау",
+        "monitor": "Монитор",
         "queueCanceled": "Кезек жойылды",
         "cancelError": "Кезекті болдырмау кезінде қате пайда болды",
         "emptyQueue": "Кезек бос",

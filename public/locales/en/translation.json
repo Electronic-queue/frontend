@@ -110,6 +110,7 @@
         "windowPausedMessage": "Window paused",
         "notificationsIsEmpty": "No notifications",
         "cancelQueue": "Cancel queue",
+        "monitor": "Monitor",
         "queueCanceled": "Queue canceled",
         "cancelError": "Error canceling the queue",
         "emptyQueue": "Queue is empty",

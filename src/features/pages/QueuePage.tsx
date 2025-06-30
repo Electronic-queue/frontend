@@ -26,6 +26,7 @@ import connection, { startSignalR } from "src/features/signalR";
 import i18n from "src/i18n";
 type StatusType = "idle" | "called" | "accepted" | "redirected";
 import LoopIcon from "@mui/icons-material/Loop";
+import { useNavigate } from "react-router-dom";
 type clientListSignalR = {
     ticketNumber: number;
     lastName: string;
@@ -76,6 +77,8 @@ const clientData1 = {
 const serviceTime1 = "0";
 const QueuePage: FC = () => {
     const { t } = useTranslation();
+    const navigate = useNavigate();
+
     const [selectedTime, setSelectedTime] = useState<number>(1);
     const [isPauseModalOpen, setIsPauseModalOpen] = useState(false);
     const [isTimerModalOpen, setIsTimerModalOpen] = useState(false);
@@ -389,6 +392,13 @@ const QueuePage: FC = () => {
                         onClick={() => handleCancelQueue()}
                     >
                         {t("i18n_queue.cancelQueue")}
+                    </CustomButton>
+                    <CustomButton
+                        variantType="primary"
+                        sizeType="medium"
+                        onClick={() => navigate("/monitor")}
+                    >
+                        {t("i18n_queue.monitor")}
                     </CustomButton>
                 </ButtonWrapper>
                 <Box

@@ -110,6 +110,7 @@
         "windowPausedMessage": "Окно на паузе",
         "notificationsIsEmpty": "Нет уведомлений",
         "cancelQueue": "Отменить записи",
+        "monitor": "Монитор",
         "queueCanceled": "Очередь отменена",
         "cancelError": "Ошибка при отмене очереди",
         "emptyQueue": "Очередь пуста",

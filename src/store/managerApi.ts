@@ -188,6 +188,25 @@ export const managerApi = createApi({
             }),
         }),
 
+        getQueueTypeByToken: builder.query<any, void>({
+            query: () => ({
+                url: "QueueType/get-queuetype-by-token",
+                method: "GET",
+                params: {
+                    "api-version": "1",
+                },
+            }),
+        }),
+        getQueueForClients: builder.query<any, void>({
+            query: () => ({
+                url: "QueueItem/GetQueueForClients",
+                method: "GET",
+                params: {
+                    "api-version": "1",
+                },
+            }),
+        }),
+
         createReview: builder.mutation<
             any,
             { recordId: number; rating: number; content: string }
@@ -222,4 +241,6 @@ export const {
     useGetQueueTypeQuery,
     useGetServiceListMutation,
     useGetServicesForManagerMutation,
+    useGetQueueTypeByTokenQuery,
+    useGetQueueForClientsQuery,
 } = managerApi;
