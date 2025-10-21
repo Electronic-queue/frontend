@@ -217,13 +217,15 @@ const MonitorPage = () => {
                         <iframe
                             width="520"
                             height="280"
-                            src="https://www.youtube.com/embed/K6Dm6po-QW4?si=wacWTyFOydyv5gcq"
+                            src="https://www.youtube.com/embed/S2wAVGtBv8g?si=uWhw1lQqs5IbrIil"
                             title="YouTube video player"
                             frameBorder="0"
                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                            referrerPolicy="strict-origin-when-cross-origin"
                             allowFullScreen
                         ></iframe>
                     </VideoWrapper>
+
                     <Box sx={{ textAlign: "center", mt: 2 }}>
                         <Typography variant="h3">
                             Дата: {formattedDate}

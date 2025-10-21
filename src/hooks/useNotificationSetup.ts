@@ -39,7 +39,6 @@ export const useNotificationSetup = () => {
 
                     if (token) {
                         dispatch(setFcmToken(token));
-                        console.log("FCM Token:", token);
                     } else {
                         console.warn("Не удалось получить токен");
                     }
