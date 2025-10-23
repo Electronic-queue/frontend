@@ -70,6 +70,16 @@ interface TimerProps {
     onTimeout: () => void;
 }
 
+interface ClientRecord {
+    recordId: number;
+    windowNumber: number;
+    nameRu: string;
+    nameKk: string;
+    nameEn: string;
+    clientNumber: number;
+    expectedAcceptanceTime: string;
+    ticketNumber: number;
+}
 const Timer: React.FC<TimerProps> = ({ onTimeout }) => {
     const [timeLeft, setTimeLeft] = useState(90);
 
@@ -107,16 +117,23 @@ const CallPage = () => {
     const recordId = tokenData?.recordId ? Number(tokenData.recordId) : null;
     const [updateQueueItem] = useUpdateQueueItemMutation();
     const { data: ticketNumber } = useGetTicketNumberByTokenQuery(undefined);
-
+    const [recordData, setRecordData] = useState<ClientRecord | null>(null);
     const storedTicketNumber = useSelector(
         (state: RootState) => state.user.ticketNumber
     );
     const { data: clientRecord } = useGetClientRecordByIdQuery(recordId ?? 0, {
         skip: !recordId,
     });
+    console.log("recordData", recordData);
 
+    const roomName = clientRecord?.nameRu;
     const windowNumber = clientRecord?.windowNumber ?? "-";
     useEffect(() => {}, [storedRecordId]);
+    useEffect(() => {
+        if (clientRecord) {
+            setRecordData(clientRecord);
+        }
+    }, [clientRecord]);
     useEffect(() => {
         startSignalR();
         connection.on("ReceiveRecordCreated", (newRecord) => {
@@ -223,6 +240,16 @@ const CallPage = () => {
                             sx={{ marginBottom: 2, color: "black" }}
                         >
                             {t("i18n_queue.approachWindow")} {windowNumber}
+                        </Typography>
+                        <Typography
+                            variant="h4"
+                            sx={{
+                                marginBottom: 2,
+                                color: "black",
+                                marginTop: 2,
+                            }}
+                        >
+                            {roomName}
                         </Typography>
                         <Timer
                             onTimeout={() => {
