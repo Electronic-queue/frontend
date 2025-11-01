@@ -117,7 +117,10 @@ const ServiceSelection = () => {
                 dispatch(setToken(response.token));
                 dispatch(setRecordId(null));
                 localStorage.removeItem("recordId");
-
+                localStorage.setItem(
+                    "selectedService",
+                    JSON.stringify(selectedService)
+                );
                 navigate("/wait");
             } else {
                 alert("Ошибка: не получен токен");
@@ -126,6 +129,12 @@ const ServiceSelection = () => {
             alert("Ошибка создания записи");
         }
     };
+    useEffect(() => {
+        const savedService = localStorage.getItem("selectedService");
+        if (savedService) {
+            setSelectedService(JSON.parse(savedService));
+        }
+    }, []);
 
     return (
         <BackgroundContainer>

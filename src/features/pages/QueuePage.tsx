@@ -133,7 +133,12 @@ const QueuePage: FC = () => {
     useEffect(() => {
         (async () => {
             await startSignalR();
+
             connection.on("ClientListByManagerId", (clientListSignalR) => {
+                console.log(
+                    "🔥 ClientListByManagerId получен:",
+                    clientListSignalR
+                );
                 if (
                     Array.isArray(clientListSignalR) &&
                     clientListSignalR.length > 0
@@ -141,19 +146,25 @@ const QueuePage: FC = () => {
                     if (clientListSignalR[0].managerId == managerIdData) {
                         setClientsSignalR(clientListSignalR);
                     }
-                } else {
                 }
             });
+
             connection.on("RecieveManagerStatic", (managerStatic) => {
+                console.log("🔥 RecieveManagerStatic получен:", managerStatic);
                 if (managerStatic.managerId === managerIdData) {
                     setManagerStatic(managerStatic);
                 }
+            });
+
+            connection.on("ReceiveManagersStatic", (windowInfo) => {
+                console.log("🔥 ReceiveManagersStatic получен:", windowInfo);
             });
         })();
 
         return () => {
             connection.off("ClientListByManagerId");
             connection.off("RecieveManagerStatic");
+            connection.off("ReceiveManagersStatic");
         };
     }, [managerIdData]);
 

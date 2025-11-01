@@ -75,6 +75,7 @@
         "approachWindow": "Approach the window №",
         "timeoutMessage": "You didn't make it in time, your queue record has been deleted. Please register again.",
         "rateService": "Rate the service",
+        "serviceCompletedFully": "Service completed",
         "leaveFeedback": "Leave feedback (optional)",
         "characters": "characters",
         "submit": "Submit",
