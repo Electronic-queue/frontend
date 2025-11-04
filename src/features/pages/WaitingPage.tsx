@@ -183,8 +183,13 @@ const WaitingPage = () => {
             );
 
             if (latestRecord) {
-                setRecordData(latestRecord);
+                setRecordData((prev) => ({
+                    ...prev,
+                    ...latestRecord,
+                }));
+
                 refetch();
+
                 if (latestRecord.clientNumber === -6) {
                     navigate("/rejected", { replace: true });
                 }
@@ -238,7 +243,7 @@ const WaitingPage = () => {
     }
 
     const displayedName =
-        i18n.language === "kz"
+        (i18n.language === "kz"
             ? wasRedirected
                 ? cabinetNameKk
                 : recordData?.nameKk
@@ -248,7 +253,7 @@ const WaitingPage = () => {
                   : recordData?.nameEn
               : wasRedirected
                 ? cabinetNameRu
-                : recordData?.nameRu;
+                : recordData?.nameRu) || "—";
 
     return (
         <BackgroundContainer>
