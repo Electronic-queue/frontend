@@ -1,4 +1,4 @@
-import { FC, useState, useEffect } from "react";
+import { FC, useState, useEffect, useRef } from "react";
 import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
 import { styled } from "@mui/material/styles";
@@ -101,7 +101,8 @@ const QueuePage: FC = () => {
         []
     );
     const [managerStatic, setManagerStatic] = useState<managerStatic>();
-
+    const [clientData, setClientData] = useState(clientData1);
+    console.log("ClientData", clientData);
     const { refetch: refetchClients } = useGetRecordListByManagerQuery();
     useEffect(() => {
         refetchClients();
@@ -130,6 +131,68 @@ const QueuePage: FC = () => {
         }
     }, [clientsSignalR]);
 
+    const clientsRef = useRef<clientListSignalR[]>([]);
+    useEffect(() => {
+        clientsRef.current = clientsSignalR;
+    }, [clientsSignalR]);
+
+    useEffect(() => {
+        const interval = setInterval(async () => {
+            try {
+                const { data } = await refetchClients();
+
+                if (data && Array.isArray(data)) {
+                    const mappedData: clientListSignalR[] = data.map(
+                        (item: any) => ({
+                            ticketNumber: item.ticketNumber,
+                            lastName: item.lastName,
+                            firstName: item.firstName,
+                            serviceNameRu: item.serviceNameRu,
+                            serviceNameKk: item.serviceNameKk,
+                            serviceNameEn: item.serviceNameEn,
+                            serviceId: item.serviceId,
+                            managerId: item.managerId,
+                            surname: item.surname || "",
+                            iin: item.iin,
+                            expectedAcceptanceTime: item.expectedAcceptanceTime,
+                            createdOn: item.createdOn,
+                            averageExecutionTime: item.averageExecutionTime,
+                        })
+                    );
+
+                    const isDifferent =
+                        JSON.stringify(mappedData) !==
+                        JSON.stringify(clientsRef.current);
+
+                    if (isDifferent) {
+                        console.log(
+                            "🔁 Обновляем список клиентов из refetchClients()"
+                        );
+                        setClientsSignalR(mappedData);
+                    }
+
+                    // Если список стал пустым — очищаем
+                    if (
+                        mappedData.length === 0 &&
+                        clientsRef.current.length > 0
+                    ) {
+                        console.log(
+                            "🧹 Очередь пуста, очищаем клиентские данные"
+                        );
+                        setClientsSignalR([]);
+                        setStatus("idle");
+                        sessionStorage.removeItem("clientStatus");
+                        setClientData(clientData1);
+                    }
+                }
+            } catch (err) {
+                console.warn("Ошибка автообновления списка:", err);
+            }
+        }, 5000);
+
+        return () => clearInterval(interval);
+    }, [refetchClients]);
+
     useEffect(() => {
         (async () => {
             await startSignalR();
@@ -144,7 +207,7 @@ const QueuePage: FC = () => {
                     clientListSignalR.length > 0
                 ) {
                     if (clientListSignalR[0].managerId == managerIdData) {
-                        setClientsSignalR(clientListSignalR);
+                        setClientsSignalR([...clientListSignalR]);
                     }
                 }
             });
@@ -335,16 +398,21 @@ const QueuePage: FC = () => {
                 return item.serviceNameRu;
         }
     };
-    const clientData = firstClient
-        ? {
-              clientNumber: `${firstClient.ticketNumber}`,
-              lastName: firstClient.lastName,
-              firstName: firstClient.firstName,
-              patronymic: firstClient.surname || "",
-              service: getServiceName(firstClient, currentLanguage),
-              iin: firstClient.iin,
-          }
-        : null;
+    useEffect(() => {
+        if (clientsSignalR.length > 0 && clientsSignalR[0]) {
+            const firstClient = clientsSignalR[0];
+            setClientData({
+                clientNumber: `${firstClient.ticketNumber}`,
+                lastName: firstClient.lastName,
+                firstName: firstClient.firstName,
+                patronymic: firstClient.surname || "",
+                service: getServiceName(firstClient, currentLanguage),
+                iin: firstClient.iin,
+            });
+        } else {
+            setClientData(clientData1);
+        }
+    }, [clientsSignalR, currentLanguage]);
 
     const handlePauseModalOpen = () => {
         setIsPauseModalOpen(true);
@@ -461,12 +529,11 @@ const QueuePage: FC = () => {
                     number={managerStatic?.inLine || 0}
                 />
             </StatusCardWrapper>
-
             <ClientCard
-                clientData={firstClient ? clientData! : clientData1}
+                clientData={clientData}
                 serviceTime={
-                    firstClient
-                        ? String(firstClient.averageExecutionTime)
+                    clientsSignalR.length > 0
+                        ? String(clientsSignalR[0].averageExecutionTime)
                         : serviceTime1
                 }
                 onRedirect={handleRedirectClient}
