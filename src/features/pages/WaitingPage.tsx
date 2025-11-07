@@ -201,7 +201,7 @@ const WaitingPage = () => {
 
         return () => {
             connection.off("ReceiveRecordCreated");
-            connection.off("RecieveUpdateRecord");
+            connection.off("ReceiveUpdateRecord");
         };
     }, [ticketNumber, navigate]);
 
@@ -220,7 +220,7 @@ const WaitingPage = () => {
         dispatch(setToken(null));
         dispatch(setRecordId(null));
         connection.off("ReceiveRecordCreated");
-        connection.off("RecieveUpdateRecord");
+        connection.off("ReceiveUpdateRecord");
         navigate("/");
     }, [recordId, dispatch, navigate, updateQueueItem]);
 
