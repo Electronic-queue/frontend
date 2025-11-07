@@ -126,7 +126,10 @@ const QueuePage: FC = () => {
 
     useEffect(() => {
         if (clientsSignalR.length === 0) {
-            setStatus((prev) => (prev === "idle" ? "idle" : prev));
+            setStatus("idle");
+            sessionStorage.removeItem("clientStatus");
+        } else if (status === "idle" && clientsSignalR.length > 0) {
+            sessionStorage.setItem("clientStatus", "called");
         }
     }, [clientsSignalR]);
 
@@ -139,13 +142,14 @@ const QueuePage: FC = () => {
                     "🔥 ClientListByManagerId получен:",
                     clientListSignalR
                 );
+
+                if (!Array.isArray(clientListSignalR)) return;
+
                 if (
-                    Array.isArray(clientListSignalR) &&
-                    clientListSignalR.length > 0
+                    clientListSignalR.length === 0 ||
+                    clientListSignalR[0].managerId == managerIdData
                 ) {
-                    if (clientListSignalR[0].managerId == managerIdData) {
-                        setClientsSignalR(clientListSignalR);
-                    }
+                    setClientsSignalR(clientListSignalR);
                 }
             });
 
