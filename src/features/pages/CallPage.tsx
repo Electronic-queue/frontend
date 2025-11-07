@@ -197,7 +197,7 @@ const CallPage = () => {
         try {
             await updateQueueItem({ id: recordId }).unwrap();
         } catch (error) {
-            alert(error);
+            console.error("Ошибка при отмене очереди:", error);
         }
         localStorage.removeItem("recordId");
         localStorage.removeItem("ticketNumber");
@@ -215,7 +215,7 @@ const CallPage = () => {
         try {
             await updateQueueItem({ id: recordId }).unwrap();
         } catch (error) {
-            alert(error);
+            console.error("Ошибка при отмене очереди:", error);
         }
         localStorage.removeItem("token");
         localStorage.removeItem("recordId");
