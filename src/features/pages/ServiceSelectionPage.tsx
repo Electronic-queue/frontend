@@ -117,15 +117,27 @@ const ServiceSelection = () => {
                 dispatch(setToken(response.token));
                 dispatch(setRecordId(null));
                 localStorage.removeItem("recordId");
-
+                localStorage.setItem(
+                    "selectedService",
+                    JSON.stringify(selectedService)
+                );
                 navigate("/wait");
             } else {
                 alert("Ошибка: не получен токен");
             }
-        } catch (error) {
-            alert("Ошибка создания записи");
+        } catch (error: any) {
+            const message =
+                error?.data?.detail || error?.error || "Ошибка создания записи";
+
+            alert(message);
         }
     };
+    useEffect(() => {
+        const savedService = localStorage.getItem("selectedService");
+        if (savedService) {
+            setSelectedService(JSON.parse(savedService));
+        }
+    }, []);
 
     return (
         <BackgroundContainer>

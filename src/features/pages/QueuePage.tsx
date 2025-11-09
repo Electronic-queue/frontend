@@ -126,34 +126,49 @@ const QueuePage: FC = () => {
 
     useEffect(() => {
         if (clientsSignalR.length === 0) {
-            setStatus((prev) => (prev === "idle" ? "idle" : prev));
+            setStatus("idle");
+            sessionStorage.removeItem("clientStatus");
+        } else if (status === "idle" && clientsSignalR.length > 0) {
+            sessionStorage.setItem("clientStatus", "called");
         }
     }, [clientsSignalR]);
 
     useEffect(() => {
         (async () => {
             await startSignalR();
+
             connection.on("ClientListByManagerId", (clientListSignalR) => {
+                console.log(
+                    "🔥 ClientListByManagerId получен:",
+                    clientListSignalR
+                );
+
+                if (!Array.isArray(clientListSignalR)) return;
+
                 if (
-                    Array.isArray(clientListSignalR) &&
-                    clientListSignalR.length > 0
+                    clientListSignalR.length === 0 ||
+                    clientListSignalR[0].managerId == managerIdData
                 ) {
-                    if (clientListSignalR[0].managerId == managerIdData) {
-                        setClientsSignalR(clientListSignalR);
-                    }
-                } else {
+                    setClientsSignalR(clientListSignalR);
                 }
             });
+
             connection.on("RecieveManagerStatic", (managerStatic) => {
+                console.log("🔥 RecieveManagerStatic получен:", managerStatic);
                 if (managerStatic.managerId === managerIdData) {
                     setManagerStatic(managerStatic);
                 }
+            });
+
+            connection.on("ReceiveManagersStatic", (windowInfo) => {
+                console.log("🔥 ReceiveManagersStatic получен:", windowInfo);
             });
         })();
 
         return () => {
             connection.off("ClientListByManagerId");
             connection.off("RecieveManagerStatic");
+            connection.off("ReceiveManagersStatic");
         };
     }, [managerIdData]);
 

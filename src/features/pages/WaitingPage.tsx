@@ -183,8 +183,13 @@ const WaitingPage = () => {
             );
 
             if (latestRecord) {
-                setRecordData(latestRecord);
+                setRecordData((prev) => ({
+                    ...prev,
+                    ...latestRecord,
+                }));
+
                 refetch();
+
                 if (latestRecord.clientNumber === -6) {
                     navigate("/rejected", { replace: true });
                 }
@@ -196,7 +201,7 @@ const WaitingPage = () => {
 
         return () => {
             connection.off("ReceiveRecordCreated");
-            connection.off("ReceiveUpdateRecord");
+            connection.off("RecieveUpdateRecord");
         };
     }, [ticketNumber, navigate]);
 
@@ -215,7 +220,7 @@ const WaitingPage = () => {
         dispatch(setToken(null));
         dispatch(setRecordId(null));
         connection.off("ReceiveRecordCreated");
-        connection.off("ReceiveUpdateRecord");
+        connection.off("RecieveUpdateRecord");
         navigate("/");
     }, [recordId, dispatch, navigate, updateQueueItem]);
 
@@ -238,7 +243,7 @@ const WaitingPage = () => {
     }
 
     const displayedName =
-        i18n.language === "kz"
+        (i18n.language === "kz"
             ? wasRedirected
                 ? cabinetNameKk
                 : recordData?.nameKk
@@ -248,7 +253,7 @@ const WaitingPage = () => {
                   : recordData?.nameEn
               : wasRedirected
                 ? cabinetNameRu
-                : recordData?.nameRu;
+                : recordData?.nameRu) || "—";
 
     return (
         <BackgroundContainer>

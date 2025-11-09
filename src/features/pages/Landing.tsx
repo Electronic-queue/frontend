@@ -107,21 +107,23 @@ const Landing = () => {
                         </Typography>
                     )}
 
-                    {queueTypeData?.value?.map((queueType: any) => (
-                        <CustomButton
-                            key={queueType.queueTypeId}
-                            variantType="primary"
-                            onClick={() =>
-                                handleSelectQueueType(queueType.queueTypeId)
-                            }
-                        >
-                            {currentLanguage === "ru"
-                                ? queueType.nameRu
-                                : currentLanguage === "en"
-                                  ? queueType.nameEn
-                                  : queueType.nameKk}
-                        </CustomButton>
-                    ))}
+                    {[...(queueTypeData?.value || [])]
+                        .reverse()
+                        .map((queueType: any) => (
+                            <CustomButton
+                                key={queueType.queueTypeId}
+                                variantType="primary"
+                                onClick={() =>
+                                    handleSelectQueueType(queueType.queueTypeId)
+                                }
+                            >
+                                {currentLanguage === "ru"
+                                    ? queueType.nameRu
+                                    : currentLanguage === "en"
+                                      ? queueType.nameEn
+                                      : queueType.nameKk}
+                            </CustomButton>
+                        ))}
                 </Box>
             </FormContainer>
         </BackgroundContainer>
