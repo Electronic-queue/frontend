@@ -125,8 +125,11 @@ const ServiceSelection = () => {
             } else {
                 alert("Ошибка: не получен токен");
             }
-        } catch (error) {
-            alert("Ошибка создания записи");
+        } catch (error: any) {
+            const message =
+                error?.data?.detail || error?.error || "Ошибка создания записи";
+
+            alert(message);
         }
     };
     useEffect(() => {
