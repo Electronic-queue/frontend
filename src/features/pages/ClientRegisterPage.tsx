@@ -129,7 +129,7 @@ const ClientRegisterPage = () => {
                                 rules={{
                                     ...required,
                                     ...pattern(
-                                        /^[a-zA-Zа-яА-ЯёЁ-]+$/,
+                                        /^[a-zA-Zа-яА-ЯёЁәғқңөұүһіӘҒҚҢӨҰҮҺІ\s-]+$/,
                                         t("i18n_register.invalidNameError")
                                     ),
                                     ...maxLength(40),
@@ -143,7 +143,7 @@ const ClientRegisterPage = () => {
                                 rules={{
                                     ...required,
                                     ...pattern(
-                                        /^[a-zA-Zа-яА-ЯёЁ-]+$/,
+                                        /^[a-zA-Zа-яА-ЯёЁәғқңөұүһіӘҒҚҢӨҰҮҺІ\s-]+$/,
                                         t("i18n_register.invalidNameError")
                                     ),
                                     ...maxLength(40),
@@ -156,7 +156,7 @@ const ClientRegisterPage = () => {
                                 control={control}
                                 rules={{
                                     ...pattern(
-                                        /^[a-zA-Zа-яА-ЯёЁ-]+$/,
+                                        /^[a-zA-Zа-яА-ЯёЁәғқңөұүһіӘҒҚҢӨҰҮҺІ\s-]+$/,
                                         t("i18n_register.invalidNameError")
                                     ),
                                     ...maxLength(40),
