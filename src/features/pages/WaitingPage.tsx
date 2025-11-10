@@ -102,7 +102,10 @@ const WaitingPage = () => {
     const navigate = useNavigate();
     const dispatch = useDispatch();
     const recordId = useSelector((state: RootState) => state.user.recordId);
-    const { data: ticketData } = useGetTicketNumberByTokenQuery(undefined);
+    const { data: ticketData, refetch: refetchTicketNumber } =
+        useGetTicketNumberByTokenQuery(undefined, {
+            refetchOnMountOrArgChange: true,
+        });
     const wasRedirected = useSelector(
         (state: RootState) => state.user.wasRedirected
     );
@@ -121,7 +124,11 @@ const WaitingPage = () => {
             dispatch(setTicketNumber(ticketData.ticketNumber));
         }
     }, [ticketData, ticketNumber, dispatch]);
-
+    useEffect(() => {
+        if (recordId) {
+            refetchTicketNumber();
+        }
+    }, [recordId, refetchTicketNumber]);
     const [recordData, setRecordData] = useState<ClientRecord | null>(null);
 
     const {
@@ -134,6 +141,16 @@ const WaitingPage = () => {
     const { data: clientRecord } = useGetClientRecordByIdQuery(recordId ?? 0, {
         skip: !recordId,
     });
+    const token = localStorage.getItem("token");
+
+    useEffect(() => {
+        if (token) {
+            dispatch(setRecordId(null));
+            dispatch(setTicketNumber(null));
+            setRecordData(null);
+            refetch(); // повторно запросить новые данные
+        }
+    }, [token]);
 
     useEffect(() => {}, [clientRecord]);
     useEffect(() => {
