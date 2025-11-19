@@ -15,8 +15,8 @@ const SelectTime: FC<SelectTimeProps> = ({ onTimeSelect }) => {
     const handleTimeChange = (newValue: Dayjs | null) => {
         if (newValue) {
             let minutes = newValue.minute();
-            if (minutes > 30) {
-                minutes = 30;
+            if (minutes > 60) {
+                minutes = 60;
             }
             const adjustedTime = dayjs().minute(minutes).second(0);
             setSelectedTime(adjustedTime);
