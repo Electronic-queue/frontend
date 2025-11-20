@@ -134,9 +134,13 @@ const QueuePage: FC = () => {
     }, [clientsSignalR]);
 
     useEffect(() => {
-        (async () => {
-            await startSignalR();
+        // Если ID менеджера еще не загрузился, ждем и не подписываемся
+        if (!managerIdData) return;
 
+        const setupSignalR = async () => {
+            // --- 1. СНАЧАЛА ВЕШАЕМ СЛУШАТЕЛИ (Handlers) ---
+
+            // Слушатель списка клиентов
             connection.on("ClientListByManagerId", (clientListSignalR) => {
                 console.log(
                     "🔥 ClientListByManagerId получен:",
@@ -145,37 +149,58 @@ const QueuePage: FC = () => {
 
                 if (!Array.isArray(clientListSignalR)) return;
 
+                // Проверяем, что список пуст или предназначен для текущего менеджера
+                // Приводим к String для надежности, так как ID могут приходить как числа или строки
                 if (
                     clientListSignalR.length === 0 ||
-                    clientListSignalR[0].managerId == managerIdData
+                    String(clientListSignalR[0].managerId) ===
+                        String(managerIdData)
                 ) {
                     setClientsSignalR(clientListSignalR);
                 }
             });
 
+            // Слушатель статистики по конкретному менеджеру
             connection.on("RecieveManagerStatic", (managerStatic) => {
                 console.log("🔥 RecieveManagerStatic получен:", managerStatic);
-                if (managerStatic.managerId === managerIdData) {
+                if (String(managerStatic.managerId) === String(managerIdData)) {
                     setManagerStatic(managerStatic);
                 }
             });
 
+            // Слушатель общей статистики (был в твоем коде, возвращаем)
             connection.on("ReceiveManagersStatic", (windowInfo) => {
                 console.log("🔥 ReceiveManagersStatic получен:", windowInfo);
             });
-        })();
 
+            // --- 2. И ТОЛЬКО ПОТОМ ЗАПУСКАЕМ СОЕДИНЕНИЕ ---
+            try {
+                // Проверяем статус, чтобы не пытаться подключиться дважды
+                if (connection.state === "Disconnected") {
+                    await startSignalR();
+                    console.log("✅ SignalR подключен успешно");
+                }
+            } catch (err) {
+                console.error("❌ Ошибка подключения SignalR: ", err);
+            }
+        };
+
+        setupSignalR();
+
+        // --- 3. ОЧИСТКА ПРИ РАЗМОНТИРОВАНИИ ---
         return () => {
+            // Обязательно удаляем подписки, чтобы не дублировались вызовы
             connection.off("ClientListByManagerId");
             connection.off("RecieveManagerStatic");
             connection.off("ReceiveManagersStatic");
         };
-    }, [managerIdData]);
+    }, [managerIdData]); // Перезапуск эффекта, если изменится ID менеджера
 
     const handleUpdateClientList = async () => {
         try {
             const { data } = await refetchClients();
             if (data) {
+                setClientsSignalR(data as unknown as clientListSignalR[]);
                 setSnackbar({
                     open: true,
                     message: t("i18n_queue.clientListUpdated"),

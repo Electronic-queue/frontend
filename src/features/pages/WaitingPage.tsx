@@ -259,18 +259,20 @@ const WaitingPage = () => {
         );
     }
 
+    const activeRecord = recordData || clientRecord;
+
     const displayedName =
         (i18n.language === "kz"
             ? wasRedirected
                 ? cabinetNameKk
-                : recordData?.nameKk
+                : activeRecord?.nameKk // Было recordData?.nameKk
             : i18n.language === "en"
               ? wasRedirected
                   ? cabinetNameEn
-                  : recordData?.nameEn
+                  : activeRecord?.nameEn // Было recordData?.nameEn
               : wasRedirected
                 ? cabinetNameRu
-                : recordData?.nameRu) || "—";
+                : activeRecord?.nameRu) || "—"; // Было recordData?.nameRu
 
     return (
         <BackgroundContainer>
@@ -292,7 +294,8 @@ const WaitingPage = () => {
                 </Box>
 
                 <InfoBlock>
-                    {recordData ? (
+                    {/* ИСПРАВЛЕНИЕ: Проверяем activeRecord вместо recordData */}
+                    {activeRecord ? (
                         <>
                             <Typography variant="h6">
                                 {displayedName?.trim() ? displayedName : "—"}
@@ -300,19 +303,23 @@ const WaitingPage = () => {
 
                             <Typography variant="h6">
                                 {t("i18n_queue.window")}:{" "}
-                                {recordData.windowNumber ?? "—"}
+                                {/* ИСПРАВЛЕНИЕ: Берем из activeRecord */}
+                                {activeRecord.windowNumber ?? "—"}
                             </Typography>
                             <Typography variant="h6">
                                 {t("i18n_queue.peopleAhead")}:{" "}
-                                {recordData.clientNumber ?? "—"}
+                                {/* ИСПРАВЛЕНИЕ: Берем из activeRecord */}
+                                {activeRecord.clientNumber ?? "—"}
                             </Typography>
                             <Typography variant="h6">
                                 {t("i18n_queue.expectedTime")}:{" "}
-                                {recordData.expectedAcceptanceTime ?? "—"}
+                                {/* ИСПРАВЛЕНИЕ: Берем из activeRecord */}
+                                {activeRecord.expectedAcceptanceTime ?? "—"}
                             </Typography>
                         </>
                     ) : (
                         <>
+                            {/* Скелетоны остаются тут */}
                             <Skeleton
                                 variant="rectangular"
                                 width="100%"
