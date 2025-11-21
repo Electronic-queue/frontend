@@ -82,7 +82,6 @@ const ServiceSelection = () => {
                         : service.descriptionRu,
           }))
         : [];
-
     const filteredServices = services.filter((service) =>
         service.name.toLowerCase().includes(search.toLowerCase())
     );
@@ -99,12 +98,19 @@ const ServiceSelection = () => {
         }
 
         if (!userInfo) {
-            alert("Ошибка: данные пользователя отсутствуют");
+            alert("Ошибка: данные пользователя не заполнены, вернитесь назад");
             return;
         }
 
         dispatch(setServiceId(selectedService.id as any));
-
+        // ID услуги "Лаборатория" (на основе предоставленных данных)
+        const LABORATORY_SERVICE_ID = "166fbb61-32ec-492a-e844-08de268f0d54";
+        // Сообщение об ошибке от бэкенда, которое нужно перехватить
+        const BACKEND_TIMEOUT_MESSAGE =
+            "время ожидания вышло за рамки рабочих часов";
+        // Кастомное сообщение, которое нужно показать
+        const CUSTOM_LAB_MESSAGE =
+            "Время приема завершено. Лаборатория работает с 8:00 до 11:00";
         try {
             const response = await createRecord({
                 ...userInfo,
@@ -123,11 +129,31 @@ const ServiceSelection = () => {
                 );
                 navigate("/wait");
             } else {
-                alert("Ошибка: не получен токен");
+                alert("Ошибка: не получен токен, попробуйте снова");
             }
         } catch (error: any) {
-            const message =
-                error?.data?.detail || error?.error || "Ошибка создания записи";
+            // 1. Получаем ID выбранной услуги
+            const selectedServiceId = selectedService?.id;
+
+            // 2. Получаем сообщение об ошибке от бэкенда (если есть)
+            const backendErrorDetail = error?.data?.detail;
+
+            let message;
+
+            // 3. УСЛОВИЕ: Если это Лаборатория И сообщение от бэкенда совпадает с нужным
+            if (
+                selectedServiceId === LABORATORY_SERVICE_ID &&
+                backendErrorDetail === BACKEND_TIMEOUT_MESSAGE
+            ) {
+                // Показываем кастомное сообщение
+                message = CUSTOM_LAB_MESSAGE;
+            } else {
+                // В противном случае, используем стандартную логику обработки ошибок
+                message =
+                    backendErrorDetail ||
+                    error?.error ||
+                    "Ошибка создания записи, попробуйте снова";
+            }
 
             alert(message);
         }

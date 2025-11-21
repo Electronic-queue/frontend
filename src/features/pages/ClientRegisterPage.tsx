@@ -124,20 +124,6 @@ const ClientRegisterPage = () => {
                     {showFullNameFields && (
                         <>
                             <StyledTextField
-                                name="firstName"
-                                control={control}
-                                rules={{
-                                    ...required,
-                                    ...pattern(
-                                        /^[a-zA-Zа-яА-ЯёЁәғқңөұүһіӘҒҚҢӨҰҮҺІ\s-]+$/,
-                                        t("i18n_register.invalidNameError")
-                                    ),
-                                    ...maxLength(40),
-                                }}
-                                labelKey="i18n_register.firstName"
-                            />
-
-                            <StyledTextField
                                 name="lastName"
                                 control={control}
                                 rules={{
@@ -149,6 +135,20 @@ const ClientRegisterPage = () => {
                                     ...maxLength(40),
                                 }}
                                 labelKey="i18n_register.lastName"
+                            />
+
+                            <StyledTextField
+                                name="firstName"
+                                control={control}
+                                rules={{
+                                    ...required,
+                                    ...pattern(
+                                        /^[a-zA-Zа-яА-ЯёЁәғқңөұүһіӘҒҚҢӨҰҮҺІ\s-]+$/,
+                                        t("i18n_register.invalidNameError")
+                                    ),
+                                    ...maxLength(40),
+                                }}
+                                labelKey="i18n_register.firstName"
                             />
 
                             <StyledTextField
