@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
@@ -14,6 +15,9 @@ import { setUserInfo } from "src/store/userSlice";
 import { RootState } from "src/store/store";
 import { useNavigate } from "react-router-dom";
 
+// ✅ Импорты для SignalR
+import { startSignalR } from "../signalR";
+import { useRegisterClientMutation } from "src/store/signalRClientApi";
 const BackgroundContainer = styled(Box)(({ theme }) => ({
     display: "flex",
     flexDirection: "column",
@@ -48,6 +52,15 @@ const ClientRegisterPage = () => {
         (state: RootState) => state.user.queueTypeId
     );
 
+    const [registerClient, { isLoading: isRegistering }] = useRegisterClientMutation();
+
+    const token = useSelector((state: RootState) => (state as any).userAuth?.token || state.user?.token);
+
+    console.log("Current Token:", token);
+    useEffect(() => {
+        startSignalR();
+    }, []);
+
     const {
         control,
         handleSubmit,
@@ -63,23 +76,54 @@ const ClientRegisterPage = () => {
 
     const { required, pattern, maxLength } = useValidationRules();
 
-    const onSubmit = (data: FormValues) => {
-        const ONLY_IIN_TYPE = "7e734f7d-5639-4826-9a00-6b11938762aa";
+    const onSubmit = async (data: FormValues) => {
+        
+        
+        const proceedToSelection = () => {
+            const ONLY_IIN_TYPE = "7e734f7d-5639-4826-9a00-6b11938762aa";
 
-        const payload =
-            queueTypeId === ONLY_IIN_TYPE
-                ? { ...data, firstName: "", lastName: "", surname: "" }
-                : data;
+            const payload =
+                queueTypeId === ONLY_IIN_TYPE
+                    ? { ...data, firstName: "", lastName: "", surname: "" }
+                    : data;
 
-        dispatch(
-            setUserInfo({
-                ...payload,
-                firstName: payload.firstName || "",
-                lastName: payload.lastName || "",
-                surname: payload.surname || "",
-            })
-        );
-        navigate("/selection");
+            dispatch(
+                setUserInfo({
+                    ...payload,
+                    firstName: payload.firstName || "",
+                    lastName: payload.lastName || "",
+                    surname: payload.surname || "",
+                })
+            );
+            navigate("/selection");
+        };
+
+        try {
+            // Получаем Connection ID (если соединения нет, startSignalR попытается его поднять)
+            const connectionId = await startSignalR();
+            console.log("connectionId", connectionId)
+            if (connectionId) {
+                
+                await registerClient({ connectionId }).unwrap();
+                console.log("conectionId",connectionId)
+                console.log("✅ SignalR: Клиент успешно зарегистрирован");
+            } else {
+                console.warn("⚠️ SignalR: Не удалось получить ID, но продолжаем...");
+            }
+
+            
+
+        } catch (error: any) {
+            console.error("❌ Ошибка при регистрации в SignalR:", error);
+
+            // ✅ Если ошибка 404 — игнорируем и переходим дальше
+            if (error?.status === 401) {
+                console.log("⚠️ Получена ошибка 404. Переходим в Selection.");
+                proceedToSelection();
+            }
+            // Если ошибка другая (например 500), пользователь останется на форме 
+            // и увидит, что кнопка разблокировалась.
+        }
     };
 
     const ONLY_IIN_TYPE = "7e734f7d-5639-4826-9a00-6b11938762aa";
@@ -173,8 +217,9 @@ const ClientRegisterPage = () => {
                         type="submit"
                         color="primary"
                         fullWidth
+                        disabled={isRegistering} // Блокируем при отправке
                     >
-                        {t("i18n_register.submit")}
+                        {isRegistering ? "..." : t("i18n_register.submit")}
                     </CustomButton>
                 </Box>
             </FormContainer>

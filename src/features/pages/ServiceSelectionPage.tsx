@@ -130,7 +130,7 @@ const ServiceSelection = () => {
                 navigate("/wait");
             } else {
                 alert("Ошибка: не получен токен, попробуйте снова");
-            }
+            }   
         } catch (error: any) {
             // 1. Получаем ID выбранной услуги
             const selectedServiceId = selectedService?.id;
