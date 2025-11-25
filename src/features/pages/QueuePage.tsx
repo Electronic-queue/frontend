@@ -1,4 +1,4 @@
-import { FC, useState, useEffect } from "react";
+import { FC, useState, useEffect, useRef } from "react";
 import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
 import { styled } from "@mui/material/styles";
@@ -137,10 +137,7 @@ const QueuePage: FC = () => {
             sessionStorage.setItem("clientStatus", "called");
         }
     }, [clientsSignalR]);
-    useEffect(() => {
-            startSignalR();
-        }, []);        
-        
+              
     useEffect(() => {
         if (!managerIdData) return;
 
@@ -195,9 +192,58 @@ const QueuePage: FC = () => {
             connection.off("ReceiveManagersStatic");
             connection.off("ManagerQueueSnapshot")
         };
-    }, [managerIdData]); // Перезапуск эффекта, если изменится ID менеджера
-    
+    }, [managerIdData]); 
+    // ✅ Добавляем реф, чтобы не регистрироваться дважды при ре-рендере
+    const hasRegistered = useRef(false);
+
+    useEffect(() => {
+        let isMounted = true;
+
+        const initAndRegister = async () => {
+            // Если уже зарегистрировались — выходим
+            if (hasRegistered.current) return;
+
+            // Попытка 1: Запуск
+            let connectionId = await startSignalR();
+
+            // Если ID нет, пробуем подождать (до 5 секунд)
+            let attempts = 0;
+            while (!connectionId && attempts < 10 && isMounted) {
+                console.log(`⏳ ID нет, ждем... (Попытка ${attempts + 1})`);
+                await new Promise((resolve) => setTimeout(resolve, 500)); // Ждем 0.5 сек
+                
+                // Проверяем, появился ли ID в самом объекте connection
+                if (connection.state === "Connected" && connection.connectionId) {
+                    connectionId = connection.connectionId;
+                } else {
+                    // Пробуем старт еще раз, если соединение упало
+                    connectionId = await startSignalR();
+                }
+                attempts++;
+            }
+
+            // Если ID получен — регистрируем
+            if (connectionId && isMounted) {
+                try {
+                    console.log("🔗 ID получен:", connectionId);
+                    await registerManager({ connectionId: connectionId }).unwrap();
+                    console.log("✅ Успешная авто-регистрация менеджера!");
+                    hasRegistered.current = true; // Запоминаем успех
+                } catch (err) {
+                    console.error("🔥 Ошибка при вызове registerManager:", err);
+                }
+            } else {
+                console.warn("⚠️ Не удалось получить ID после нескольких попыток.");
+            }
+        };
+
+        initAndRegister();
+
+        return () => { isMounted = false; };
+    }, []);
+
     const handleUpdateClientList = async () => {
+        // autoRegister()
         try {
             const { data } = await refetchClients();
             if (data) {
@@ -208,6 +254,7 @@ const QueuePage: FC = () => {
                     severity: "success",
                 });
             }
+            
         } catch (error) {
             console.error("Error updating client list:", error);
             setSnackbar({
@@ -354,42 +401,7 @@ const QueuePage: FC = () => {
             console.error("Error completing client:", err);
         }
     };
-const handleTestRegistry = async () => {
-    try {
-        console.log("🚀 1. Начинаем процесс регистрации...");
-        
-        // Получаем ID
-        const connectionId = await startSignalR();
-        console.log("🔗 2. Connection ID от SignalR:", connectionId);
 
-        if (!connectionId) {
-            console.error("❌ Ошибка: Connection ID равен null или undefined");
-            return;
-        }
-
-        // Отправляем запрос
-        console.log("📡 3. Отправляем запрос на api/registry/manager...");
-        const response = await registerManager({ connectionId }).unwrap();
-        
-        console.log("✅ 4. УСПЕХ! Ответ сервера:", response);
-        
-    } catch (error: any) {
-        console.error("🔥 ОШИБКА ПРИ РЕГИСТРАЦИИ:", error);
-
-        // Расшифровка ошибки RTK Query
-        if (error?.status) {
-            console.error(`❌ Статус HTTP: ${error.status}`);
-            console.error("❌ Тело ошибки:", error.data);
-            
-            if (error.status === 401) {
-                console.warn("⚠️ Возможно, проблема с Токеном (Authorization header).");
-            }
-            if (error.status === 'FETCH_ERROR') {
-                console.warn("⚠️ Ошибка сети или SSL сертификата (Failed to fetch).");
-            }
-        }
-    }
-};
 
     const getServiceName = (item: clientListSignalR, lang: string) => {
         switch (lang) {
@@ -418,7 +430,7 @@ const handleTestRegistry = async () => {
     };
 
     const [rotateIcon, setRotateIcon] = useState(false);
-
+   
     return (
         <>
             <Box sx={{ position: "fixed", bottom: 16, left: 16 }}>
@@ -620,7 +632,6 @@ const handleTestRegistry = async () => {
                     managerId={managerId}
                 />
             </ReusableModal>
-            <Button onClick={handleTestRegistry}>Button</Button>
         </>
     );
 };
