@@ -21,12 +21,16 @@ import {
     useGetManagerIdQuery,
     useCancelQueueMutation,
 } from "src/store/managerApi";
-import { Alert, Snackbar } from "@mui/material";
+import { Alert, Button, Snackbar } from "@mui/material";
 import connection, { startSignalR } from "src/features/signalR";
 import i18n from "src/i18n";
 type StatusType = "idle" | "called" | "accepted" | "redirected";
 import LoopIcon from "@mui/icons-material/Loop";
 import { useNavigate } from "react-router-dom";
+import { useRegisterManagerMutation } from "src/store/signalRManagerApi";
+import { useSelector } from "react-redux";
+import { RootState } from "src/store/store";
+
 type clientListSignalR = {
     ticketNumber: number;
     lastName: string;
@@ -88,6 +92,7 @@ const QueuePage: FC = () => {
     const [completeClient] = useCompleteClientMutation();
     const [pauseWindow] = usePauseWindowMutation();
     const [cancelQueue] = useCancelQueueMutation();
+     const [registerManager, { isLoading: isRegistering }] = useRegisterManagerMutation();
     const [snackbar, setSnackbar] = useState<{
         open: boolean;
         message: string;
@@ -132,25 +137,23 @@ const QueuePage: FC = () => {
             sessionStorage.setItem("clientStatus", "called");
         }
     }, [clientsSignalR]);
-
     useEffect(() => {
-        // Если ID менеджера еще не загрузился, ждем и не подписываемся
+            startSignalR();
+        }, []);        
+        
+    useEffect(() => {
         if (!managerIdData) return;
 
         const setupSignalR = async () => {
-            // --- 1. СНАЧАЛА ВЕШАЕМ СЛУШАТЕЛИ (Handlers) ---
-
-            // Слушатель списка клиентов
+            connection.on("ManagerQueueSnapshot",  (dataManager) => {
+                console.log(dataManager)
+            })
             connection.on("ClientListByManagerId", (clientListSignalR) => {
                 console.log(
                     "🔥 ClientListByManagerId получен:",
                     clientListSignalR
                 );
-
                 if (!Array.isArray(clientListSignalR)) return;
-
-                // Проверяем, что список пуст или предназначен для текущего менеджера
-                // Приводим к String для надежности, так как ID могут приходить как числа или строки
                 if (
                     clientListSignalR.length === 0 ||
                     String(clientListSignalR[0].managerId) ===
@@ -160,20 +163,17 @@ const QueuePage: FC = () => {
                 }
             });
 
-            // Слушатель статистики по конкретному менеджеру
             connection.on("RecieveManagerStatic", (managerStatic) => {
                 console.log("🔥 RecieveManagerStatic получен:", managerStatic);
                 if (String(managerStatic.managerId) === String(managerIdData)) {
                     setManagerStatic(managerStatic);
                 }
             });
-
-            // Слушатель общей статистики (был в твоем коде, возвращаем)
+        
             connection.on("ReceiveManagersStatic", (windowInfo) => {
                 console.log("🔥 ReceiveManagersStatic получен:", windowInfo);
             });
 
-            // --- 2. И ТОЛЬКО ПОТОМ ЗАПУСКАЕМ СОЕДИНЕНИЕ ---
             try {
                 // Проверяем статус, чтобы не пытаться подключиться дважды
                 if (connection.state === "Disconnected") {
@@ -193,9 +193,10 @@ const QueuePage: FC = () => {
             connection.off("ClientListByManagerId");
             connection.off("RecieveManagerStatic");
             connection.off("ReceiveManagersStatic");
+            connection.off("ManagerQueueSnapshot")
         };
     }, [managerIdData]); // Перезапуск эффекта, если изменится ID менеджера
-
+    
     const handleUpdateClientList = async () => {
         try {
             const { data } = await refetchClients();
@@ -353,6 +354,42 @@ const QueuePage: FC = () => {
             console.error("Error completing client:", err);
         }
     };
+const handleTestRegistry = async () => {
+    try {
+        console.log("🚀 1. Начинаем процесс регистрации...");
+        
+        // Получаем ID
+        const connectionId = await startSignalR();
+        console.log("🔗 2. Connection ID от SignalR:", connectionId);
+
+        if (!connectionId) {
+            console.error("❌ Ошибка: Connection ID равен null или undefined");
+            return;
+        }
+
+        // Отправляем запрос
+        console.log("📡 3. Отправляем запрос на api/registry/manager...");
+        const response = await registerManager({ connectionId }).unwrap();
+        
+        console.log("✅ 4. УСПЕХ! Ответ сервера:", response);
+        
+    } catch (error: any) {
+        console.error("🔥 ОШИБКА ПРИ РЕГИСТРАЦИИ:", error);
+
+        // Расшифровка ошибки RTK Query
+        if (error?.status) {
+            console.error(`❌ Статус HTTP: ${error.status}`);
+            console.error("❌ Тело ошибки:", error.data);
+            
+            if (error.status === 401) {
+                console.warn("⚠️ Возможно, проблема с Токеном (Authorization header).");
+            }
+            if (error.status === 'FETCH_ERROR') {
+                console.warn("⚠️ Ошибка сети или SSL сертификата (Failed to fetch).");
+            }
+        }
+    }
+};
 
     const getServiceName = (item: clientListSignalR, lang: string) => {
         switch (lang) {
@@ -583,6 +620,7 @@ const QueuePage: FC = () => {
                     managerId={managerId}
                 />
             </ReusableModal>
+            <Button onClick={handleTestRegistry}>Button</Button>
         </>
     );
 };

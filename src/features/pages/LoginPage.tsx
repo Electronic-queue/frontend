@@ -17,6 +17,8 @@ import ReusableModal from "src/components/ModalPage";
 import { useValidationRules } from "src/hooks/useValidationRules";
 import StyledTextField from "src/hooks/StyledTextField";
 import { useForgotPasswordMutation } from "src/store/managerApi";
+import { useRegisterManagerMutation } from "src/store/signalRManagerApi";
+import { startSignalR } from "../signalR";
 
 const BackgroundContainer = styled(Box)(() => ({
     backgroundImage: `url(${QueueBackground})`,
@@ -109,6 +111,9 @@ const LoginPage: FC = () => {
     const handleClose = () => setIsOpen(false);
     const dispatch: AppDispatch = useDispatch();
     const navigate = useNavigate();
+
+    const [registerManager, { isLoading: isRegistering }] = useRegisterManagerMutation();
+    
     const { control, handleSubmit } = useForm({
         defaultValues: {
             username: "",
@@ -128,7 +133,7 @@ const LoginPage: FC = () => {
     );
 
     const onSubmit = async (data: { username: string; password: string }) => {
-        try {
+       try {
             const resultAction = await dispatch(
                 login({
                     login: data.username,
@@ -136,14 +141,37 @@ const LoginPage: FC = () => {
                 })
             );
 
+            console.log("👉 Результат логина:", resultAction);
+
             if (login.fulfilled.match(resultAction)) {
-                const token = resultAction.payload?.token;
+                // 1. Извлекаем данные из новой структуры
+                const payload = resultAction.payload;
+                const token = payload?.token;
+                const windowInfo = payload?.window;
+
+                if (token) {
+                    console.log("✅ Токен получен:", token);
+                    
+                    // 2. ОБЯЗАТЕЛЬНО сохраняем в localStorage, чтобы он не пропал при F5
+                    localStorage.setItem("token", token);
+                    
+                    // Если нужно, сохраняем информацию об окне
+                    if (windowInfo) {
+                        localStorage.setItem("windowInfo", JSON.stringify(windowInfo));
+                    }
+                    
+                    // Навигация сработает автоматически через useEffect, который следит за isAuthenticated
+                } else {
+                    console.error("❌ В ответе сервера нет поля 'token'!", payload);
+                }
             }
         } catch (error) {
             console.error("Ошибка при входе:", error);
         }
     };
-
+    useEffect(() => {
+            startSignalR();
+        }, []);
     useEffect(() => {
         if (isAuthenticated) {
             navigate("/manager/queue");
@@ -182,9 +210,20 @@ const LoginPage: FC = () => {
         setIsResetting(true);
 
         try {
+
+            const connectionId = await startSignalR();
             const res = await forgotPassword({ email: data.email }).unwrap();
             setResetStatusMessage("success");
             setIsDisabled(true);
+            if (connectionId) {
+                
+                await registerManager({ connectionId }).unwrap();
+                console.log("conectionId",connectionId)
+                console.log("✅ SignalR: Клиент успешно зарегистрирован");
+
+            } else {
+                console.warn("⚠️ SignalR: Не удалось получить ID, но продолжаем...");
+            }
         } catch (err: any) {
             console.error(
                 "Ошибка при сбросе пароля:",

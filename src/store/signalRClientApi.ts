@@ -20,7 +20,7 @@ export const signalRClientApi = createApi({
             query: (payload) => ({
                 url: "api/registry/client", 
                 method: "POST",
-                body: payload, // 2. Убран JSON.stringify
+                body: payload,
             }),
         }),
     }),

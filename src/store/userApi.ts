@@ -3,6 +3,7 @@ import { RootState } from "src/store/store";
 import { ManagerRecord } from "src/types/managerApiTypes";
 
 export const userApi = createApi({
+    
     reducerPath: "userApi",
     baseQuery: fetchBaseQuery({
         baseUrl: import.meta.env.VITE_API_BASE_URL,
@@ -69,6 +70,13 @@ export const userApi = createApi({
                 params: { "api-version": "1" },
             }),
         }),
+        loginRecord: builder.mutation<any, {iin: string}>({
+            query: ({ iin }) => ({
+                url: "https://qmain-test.satbayev.university/api/Record/login",
+                method: "POST",
+                body: { iin: iin },                
+            }),
+        }),
     }),
 });
 
@@ -79,4 +87,5 @@ export const {
     useGetClientRecordByIdQuery,
     useUpdateQueueItemMutation,
     useGetTicketNumberByTokenQuery,
+    useLoginRecordMutation
 } = userApi;

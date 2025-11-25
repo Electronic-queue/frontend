@@ -14,10 +14,10 @@ import { useDispatch, useSelector } from "react-redux";
 import { setUserInfo } from "src/store/userSlice";
 import { RootState } from "src/store/store";
 import { useNavigate } from "react-router-dom";
-
-// ✅ Импорты для SignalR
 import { startSignalR } from "../signalR";
 import { useRegisterClientMutation } from "src/store/signalRClientApi";
+import { useLoginRecordMutation } from "src/store/userApi";
+
 const BackgroundContainer = styled(Box)(({ theme }) => ({
     display: "flex",
     flexDirection: "column",
@@ -53,6 +53,7 @@ const ClientRegisterPage = () => {
     );
 
     const [registerClient, { isLoading: isRegistering }] = useRegisterClientMutation();
+    const [loginRecord, { isLoading: isLoggingIn }] = useLoginRecordMutation();
 
     const token = useSelector((state: RootState) => (state as any).userAuth?.token || state.user?.token);
 
@@ -99,7 +100,10 @@ const ClientRegisterPage = () => {
         };
 
         try {
-            // Получаем Connection ID (если соединения нет, startSignalR попытается его поднять)
+          const response = await loginRecord({ iin: data.iin }).unwrap();
+        
+        // 👇 2. Выводим эту переменную в консоль
+        console.log("✅ Login Record Success. ОТВЕТ СЕРВЕРА:", response);
             const connectionId = await startSignalR();
             console.log("connectionId", connectionId)
             if (connectionId) {
@@ -107,6 +111,7 @@ const ClientRegisterPage = () => {
                 await registerClient({ connectionId }).unwrap();
                 console.log("conectionId",connectionId)
                 console.log("✅ SignalR: Клиент успешно зарегистрирован");
+                      proceedToSelection();
             } else {
                 console.warn("⚠️ SignalR: Не удалось получить ID, но продолжаем...");
             }
@@ -116,13 +121,18 @@ const ClientRegisterPage = () => {
         } catch (error: any) {
             console.error("❌ Ошибка при регистрации в SignalR:", error);
 
-            // ✅ Если ошибка 404 — игнорируем и переходим дальше
             if (error?.status === 401) {
-                console.log("⚠️ Получена ошибка 404. Переходим в Selection.");
                 proceedToSelection();
             }
-            // Если ошибка другая (например 500), пользователь останется на форме 
-            // и увидит, что кнопка разблокировалась.
+            if (error?.status === 404) {
+                proceedToSelection();
+            }
+            if (error?.status === 201) {
+                proceedToSelection();
+            }
+            if (error?.status === 500) {
+                proceedToSelection();
+            }
         }
     };
 
