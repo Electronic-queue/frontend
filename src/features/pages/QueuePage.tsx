@@ -20,6 +20,7 @@ import {
     usePauseWindowMutation,
     useGetManagerIdQuery,
     useCancelQueueMutation,
+    useStartWindowMutation,
 } from "src/store/managerApi";
 import { Alert, Button, Snackbar } from "@mui/material";
 import connection, { startSignalR } from "src/features/signalR";
@@ -46,11 +47,10 @@ type clientListSignalR = {
     createdOn: string;
     averageExecutionTime: number;
 };
-// ✅ Новый тип для входящего снимка (Snapshot)
 type ManagerSnapshotData = {
     managerId: string;
     activeClient: any | null;
-    queue: any[]; // Можно уточнить тип массива очереди, если нужно
+    queue: any[]; 
     stats: {
         inLine: number;
         redirected: number;
@@ -104,6 +104,8 @@ const QueuePage: FC = () => {
     const [completeClient] = useCompleteClientMutation();
     const [pauseWindow] = usePauseWindowMutation();
     const [cancelQueue] = useCancelQueueMutation();
+    const [startWindow] = useStartWindowMutation();
+    
      const [registerManager, { isLoading: isRegistering }] = useRegisterManagerMutation();
     const [snackbar, setSnackbar] = useState<{
         open: boolean;
@@ -163,21 +165,24 @@ const QueuePage: FC = () => {
             redirected: data.stats.redirected,
             inLine: data.stats.inLine,
         });
+        if(data.queue.length){
+            setClientsSignalR(data.queue)
+        }
             })
-            connection.on("ClientListByManagerId", (clientListSignalR) => {
-                console.log(
-                    "🔥 ClientListByManagerId получен:",
-                    clientListSignalR
-                );
-                if (!Array.isArray(clientListSignalR)) return;
-                if (
-                    clientListSignalR.length === 0 ||
-                    String(clientListSignalR[0].managerId) ===
-                        String(managerIdData)
-                ) {
-                    setClientsSignalR(clientListSignalR);
-                }
-            });
+            // connection.on("ClientListByManagerId", (clientListSignalR) => {
+            //     console.log(
+            //         "🔥 ClientListByManagerId получен:",
+            //         clientListSignalR
+            //     );
+            //     if (!Array.isArray(clientListSignalR)) return;
+            //     if (
+            //         clientListSignalR.length === 0 ||
+            //         String(clientListSignalR[0].managerId) ===
+            //             String(managerIdData)
+            //     ) {
+            //         setClientsSignalR(clientListSignalR);
+            //     }
+            // });
 
             connection.on("RecieveManagerStatic", (managerStatic) => {
                 console.log("🔥 RecieveManagerStatic получен:", managerStatic);
@@ -247,6 +252,8 @@ const QueuePage: FC = () => {
                     console.log("🔗 ID получен:", connectionId);
                     await registerManager({ connectionId: connectionId }).unwrap();
                     console.log("✅ Успешная авто-регистрация менеджера!");
+                     await startWindow({ managerId }).unwrap();
+                     console.log("✅ Окно успешно запущено автоматически");
                     hasRegistered.current = true; // Запоминаем успех
                 } catch (err) {
                     console.error("🔥 Ошибка при вызове registerManager:", err);
@@ -260,9 +267,11 @@ const QueuePage: FC = () => {
 
         return () => { isMounted = false; };
     }, []);
+   
+
+
 
     const handleUpdateClientList = async () => {
-        // autoRegister()
         try {
             const { data } = await refetchClients();
             if (data) {
@@ -656,3 +665,5 @@ const QueuePage: FC = () => {
 };
 
 export default QueuePage;
+
+
