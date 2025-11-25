@@ -46,6 +46,18 @@ type clientListSignalR = {
     createdOn: string;
     averageExecutionTime: number;
 };
+// ✅ Новый тип для входящего снимка (Snapshot)
+type ManagerSnapshotData = {
+    managerId: string;
+    activeClient: any | null;
+    queue: any[]; // Можно уточнить тип массива очереди, если нужно
+    stats: {
+        inLine: number;
+        redirected: number;
+        rejected: number;
+        serviced: number;
+    };
+};
 type managerStatic = {
     managerId: string;
     serviced: number;
@@ -142,8 +154,15 @@ const QueuePage: FC = () => {
         if (!managerIdData) return;
 
         const setupSignalR = async () => {
-            connection.on("ManagerQueueSnapshot",  (dataManager) => {
-                console.log(dataManager)
+            connection.on("ManagerQueueSnapshot",  (data: ManagerSnapshotData) => {
+                console.log(data)
+              setManagerStatic({
+            managerId: data.managerId,
+            serviced: data.stats.serviced,
+            rejected: data.stats.rejected,
+            redirected: data.stats.redirected,
+            inLine: data.stats.inLine,
+        });
             })
             connection.on("ClientListByManagerId", (clientListSignalR) => {
                 console.log(
