@@ -32,25 +32,27 @@ import { useRegisterManagerMutation } from "src/store/signalRManagerApi";
 import { useSelector } from "react-redux";
 import { RootState } from "src/store/store";
 
-type clientListSignalR = {
+
+type ClientData = {
     ticketNumber: number;
-    lastName: string;
-    firstName: string;
+    lastName: string | null;
+    firstName: string | null;
+    surname: string | null; 
     serviceNameRu: string;
     serviceNameKk: string;
     serviceNameEn: string;
-    serviceId: string;
-    managerId: string;
-    surname: string;
     iin: string;
     expectedAcceptanceTime: string;
-    createdOn: string;
+    createdOn?: string;
     averageExecutionTime: number;
+    statusId?: number; 
+    serviceId?: string; 
+    managerId?: string;
 };
 type ManagerSnapshotData = {
     managerId: string;
-    activeClient: any | null;
-    queue: any[]; 
+    activeClient: ClientData | null; // 👈 Используем ClientData вместо any
+    queue: ClientData[];
     stats: {
         inLine: number;
         redirected: number;
@@ -82,7 +84,7 @@ const StatusCardWrapper = styled(Stack)(({ theme }) => ({
     marginBottom: theme.spacing(6),
 }));
 
-const clientData1 = {
+const defaultClientData = {
     clientNumber: "-",
     lastName: "-",
     firstName: "-",
@@ -90,6 +92,8 @@ const clientData1 = {
     service: "-",
     iin: "-",
 };
+
+
 const serviceTime1 = "0";
 const QueuePage: FC = () => {
     const { t } = useTranslation();
@@ -113,27 +117,36 @@ const QueuePage: FC = () => {
         severity: "success" | "error" | "warning" | "info";
     }>({ open: false, message: "", severity: "success" });
 
-    const [status, setStatus] = useState<StatusType>("idle");
 
     const managerId: number = 6;
-    const [clientsSignalR, setClientsSignalR] = useState<clientListSignalR[]>(
-        []
-    );
-    const [managerStatic, setManagerStatic] = useState<managerStatic>();
+ 
+    const [snapshot, setSnapshot] = useState<ManagerSnapshotData | null>(null)
+// 1. Статус текущего окна (на основе activeClient из снепшота)
+    const getComputedStatus = (): StatusType => {
+        const active = snapshot?.activeClient;
+        if (!active) return "idle"; // Если активного нет -> idle
+        
+        // Маппинг statusId из бекенда
+        if (active.statusId === 3) return "called"; // Вызван
+        if (active.statusId === 4) return "accepted"; // Принят
+        
+        return "idle"; // -1 или любой другой
+    };
+
+    const computedStatus = getComputedStatus();
+
+    // 2. Кого показывать в Главной Карточке (ClientCard)?
+    // Если статус не idle -> показываем Активного клиента.
+    // Если статус idle -> показываем Первого в очереди (preview), чтобы знать кого вызывать.
+    const displayClientObj = (computedStatus !== "idle" && snapshot?.activeClient)
+        ? snapshot.activeClient
+        : snapshot?.queue?.[0]; // Берем первого из очереди
 
     const { refetch: refetchClients } = useGetRecordListByManagerQuery();
     useEffect(() => {
         refetchClients();
     }, []);
 
-    useEffect(() => {
-        const savedStatus = sessionStorage.getItem("clientStatus");
-        if (savedStatus) {
-            setStatus(savedStatus as StatusType);
-        }
-    }, []);
-
-    const firstClient = clientsSignalR?.[0] || null;
 
     const { data: managerIdData } = useGetManagerIdQuery() as {
         data?: string | undefined;
@@ -143,14 +156,6 @@ const QueuePage: FC = () => {
         sessionStorage.setItem("clientStatus", status);
     }, [status]);
 
-    useEffect(() => {
-        if (clientsSignalR.length === 0) {
-            setStatus("idle");
-            sessionStorage.removeItem("clientStatus");
-        } else if (status === "idle" && clientsSignalR.length > 0) {
-            sessionStorage.setItem("clientStatus", "called");
-        }
-    }, [clientsSignalR]);
               
     useEffect(() => {
         if (!managerIdData) return;
@@ -158,52 +163,37 @@ const QueuePage: FC = () => {
         const setupSignalR = async () => {
             connection.on("ManagerQueueSnapshot",  (data: ManagerSnapshotData) => {
                 console.log(data)
-              setManagerStatic({
-            managerId: data.managerId,
-            serviced: data.stats.serviced,
-            rejected: data.stats.rejected,
-            redirected: data.stats.redirected,
-            inLine: data.stats.inLine,
-        });
-        if(data.queue.length){
-            setClientsSignalR(data.queue)
-        }
+                setSnapshot(data); 
+       
             })
-            // connection.on("ClientListByManagerId", (clientListSignalR) => {
+            // connection.on("ClientListByManagerId", (ClientData) => {
             //     console.log(
             //         "🔥 ClientListByManagerId получен:",
-            //         clientListSignalR
+            //         ClientData
             //     );
-            //     if (!Array.isArray(clientListSignalR)) return;
+            //     if (!Array.isArray(ClientData)) return;
             //     if (
-            //         clientListSignalR.length === 0 ||
-            //         String(clientListSignalR[0].managerId) ===
+            //         ClientData.length === 0 ||
+            //         String(ClientData[0].managerId) ===
             //             String(managerIdData)
             //     ) {
-            //         setClientsSignalR(clientListSignalR);
+            //         setClientsSignalR(ClientData);
             //     }
             // });
-
-            connection.on("RecieveManagerStatic", (managerStatic) => {
-                console.log("🔥 RecieveManagerStatic получен:", managerStatic);
-                if (String(managerStatic.managerId) === String(managerIdData)) {
-                    setManagerStatic(managerStatic);
-                }
-            });
         
-            connection.on("ReceiveManagersStatic", (windowInfo) => {
-                console.log("🔥 ReceiveManagersStatic получен:", windowInfo);
-            });
+            // connection.on("ReceiveManagersStatic", (windowInfo) => {
+            //     console.log("🔥 ReceiveManagersStatic получен:", windowInfo);
+            // });
 
-            try {
-                // Проверяем статус, чтобы не пытаться подключиться дважды
-                if (connection.state === "Disconnected") {
-                    await startSignalR();
-                    console.log("✅ SignalR подключен успешно");
-                }
-            } catch (err) {
-                console.error("❌ Ошибка подключения SignalR: ", err);
-            }
+            // try {
+            //     // Проверяем статус, чтобы не пытаться подключиться дважды
+            //     if (connection.state === "Disconnected") {
+            //         await startSignalR();
+            //         console.log("✅ SignalR подключен успешно");
+            //     }
+            // } catch (err) {
+            //     console.error("❌ Ошибка подключения SignalR: ", err);
+            // }
         };
 
         setupSignalR();
@@ -211,42 +201,33 @@ const QueuePage: FC = () => {
         // --- 3. ОЧИСТКА ПРИ РАЗМОНТИРОВАНИИ ---
         return () => {
             // Обязательно удаляем подписки, чтобы не дублировались вызовы
-            connection.off("ClientListByManagerId");
-            connection.off("RecieveManagerStatic");
-            connection.off("ReceiveManagersStatic");
+            // connection.off("ClientListByManagerId");
+            // connection.off("RecieveManagerStatic");
+            // connection.off("ReceiveManagersStatic");
             connection.off("ManagerQueueSnapshot")
         };
     }, [managerIdData]); 
-    // ✅ Добавляем реф, чтобы не регистрироваться дважды при ре-рендере
     const hasRegistered = useRef(false);
 
     useEffect(() => {
         let isMounted = true;
 
         const initAndRegister = async () => {
-            // Если уже зарегистрировались — выходим
             if (hasRegistered.current) return;
-
-            // Попытка 1: Запуск
             let connectionId = await startSignalR();
-
-            // Если ID нет, пробуем подождать (до 5 секунд)
             let attempts = 0;
             while (!connectionId && attempts < 10 && isMounted) {
                 console.log(`⏳ ID нет, ждем... (Попытка ${attempts + 1})`);
-                await new Promise((resolve) => setTimeout(resolve, 500)); // Ждем 0.5 сек
+                await new Promise((resolve) => setTimeout(resolve, 500)); 
                 
-                // Проверяем, появился ли ID в самом объекте connection
                 if (connection.state === "Connected" && connection.connectionId) {
                     connectionId = connection.connectionId;
                 } else {
-                    // Пробуем старт еще раз, если соединение упало
                     connectionId = await startSignalR();
                 }
                 attempts++;
             }
 
-            // Если ID получен — регистрируем
             if (connectionId && isMounted) {
                 try {
                     console.log("🔗 ID получен:", connectionId);
@@ -275,7 +256,6 @@ const QueuePage: FC = () => {
         try {
             const { data } = await refetchClients();
             if (data) {
-                setClientsSignalR(data as unknown as clientListSignalR[]);
                 setSnackbar({
                     open: true,
                     message: t("i18n_queue.clientListUpdated"),
@@ -293,36 +273,36 @@ const QueuePage: FC = () => {
         }
     };
 
-    const handlePauseWindow = async () => {
-        try {
-            await pauseWindow({
-                managerId,
-                exceedingTime: selectedTime,
-            }).unwrap();
-            setIsPauseModalOpen(false);
-            setIsTimerModalOpen(true);
-            setSnackbar({
-                open: true,
-                message: t("i18n_queue.windowPaused"),
-                severity: "success",
-            });
-            if (clientsSignalR.length > 1) {
-                setStatus("called");
-                sessionStorage.setItem("clientStatus", "called");
-            } else {
-                setClientsSignalR([]);
-                setStatus("idle");
-                sessionStorage.removeItem("clientStatus");
-            }
-        } catch (error) {
-            console.error("Error while pausing the window:", error);
-            setSnackbar({
-                open: true,
-                message: t("i18n_queue.pauseError"),
-                severity: "error",
-            });
-        }
-    };
+    // const handlePauseWindow = async () => {
+    //     try {
+    //         await pauseWindow({
+    //             managerId,
+    //             exceedingTime: selectedTime,
+    //         }).unwrap();
+    //         setIsPauseModalOpen(false);
+    //         setIsTimerModalOpen(true);
+    //         setSnackbar({
+    //             open: true,
+    //             message: t("i18n_queue.windowPaused"),
+    //             severity: "success",
+    //         });
+    //         if (clientsSignalR.length > 1) {
+    //             setStatus("called");
+    //             sessionStorage.setItem("clientStatus", "called");
+    //         } else {
+    //             setClientsSignalR([]);
+    //             setStatus("idle");
+    //             sessionStorage.removeItem("clientStatus");
+    //         }
+    //     } catch (error) {
+    //         console.error("Error while pausing the window:", error);
+    //         setSnackbar({
+    //             open: true,
+    //             message: t("i18n_queue.pauseError"),
+    //             severity: "error",
+    //         });
+    //     }
+    // };
     const handleCancelQueue = async () => {
         try {
             await cancelQueue({}).unwrap();
@@ -331,8 +311,7 @@ const QueuePage: FC = () => {
                 message: t("i18n_queue.queueCanceled"),
                 severity: "success",
             });
-            setStatus("idle");
-            sessionStorage.removeItem("clientStatus");
+
         } catch (err) {
             console.error("Error while canceling the queue:", err);
             setSnackbar({
@@ -351,9 +330,6 @@ const QueuePage: FC = () => {
                 message: t("i18n_queue.clientAccepted"),
                 severity: "success",
             });
-
-            setStatus("accepted");
-            sessionStorage.setItem("clientStatus", "accepted");
         } catch (err) {}
     };
 
@@ -367,18 +343,12 @@ const QueuePage: FC = () => {
 
             refetchClients();
 
-            if (clientsSignalR.length > 1) {
-                setStatus("called");
-                sessionStorage.setItem("clientStatus", "called");
-            } else {
-                setStatus("idle");
-                sessionStorage.removeItem("clientStatus");
-            }
         } catch (err) {}
     };
 
-    const handleCallNextClient = async () => {
-        if (clientsSignalR.length === 0) {
+const handleCallNextClient = async () => {
+        // Проверяем очередь через snapshot
+        if (!snapshot?.queue?.length) {
             setSnackbar({
                 open: true,
                 message: t("i18n_queue.emptyQueue"),
@@ -386,23 +356,22 @@ const QueuePage: FC = () => {
             });
             return;
         }
+        
+        // 👇 РАСКОММЕНТИРУЙ ЭТОТ БЛОК 👇
         try {
-            await callNext({}).unwrap();
-            setSnackbar({
-                open: true,
-                message: t("i18n_queue.startQueue"),
-                severity: "success",
-            });
-
-            setStatus("called");
-            sessionStorage.setItem("clientStatus", "called");
-            refetchClients();
+           await callNext({}).unwrap();
+           // setStatus и sessionStorage здесь больше не нужны, интерфейс обновит snapshot
+           setSnackbar({
+               open: true,
+               message: t("i18n_queue.startQueue"),
+               severity: "success",
+           });
         } catch (err) {
-            setSnackbar({
-                open: true,
-                message: "Ошибка вызова клиента",
-                severity: "error",
-            });
+           setSnackbar({
+               open: true,
+               message: "Ошибка вызова клиента",
+               severity: "error",
+           });
         }
     };
 
@@ -416,22 +385,13 @@ const QueuePage: FC = () => {
             });
 
             await refetchClients();
-
-            if (clientsSignalR.length > 1) {
-                setStatus("called");
-                sessionStorage.setItem("clientStatus", "called");
-            } else {
-                setClientsSignalR([]);
-                setStatus("idle");
-                sessionStorage.removeItem("clientStatus");
-            }
         } catch (err) {
             console.error("Error completing client:", err);
         }
     };
 
 
-    const getServiceName = (item: clientListSignalR, lang: string) => {
+    const getServiceName = (item: ClientData, lang: string) => {
         switch (lang) {
             case "en":
                 return item.serviceNameEn;
@@ -441,16 +401,17 @@ const QueuePage: FC = () => {
                 return item.serviceNameRu;
         }
     };
-    const clientData = firstClient
+    const formattedClientData = displayClientObj
         ? {
-              clientNumber: `${firstClient.ticketNumber}`,
-              lastName: firstClient.lastName,
-              firstName: firstClient.firstName,
-              patronymic: firstClient.surname || "",
-              service: getServiceName(firstClient, currentLanguage),
-              iin: firstClient.iin,
+              clientNumber: `${displayClientObj.ticketNumber}`,
+              lastName: displayClientObj.lastName || "-",
+              firstName: displayClientObj.firstName || "-",
+              patronymic: displayClientObj.surname || "-",
+              service: getServiceName(displayClientObj, currentLanguage),
+              iin: displayClientObj.iin || "-",
           }
-        : null;
+        : defaultClientData;
+
 
     const handlePauseModalOpen = () => {
         setIsPauseModalOpen(true);
@@ -549,37 +510,21 @@ const QueuePage: FC = () => {
                 </Box>
             </Box>
 
-            <StatusCardWrapper>
-                <StatusCard
-                    variant="accepted"
-                    number={managerStatic?.serviced || 0}
-                />
-                <StatusCard
-                    variant="not_accepted"
-                    number={managerStatic?.rejected || 0}
-                />
-                <StatusCard
-                    variant="redirected"
-                    number={managerStatic?.redirected || 0}
-                />
-                <StatusCard
-                    variant="in_anticipation"
-                    number={managerStatic?.inLine || 0}
-                />
+        <StatusCardWrapper>
+                <StatusCard variant="accepted" number={snapshot?.stats.serviced || 0} />
+                <StatusCard variant="not_accepted" number={snapshot?.stats.rejected || 0} />
+                <StatusCard variant="redirected" number={snapshot?.stats.redirected || 0} />
+                <StatusCard variant="in_anticipation" number={snapshot?.stats.inLine || 0} />
             </StatusCardWrapper>
 
-            <ClientCard
-                clientData={firstClient ? clientData! : clientData1}
-                serviceTime={
-                    firstClient
-                        ? String(firstClient.averageExecutionTime)
-                        : serviceTime1
-                }
+           <ClientCard
+                clientData={formattedClientData} // 👈 Новые подготовленные данные
+                serviceTime={displayClientObj ? String(displayClientObj.averageExecutionTime) : serviceTime1}
                 onRedirect={handleRedirectClient}
                 onAccept={handleAcceptClient}
                 callNext={handleCallNextClient}
                 onComplete={handleСompleteClient}
-                status={status}
+                status={computedStatus} // 👈 Передаем вычисленный статус
             />
 
             <Box
@@ -592,7 +537,7 @@ const QueuePage: FC = () => {
                 {Array(4)
                     .fill(null)
                     .map((_, index) => {
-                        const item = clientsSignalR?.[index + 1];
+                const item = snapshot?.queue?.[index];
                         return item ? (
                             <QueueCard
                                 key={item.ticketNumber}
@@ -632,7 +577,7 @@ const QueuePage: FC = () => {
                             onTimeSelect={(time) => setSelectedTime(time)}
                         />
                     </Box>
-                    <CustomButton
+                    {/* <CustomButton
                         variantType="primary"
                         sizeType="medium"
                         onClick={() => {
@@ -642,7 +587,7 @@ const QueuePage: FC = () => {
                         }}
                     >
                         {t("i18n_queue.pauseWindow")}
-                    </CustomButton>
+                    </CustomButton> */}
                 </Box>
             </ReusableModal>
 
