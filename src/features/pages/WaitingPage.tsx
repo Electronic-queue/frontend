@@ -1,4 +1,4 @@
-import { useEffect, useReducer, useCallback, useState } from "react";
+import { useEffect, useReducer, useCallback, useState, useRef } from "react";
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
 import { styled } from "@mui/material/styles";
@@ -25,7 +25,9 @@ import { useNavigate } from "react-router-dom";
 import Skeleton from "@mui/material/Skeleton";
 import { RootState } from "src/store/store";
 import i18n from "src/i18n";
+import { useRegisterClientMutation } from "src/store/signalRClientApi";
 
+// --- STYLES ---
 const BackgroundContainer = styled(Box)(({ theme }) => ({
     display: "flex",
     flexDirection: "column",
@@ -50,11 +52,13 @@ const InfoBlock = styled(Box)(({ theme }) => ({
     gap: theme.spacing(2),
 }));
 
+// --- TYPES ---
 interface RefuseModalProps {
     open: boolean;
     onClose: () => void;
     onConfirm: () => void;
 }
+
 interface ClientRecord {
     recordId: number;
     windowNumber: number;
@@ -66,6 +70,7 @@ interface ClientRecord {
     ticketNumber: number;
 }
 
+// --- COMPONENTS ---
 const RefuseModal = ({ open, onClose, onConfirm }: RefuseModalProps) => {
     const { t } = useTranslation();
     return (
@@ -75,15 +80,8 @@ const RefuseModal = ({ open, onClose, onConfirm }: RefuseModalProps) => {
             width={340}
             showCloseButton={false}
         >
-            <Box
-                display="flex"
-                flexDirection="column"
-                gap={2}
-                alignItems="center"
-            >
-                <Typography variant="h4">
-                    {t("i18n_queue.refuseQueue")}
-                </Typography>
+            <Box display="flex" flexDirection="column" gap={2} alignItems="center">
+                <Typography variant="h4">{t("i18n_queue.refuseQueue")}</Typography>
                 <Box sx={{ display: "flex", gap: theme.spacing(2) }}>
                     <CustomButton variantType="primary" onClick={onConfirm}>
                         {t("i18n_queue.confirm")}
@@ -101,90 +99,112 @@ const WaitingPage = () => {
     const { t } = useTranslation();
     const navigate = useNavigate();
     const dispatch = useDispatch();
+    
+    // Redux Selectors
     const recordId = useSelector((state: RootState) => state.user.recordId);
-    const { data: ticketData, refetch: refetchTicketNumber } =
-        useGetTicketNumberByTokenQuery(undefined, {
-            refetchOnMountOrArgChange: true,
-        });
-    const wasRedirected = useSelector(
-        (state: RootState) => state.user.wasRedirected
-    );
+    const wasRedirected = useSelector((state: RootState) => state.user.wasRedirected);
     const cabinetNameRu = useSelector((state: RootState) => state.user.nameRu);
     const cabinetNameKk = useSelector((state: RootState) => state.user.nameKk);
     const cabinetNameEn = useSelector((state: RootState) => state.user.nameEn);
-    const ticketNumber = useSelector(
-        (state: RootState) => state.user.ticketNumber
-    );
+    const ticketNumber = useSelector((state: RootState) => state.user.ticketNumber);
 
-    useEffect(() => {
-        if (
-            ticketData?.ticketNumber &&
-            ticketData.ticketNumber !== ticketNumber
-        ) {
-            dispatch(setTicketNumber(ticketData.ticketNumber));
-        }
-    }, [ticketData, ticketNumber, dispatch]);
-    useEffect(() => {
-        if (recordId) {
-            refetchTicketNumber();
-        }
-    }, [recordId, refetchTicketNumber]);
-    const [recordData, setRecordData] = useState<ClientRecord | null>(null);
-
-    const {
-        data: tokenData,
-        isFetching: isFetchingRecordId,
-        refetch,
-    } = useGetRecordIdByTokenQuery(undefined, {
+    // RTK Queries & Mutations
+    const { data: ticketData, refetch: refetchTicketNumber } = useGetTicketNumberByTokenQuery(undefined, {
         refetchOnMountOrArgChange: true,
     });
+
+    const { data: tokenData, isFetching: isFetchingRecordId, refetch } = useGetRecordIdByTokenQuery(undefined, {
+        refetchOnMountOrArgChange: true,
+    });
+
     const { data: clientRecord } = useGetClientRecordByIdQuery(recordId ?? 0, {
         skip: !recordId,
     });
-    const token = localStorage.getItem("token");
 
-    useEffect(() => {
-        if (token) {
-            dispatch(setRecordId(null));
-            dispatch(setTicketNumber(null));
-            setRecordData(null);
-            refetch(); // повторно запросить новые данные
-        }
-    }, [token]);
+    const [updateQueueItem, { isLoading: isUpdating }] = useUpdateQueueItemMutation();
+    const [registerClient] = useRegisterClientMutation(); // 👈 Mutation added
 
-    useEffect(() => {}, [clientRecord]);
-    useEffect(() => {
-        if (recordId) {
-            refetch();
-        }
-    }, [recordId, refetch]);
-
-    useEffect(() => {}, [recordId]);
-    useEffect(() => {
-        if (clientRecord) {
-            setRecordData(clientRecord);
-        }
-    }, [clientRecord]);
-
-    useEffect(() => {
-        if (recordId) {
-            refetch();
-        }
-    }, [recordId, refetch]);
-
-    const [updateQueueItem, { isLoading: isUpdating }] =
-        useUpdateQueueItemMutation();
+    // Local State
+    const [recordData, setRecordData] = useState<ClientRecord | null>(null);
     const [isOpen, toggleModal] = useReducer((open) => !open, false);
+    
+    // Ref to prevent double registration in React 18
+    const hasRegistered = useRef(false);
 
+    // --- EFFECTS ---
+
+    // 1. Sync Ticket Number
+    useEffect(() => {
+        if (ticketData?.ticketNumber && ticketData.ticketNumber !== ticketNumber) {
+            dispatch(setTicketNumber(ticketData.ticketNumber));
+        }
+    }, [ticketData, ticketNumber, dispatch]);
+
+    // 2. Sync Record ID from Token
     useEffect(() => {
         if (tokenData?.recordId && tokenData.recordId !== recordId) {
             dispatch(setRecordId(tokenData.recordId));
         }
     }, [tokenData, recordId, dispatch]);
 
+    // 3. Handle Token refresh/initial load
+    const token = localStorage.getItem("token");
     useEffect(() => {
-        startSignalR();
+        if (token) {
+            // Reset logic if needed, or just ensure data is fresh
+            // dispatch(setRecordId(null)); // ⚠️ Careful resetting this if it causes flickers
+            // dispatch(setTicketNumber(null));
+            refetch();
+            refetchTicketNumber();
+        }
+    }, [token]);
 
+    // 4. Update local record data when query updates
+    useEffect(() => {
+        if (clientRecord) {
+            setRecordData(clientRecord);
+        }
+    }, [clientRecord]);
+
+    // 5. SignalR Connection & Registration Logic
+    useEffect(() => {
+        if (!recordId) return; // Ждем, пока появится recordId
+
+        let isMounted = true;
+
+        const initSignalR = async () => {
+            // Если уже зарегистрировались в этой сессии компонента, пропускаем
+            if (hasRegistered.current) return; 
+
+            try {
+                let connectionId = await startSignalR();
+                
+                // Небольшая повторная проверка (Retry logic light)
+                if (!connectionId && connection.state === "Connected") {
+                    connectionId = connection.connectionId;
+                }
+
+                if (connectionId && isMounted) {
+                    console.log("🔗 SignalR Connected, ID:", connectionId);
+                    
+                    // 👇 ВЫЗОВ РЕГИСТРАЦИИ КЛИЕНТА
+                    await registerClient({ 
+                        connectionId: connectionId 
+                        // Если бекенду нужен recordId, добавь сюда: recordId 
+                    }).unwrap();
+                    
+                    console.log("✅ Client registered via SignalR");
+                    hasRegistered.current = true;
+                }
+            } catch (err) {
+                console.error("❌ SignalR Registration Error:", err);
+            }
+        };
+
+        // Запускаем инициализацию
+        initSignalR();
+
+        // --- SUBSCRIPTIONS ---
         connection.on("ReceiveRecordCreated", (newRecord) => {
             if (newRecord.ticketNumber === ticketNumber) {
                 if (newRecord.clientNumber === -1) {
@@ -193,10 +213,27 @@ const WaitingPage = () => {
             }
         });
 
+        connection.on("RecordCreated", (RecordCreatedData) => {
+            console.log("RecordCreated", RecordCreatedData);
+        });
+
+        connection.on("RecordCalled", (recordCalledData) => {
+            console.log("RecordCalled", recordCalledData);
+        });
+
+        connection.on("RecordAccepted", (RecordAcceptedData) => {
+            console.log("RecordAccepted", RecordAcceptedData);
+        });
+         connection.on("RecordCompleted", (RecordCompletedData) => {
+            console.log("RecordCompleted", RecordCompletedData);
+        });
+         connection.on("RecordRedirected", (RecordRedirectedData) => {
+            console.log("RecordRedirected", RecordRedirectedData);
+        });
+
         connection.on("RecieveUpdateRecord", (queueList) => {
             const latestRecord = queueList.find(
-                (item: { ticketNumber: number }) =>
-                    item.ticketNumber === ticketNumber
+                (item: { ticketNumber: number }) => item.ticketNumber === ticketNumber
             );
 
             if (latestRecord) {
@@ -204,7 +241,6 @@ const WaitingPage = () => {
                     ...prev,
                     ...latestRecord,
                 }));
-
                 refetch();
 
                 if (latestRecord.clientNumber === -6) {
@@ -217,11 +253,16 @@ const WaitingPage = () => {
         });
 
         return () => {
+            isMounted = false;
             connection.off("ReceiveRecordCreated");
+            connection.off("InLine");
+            connection.off("RecordCalled");
+            connection.off("Served");
             connection.off("RecieveUpdateRecord");
         };
-    }, [ticketNumber, navigate]);
+    }, [recordId, ticketNumber, navigate, registerClient, refetch]);
 
+    // --- HANDLERS ---
     const handleConfirmRefuse = useCallback(async () => {
         if (!recordId) return;
         try {
@@ -229,18 +270,24 @@ const WaitingPage = () => {
         } catch (error) {
             console.error("Ошибка при обновлении очереди:", error);
         }
+        
+        // Очистка
         localStorage.removeItem("token");
         localStorage.removeItem("recordId");
         localStorage.removeItem("ticketNumber");
+        
         dispatch(setTicketNumber(null));
-        await refetch();
         dispatch(setToken(null));
         dispatch(setRecordId(null));
+        
+        // Отключаем слушатели вручную, хотя unmount эффект сработает при навигации
         connection.off("ReceiveRecordCreated");
         connection.off("RecieveUpdateRecord");
+        
         navigate("/");
     }, [recordId, dispatch, navigate, updateQueueItem]);
 
+    // --- RENDER ---
     if (isFetchingRecordId) {
         return (
             <BackgroundContainer>
@@ -252,9 +299,7 @@ const WaitingPage = () => {
     if (!recordId) {
         return (
             <BackgroundContainer>
-                <Typography variant="h6">
-                    {t("i18n_queue.noNotifications")}
-                </Typography>
+                <Typography variant="h6">{t("i18n_queue.noNotifications")}</Typography>
             </BackgroundContainer>
         );
     }
@@ -265,14 +310,14 @@ const WaitingPage = () => {
         (i18n.language === "kz"
             ? wasRedirected
                 ? cabinetNameKk
-                : activeRecord?.nameKk // Было recordData?.nameKk
+                : activeRecord?.nameKk
             : i18n.language === "en"
-              ? wasRedirected
-                  ? cabinetNameEn
-                  : activeRecord?.nameEn // Было recordData?.nameEn
-              : wasRedirected
-                ? cabinetNameRu
-                : activeRecord?.nameRu) || "—"; // Было recordData?.nameRu
+            ? wasRedirected
+                ? cabinetNameEn
+                : activeRecord?.nameEn
+            : wasRedirected
+            ? cabinetNameRu
+            : activeRecord?.nameRu) || "—";
 
     return (
         <BackgroundContainer>
@@ -288,13 +333,11 @@ const WaitingPage = () => {
                     }}
                 >
                     <Typography variant="h4">
-                        {t("i18n_queue.number")}{" "}
-                        {ticketNumber ? `${ticketNumber}` : ""}
+                        {t("i18n_queue.number")} {ticketNumber ? `${ticketNumber}` : ""}
                     </Typography>
                 </Box>
 
                 <InfoBlock>
-                    {/* ИСПРАВЛЕНИЕ: Проверяем activeRecord вместо recordData */}
                     {activeRecord ? (
                         <>
                             <Typography variant="h6">
@@ -302,39 +345,21 @@ const WaitingPage = () => {
                             </Typography>
 
                             <Typography variant="h6">
-                                {t("i18n_queue.window")}:{" "}
-                                {/* ИСПРАВЛЕНИЕ: Берем из activeRecord */}
-                                {activeRecord.windowNumber ?? "—"}
+                                {t("i18n_queue.window")}: {activeRecord.windowNumber ?? "—"}
                             </Typography>
                             <Typography variant="h6">
-                                {t("i18n_queue.peopleAhead")}:{" "}
-                                {/* ИСПРАВЛЕНИЕ: Берем из activeRecord */}
-                                {activeRecord.clientNumber ?? "—"}
+                                {t("i18n_queue.peopleAhead")}: {activeRecord.clientNumber ?? "—"}
                             </Typography>
                             <Typography variant="h6">
                                 {t("i18n_queue.expectedTime")}:{" "}
-                                {/* ИСПРАВЛЕНИЕ: Берем из activeRecord */}
                                 {activeRecord.expectedAcceptanceTime ?? "—"}
                             </Typography>
                         </>
                     ) : (
                         <>
-                            {/* Скелетоны остаются тут */}
-                            <Skeleton
-                                variant="rectangular"
-                                width="100%"
-                                height={30}
-                            />
-                            <Skeleton
-                                variant="rectangular"
-                                width="100%"
-                                height={30}
-                            />
-                            <Skeleton
-                                variant="rectangular"
-                                width="100%"
-                                height={30}
-                            />
+                            <Skeleton variant="rectangular" width="100%" height={30} />
+                            <Skeleton variant="rectangular" width="100%" height={30} />
+                            <Skeleton variant="rectangular" width="100%" height={30} />
                         </>
                     )}
                 </InfoBlock>

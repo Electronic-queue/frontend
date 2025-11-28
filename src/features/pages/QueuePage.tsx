@@ -151,11 +151,6 @@ const QueuePage: FC = () => {
     const { data: managerIdData } = useGetManagerIdQuery() as {
         data?: string | undefined;
     };
-
-    useEffect(() => {
-        sessionStorage.setItem("clientStatus", status);
-    }, [status]);
-
               
     useEffect(() => {
         if (!managerIdData) return;
