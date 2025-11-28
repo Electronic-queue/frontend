@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { Typography } from "@mui/material";
 import Stack from "@mui/material/Stack";
 import { styled } from "@mui/material/styles";
@@ -9,12 +9,10 @@ import { SULogoM } from "src/assets";
 import theme from "src/styles/theme";
 import { useNavigate } from "react-router-dom";
 import connection, { startSignalR } from "src/features/signalR";
-import {
-    useGetRecordIdByTokenQuery,
-    useGetTicketNumberByTokenQuery,
-} from "src/store/userApi";
+import { useGetRecordIdByTokenQuery } from "src/store/userApi";
 import { useSelector } from "react-redux";
 import { RootState } from "src/store/store";
+import { useRegisterClientMutation } from "src/store/signalRClientApi";
 
 const BackgroundContainer = styled(Box)(({ theme }) => ({
     display: "flex",
@@ -38,42 +36,56 @@ const FormContainer = styled(Stack)(({ theme }) => ({
 const InProgress = () => {
     const { t } = useTranslation();
     const navigate = useNavigate();
-
-    const { data: recordData, isLoading: isRecordLoading } =
-        useGetRecordIdByTokenQuery();
-    const ticketNumber = useSelector(
-        (state: RootState) => state.user.ticketNumber
-    );
+    
+    const { data: recordData, isLoading: isRecordLoading } = useGetRecordIdByTokenQuery();
+    
+    const ticketNumber = useSelector((state: RootState) => state.user.ticketNumber);
+    
+    const [registerClient] = useRegisterClientMutation();
+    const hasRegistered = useRef(false);
 
     useEffect(() => {
-        if (isRecordLoading) return;
+        if (isRecordLoading || !recordData) return;
 
-        startSignalR();
+        let isMounted = true;
 
-        connection.on("ReceiveRecordCreated", (newRecord) => {
-            if (
-                newRecord.recordId === recordData?.recordId &&
-                newRecord.clientNumber === -3
-            ) {
-                navigate("/rating");
+        const initSignalR = async () => {
+            if (hasRegistered.current) return;
+
+            try {
+                let connectionId = await startSignalR();
+
+                if (!connectionId && connection.state === "Connected") {
+                    connectionId = connection.connectionId;
+                }
+
+                if (connectionId && isMounted) {
+                    
+                    await registerClient({
+                        connectionId: connectionId,
+                    }).unwrap();
+
+                    hasRegistered.current = true;
+                }
+            } catch (err) {
+                console.error("❌ SignalR Registration Error:", err);
             }
-        });
+        };
 
-        connection.on("RecieveUpdateRecord", (queueList) => {
-            const updatedItem = queueList.find(
-                (item: { ticketNumber: number }) =>
-                    item.ticketNumber === ticketNumber
-            );
-            if (updatedItem && updatedItem.clientNumber === -3) {
-                navigate("/rating");
-            }
+        initSignalR();
+
+        connection.on("RecordCompleted", (data) => {
+            // console.log("🏁 RecordCompleted event:", data);
+
+            
+            navigate("/rating", { replace: true });
         });
 
         return () => {
-            connection.off("ReceiveRecordCreated");
-            connection.off("ReceiveUpdateRecord");
+            isMounted = false;
+            connection.off("RecordCompleted");
         };
-    }, [navigate, recordData, isRecordLoading]);
+    }, [navigate, recordData, isRecordLoading, registerClient]);
 
     return (
         <BackgroundContainer>
@@ -81,6 +93,11 @@ const InProgress = () => {
                 <SULogoM />
             </Box>
             <FormContainer>
+                 {ticketNumber && (
+                    <Typography variant="h3"  sx={{ mb: 2 }}>
+                      Ваш номер  {ticketNumber}
+                    </Typography>
+                )}
                 <Typography sx={{ fontSize: theme.typography.h5.fontSize }}>
                     {t("i18n_queue.beingServed")}
                 </Typography>

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Typography } from "@mui/material";
 import Stack from "@mui/material/Stack";
 import { styled } from "@mui/material/styles";
@@ -25,6 +25,7 @@ import {
     setWasRedirected,
 } from "src/store/userAuthSlice";
 import { RootState } from "src/store/store";
+import { useRegisterClientMutation } from "src/store/signalRClientApi";
 
 const BackgroundContainer = styled(Box)(({ theme }) => ({
     display: "flex",
@@ -124,8 +125,8 @@ const CallPage = () => {
     const { data: clientRecord } = useGetClientRecordByIdQuery(recordId ?? 0, {
         skip: !recordId,
     });
-    console.log("recordData", recordData);
-
+    const [registerClient] = useRegisterClientMutation(); 
+    const hasRegistered = useRef(false);
     const roomName = clientRecord?.nameRu;
     const windowNumber = clientRecord?.windowNumber ?? "-";
     useEffect(() => {}, [storedRecordId]);
@@ -135,7 +136,41 @@ const CallPage = () => {
         }
     }, [clientRecord]);
     useEffect(() => {
-        startSignalR();
+    if (!recordId) return; 
+
+        let isMounted = true;
+
+        const initSignalR = async () => {
+    
+            if (hasRegistered.current) return; 
+
+            try {
+                let connectionId = await startSignalR();
+                
+                if (!connectionId && connection.state === "Connected") {
+                    connectionId = connection.connectionId;
+                }
+
+                if (connectionId && isMounted) {
+                    
+                    await registerClient({ 
+                        connectionId: connectionId 
+                    }).unwrap();
+                    
+                    hasRegistered.current = true;
+                }
+            } catch (err) {
+                console.error("❌ SignalR Registration Error:", err);
+            }
+        };
+
+        initSignalR();
+        connection.on("RecordAccepted", (RecordAcceptedData) => {
+                    navigate("/progress", { replace: true });
+                });
+        connection.on("RecordRedirected", (RecordRedirectedData) => {
+                            console.log("RecordRedirected", RecordRedirectedData);
+                        });
         connection.on("ReceiveRecordCreated", (newRecord) => {
             if (
                 newRecord.ticketNumber === ticketNumber &&
@@ -274,7 +309,7 @@ const CallPage = () => {
                             gap: theme.spacing(2),
                         }}
                     >
-                        <Typography variant="h5" sx={{ color: "white" }}>
+                        <Typography variant="h5" sx={{ color: "black" }}>
                             {t("i18n_queue.timeoutMessage")}
                         </Typography>
                         <CustomButton
