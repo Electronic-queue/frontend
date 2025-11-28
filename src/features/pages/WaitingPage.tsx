@@ -188,6 +188,9 @@ const WaitingPage = () => {
         connection.on("RecordCalled", () => {
               navigate("/call", { replace: true });
         });
+        connection.on("QueuePositionUpdate", (positionUpdate) =>{
+            console.log("postion update", positionUpdate)
+        });
 
 
         return () => {
@@ -214,6 +217,7 @@ const WaitingPage = () => {
         
         connection.off("ReceiveRecordCreated");
         connection.off("RecieveUpdateRecord");
+        
         
         navigate("/");
     }, [recordId, dispatch, navigate, updateQueueItem]);

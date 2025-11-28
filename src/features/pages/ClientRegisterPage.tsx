@@ -14,9 +14,10 @@ import { useDispatch, useSelector } from "react-redux";
 import { setUserInfo } from "src/store/userSlice";
 import { RootState } from "src/store/store";
 import { useNavigate } from "react-router-dom";
-import { startSignalR } from "../signalR";
+import { startSignalR } from "../signalR"; // Убедись, что путь верный
 import { useRegisterClientMutation } from "src/store/signalRClientApi";
 import { useLoginRecordMutation } from "src/store/userApi";
+import { useHandleExistingSession } from "src/hooks/useHandleExistingSession"; // Наш новый хук
 
 const BackgroundContainer = styled(Box)(({ theme }) => ({
     display: "flex",
@@ -47,21 +48,19 @@ const ClientRegisterPage = () => {
     const { t } = useTranslation();
     const dispatch = useDispatch();
     const navigate = useNavigate();
+    
+    // Selectors
     const userInfo = useSelector((state: RootState) => state.user.userInfo);
-    const queueTypeId = useSelector(
-        (state: RootState) => state.user.queueTypeId
-    );
+    const queueTypeId = useSelector((state: RootState) => state.user.queueTypeId);
 
+    // API Mutations
     const [registerClient, { isLoading: isRegistering }] = useRegisterClientMutation();
     const [loginRecord, { isLoading: isLoggingIn }] = useLoginRecordMutation();
 
-    const token = useSelector((state: RootState) => (state as any).userAuth?.token || state.user?.token);
+    // Custom Hook для восстановления сессии
+    const { handleExistingSession } = useHandleExistingSession();
 
-    console.log("Current Token:", token);
-    useEffect(() => {
-        startSignalR();
-    }, []);
-
+    // Form Setup
     const {
         control,
         handleSubmit,
@@ -77,61 +76,78 @@ const ClientRegisterPage = () => {
 
     const { required, pattern, maxLength } = useValidationRules();
 
-    const onSubmit = async (data: FormValues) => {
+    // --- Логика для НОВОГО пользователя (вынесли в отдельную функцию для чистоты) ---
+    const processNewUser = async (data: FormValues) => {
+        console.log("👤 Обработка как Нового пользователя...");
         
-        
-        const proceedToSelection = () => {
-            const ONLY_IIN_TYPE = "7e734f7d-5639-4826-9a00-6b11938762aa";
+        // 1. Подготовка данных (фильтрация полей для "только ИИН" очередей)
+        const ONLY_IIN_TYPE = "7e734f7d-5639-4826-9a00-6b11938762aa";
+        const payload = queueTypeId === ONLY_IIN_TYPE
+            ? { ...data, firstName: "", lastName: "", surname: "" }
+            : data;
 
-            const payload =
-                queueTypeId === ONLY_IIN_TYPE
-                    ? { ...data, firstName: "", lastName: "", surname: "" }
-                    : data;
+        // 2. Сохраняем в Redux (чтобы на след. странице данные не пропали)
+        dispatch(
+            setUserInfo({
+                ...payload,
+                firstName: payload.firstName || "",
+                lastName: payload.lastName || "",
+                surname: payload.surname || "",
+            })
+        );
 
-            dispatch(
-                setUserInfo({
-                    ...payload,
-                    firstName: payload.firstName || "",
-                    lastName: payload.lastName || "",
-                    surname: payload.surname || "",
-                })
-            );
-            navigate("/selection");
-        };
-
+        // 3. Подключаем SignalR и регистрируем клиента
         try {
-          const response = await loginRecord({ iin: data.iin }).unwrap();
-        
-        // 👇 2. Выводим эту переменную в консоль
-        console.log("✅ Login Record Success. ОТВЕТ СЕРВЕРА:", response);
             const connectionId = await startSignalR();
-            console.log("connectionId", connectionId)
-            if (connectionId) {
-                
-                await registerClient({ connectionId }).unwrap();
-                console.log("conectionId",connectionId)
-                console.log("✅ SignalR: Клиент успешно зарегистрирован");
-                      proceedToSelection();
-            } else {
-                console.warn("⚠️ SignalR: Не удалось получить ID, но продолжаем...");
-            }
+            console.log("🔗 SignalR Connection ID:", connectionId);
 
+            if (connectionId) {
+                await registerClient({ connectionId }).unwrap();
+                console.log("✅ SignalR: Клиент успешно зарегистрирован");
+            } else {
+                console.warn("⚠️ SignalR: Не удалось получить ID, но переходим дальше...");
+            }
+        } catch (err) {
+            console.error("❌ Ошибка SignalR при регистрации:", err);
+            // Даже если SignalR упал, мы все равно пускаем юзера выбрать услугу,
+            // возможно подключение восстановится позже
+        }
+
+        // 4. Переход на выбор услуги
+        navigate("/selection");
+    };
+
+    // --- MAIN SUBMIT HANDLER ---
+    const onSubmit = async (data: FormValues) => {
+        try {
+            // ШАГ 1: Пытаемся залогиниться (проверить, есть ли активная запись)
+            const response = await loginRecord({ iin: data.iin }).unwrap();
             
+            // ШАГ 2: Проверяем, вернулась ли активная сессия
+            if (response && response.record && response.token) {
+                console.log("🔄 Найден активный талон. Восстанавливаем сессию...");
+                
+                // 🔥 ВЫЗЫВАЕМ НАШ ХУК
+                handleExistingSession(response);
+                
+                return; // 🛑 ОСТАНАВЛИВАЕМСЯ ЗДЕСЬ (не регистрируем как нового)
+            } else {
+                // Если ответ пришел пустой (маловероятно при unwrap, но все же)
+                await processNewUser(data);
+            }
 
         } catch (error: any) {
-            console.error("❌ Ошибка при регистрации в SignalR:", error);
-
-            if (error?.status === 401) {
-                proceedToSelection();
-            }
-            if (error?.status === 404) {
-                proceedToSelection();
-            }
-            if (error?.status === 201) {
-                proceedToSelection();
-            }
-            if (error?.status === 500) {
-                proceedToSelection();
+            // ШАГ 3: Обработка ошибок входа
+            
+            // Если 404 (Not Found) -> значит клиента нет или нет активного талона -> Это НОВЫЙ клиент
+            if (error?.status === 404 || error?.status === 401) {
+                console.log("ℹ️ Активной записи нет (404/401). Регистрируем нового...");
+                await processNewUser(data);
+            } 
+            // Если другие ошибки (500, 201 и т.д.), ваша логика тоже пускала дальше
+            else {
+                console.warn("⚠️ Ошибка входа:", error?.status, ". Пробуем зарегистрировать как нового.");
+                await processNewUser(data);
             }
         }
     };
@@ -227,9 +243,9 @@ const ClientRegisterPage = () => {
                         type="submit"
                         color="primary"
                         fullWidth
-                        disabled={isRegistering} // Блокируем при отправке
+                        disabled={isRegistering || isLoggingIn}
                     >
-                        {isRegistering ? "..." : t("i18n_register.submit")}
+                        {(isRegistering || isLoggingIn) ? "..." : t("i18n_register.submit")}
                     </CustomButton>
                 </Box>
             </FormContainer>
