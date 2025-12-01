@@ -148,58 +148,96 @@ const WaitingPage = () => {
         }
     }, [clientRecord]);
 
-    useEffect(() => {
-        if (!recordId) return; 
+useEffect(() => {
+        if (!recordId) return;
 
         let isMounted = true;
 
         const initSignalR = async () => {
-            if (hasRegistered.current) return; 
+            // 1. Проверка на повторный вход
+            if (hasRegistered.current) {
+                console.log("🔒 Уже зарегистрированы (skip)");
+                return;
+            }
 
             try {
-                let connectionId = await startSignalR();
-                
-                if (!connectionId && connection.state === "Connected") {
-                    connectionId = connection.connectionId;
+                console.log("🚀 Запуск initSignalR...");
+
+                // 2. Если не подключены - подключаемся
+                if (connection.state !== "Connected") {
+                    console.log("🔌 Статус не Connected, вызываем startSignalR...");
+                    await startSignalR();
                 }
 
-                if (connectionId && isMounted) {                    
-                    await registerClient({ 
-                        connectionId: connectionId 
-                    }).unwrap();
-                    
-                    hasRegistered.current = true;
+                // 3. ЖДЕМ ID (Самое важное исправление)
+                // Ждем до 5 секунд (10 попыток по 500мс), пока появится ID
+                let attempts = 0;
+                while (!connection.connectionId && attempts < 10) {
+                    if (!isMounted) return; // Если ушли со страницы - прекращаем ждать
+                    console.log(`⏳ Ждем Connection ID... Попытка ${attempts + 1}/10`);
+                    await new Promise((resolve) => setTimeout(resolve, 500));
+                    attempts++;
                 }
+
+                const finalConnectionId = connection.connectionId;
+                console.log("🆔 Final Connection ID:", finalConnectionId);
+
+                // 4. Регистрируем клиента
+                if (finalConnectionId && isMounted) {
+                    console.log("nt Отправка registerClient...");
+                    
+                    const response = await registerClient({
+                        connectionId: finalConnectionId
+                    }).unwrap();
+
+                    console.log("✅ Клиент успешно зарегистрирован:", response);
+                    hasRegistered.current = true;
+                } else {
+                    console.warn("⚠️ Тайм-аут: Connection ID так и не пришел или компонент размонтирован");
+                }
+
             } catch (err) {
-                console.error("❌ SignalR Registration Error:", err);
+                console.error("❌ Ошибка в процессе регистрации:", err);
+                hasRegistered.current = false;
             }
         };
 
         initSignalR();
 
-        connection.on("ReceiveRecordCreated", (newRecord) => {
+        // Подписки на события
+        const handleRecordCreated = (newRecord: any) => {
             if (newRecord.ticketNumber === ticketNumber) {
                 if (newRecord.clientNumber === -1) {
                     navigate("/call", { replace: true });
                 }
             }
-        });
+        };
 
-        connection.on("RecordCalled", () => {
-              navigate("/call", { replace: true });
-        });
-        connection.on("QueuePositionUpdate", (positionUpdate) =>{
-            console.log("postion update", positionUpdate)
-        });
+        const handleRecordCalled = () => {
+            navigate("/call", { replace: true });
+        };
+        
+        const handleQueueUpdate = (positionUpdate: any) => {
+             console.log("Queue update received:", positionUpdate);
+        };
 
+        connection.on("ReceiveRecordCreated", handleRecordCreated);
+        connection.on("RecordCalled", handleRecordCalled);
+        connection.on("QueuePositionUpdate", handleQueueUpdate);
 
         return () => {
+            console.log("🧹 Cleanup WaitingPage");
             isMounted = false;
-            connection.off("RecordCalled");
+            // Сбрасываем флаг, чтобы при возврате можно было снова зарегистрироваться
+            hasRegistered.current = false;
+
+            connection.off("ReceiveRecordCreated", handleRecordCreated);
+            connection.off("RecordCalled", handleRecordCalled);
+            connection.off("QueuePositionUpdate", handleQueueUpdate);
         };
     }, [recordId, ticketNumber, navigate, registerClient, refetch]);
 
-    const handleConfirmRefuse = useCallback(async () => {
+     const handleConfirmRefuse = useCallback(async () => {
         if (!recordId) return;
         try {
             await updateQueueItem({ id: recordId }).unwrap();
@@ -221,7 +259,7 @@ const WaitingPage = () => {
         
         navigate("/");
     }, [recordId, dispatch, navigate, updateQueueItem]);
-
+    
     if (isFetchingRecordId) {
         return (
             <BackgroundContainer>

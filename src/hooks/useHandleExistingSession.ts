@@ -37,7 +37,7 @@ export const useHandleExistingSession = () => {
     // 1. Сохраняем Токен
     dispatch(setToken(token));
     localStorage.setItem("token", token);
-
+    
     // 2. Сохраняем RecordId
     dispatch(setRecordId(record.recordId));
     localStorage.setItem("recordId", String(record.recordId));
