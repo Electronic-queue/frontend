@@ -113,13 +113,12 @@ const WaitingPage = () => {
     const { data: clientRecord } = useGetClientRecordByIdQuery(recordId ?? 0, {
         skip: !recordId,
     });
-
+    console.log("client reocored", clientRecord)
     const [updateQueueItem, { isLoading: isUpdating }] = useUpdateQueueItemMutation();
     const [registerClient] = useRegisterClientMutation();
 
     const [recordData, setRecordData] = useState<ClientRecord | null>(null);
     const [isOpen, toggleModal] = useReducer((open) => !open, false);
-    
     const hasRegistered = useRef(false);
 
     useEffect(() => {
@@ -141,7 +140,6 @@ const WaitingPage = () => {
             refetchTicketNumber();
         }
     }, [token]);
-
     useEffect(() => {
         if (clientRecord) {
             setRecordData(clientRecord);
@@ -206,21 +204,37 @@ useEffect(() => {
 
         // Подписки на события
         const handleRecordCreated = (newRecord: any) => {
-            if (newRecord.ticketNumber === ticketNumber) {
-                if (newRecord.clientNumber === -1) {
-                    navigate("/call", { replace: true });
-                }
-            }
+           console.log("recordCreated", newRecord)
         };
 
         const handleRecordCalled = () => {
             navigate("/call", { replace: true });
         };
         
-        const handleQueueUpdate = (positionUpdate: any) => {
-             console.log("Queue update received:", positionUpdate);
-        };
+    const handleQueueUpdate = (positionUpdate: Record<string, number>) => {
+            console.log("Queue update received:", positionUpdate);
 
+            // Проверяем, есть ли наш ID в списке обновлений
+            // Обращаемся к объекту по ключу [recordId]
+            if (recordId && positionUpdate[recordId] !== undefined) {
+                const newClientNumber = positionUpdate[recordId];
+                
+                console.log(`📉 Очередь сдвинулась! Перед вами теперь: ${newClientNumber}`);
+
+                // Обновляем стейт, чтобы React перерисовал цифру
+                setRecordData((prevData) => {
+                    // Если prevData еще нет, берем данные из clientRecord (начальные данные)
+                    const currentData = prevData || clientRecord;
+
+                    if (!currentData) return null;
+
+                    return {
+                        ...currentData,
+                        clientNumber: newClientNumber, // Записываем новое число
+                    };
+                });
+            }
+        };
         connection.on("ReceiveRecordCreated", handleRecordCreated);
         connection.on("RecordCalled", handleRecordCalled);
         connection.on("QueuePositionUpdate", handleQueueUpdate);
@@ -235,7 +249,7 @@ useEffect(() => {
             connection.off("RecordCalled", handleRecordCalled);
             connection.off("QueuePositionUpdate", handleQueueUpdate);
         };
-    }, [recordId, ticketNumber, navigate, registerClient, refetch]);
+    }, [recordId, ticketNumber, navigate, registerClient, refetch, clientRecord]);    
 
      const handleConfirmRefuse = useCallback(async () => {
         if (!recordId) return;

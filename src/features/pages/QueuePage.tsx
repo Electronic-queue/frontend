@@ -31,9 +31,11 @@ import { useNavigate } from "react-router-dom";
 import { useRegisterManagerMutation } from "src/store/signalRManagerApi";
 import { useSelector } from "react-redux";
 import { RootState } from "src/store/store";
+import React from "react";
 
 
 type ClientData = {
+    clientNumber: number;
     ticketNumber: number;
     lastName: string | null;
     firstName: string | null;
@@ -135,12 +137,11 @@ const QueuePage: FC = () => {
 
     const computedStatus = getComputedStatus();
 
+    
     // 2. Кого показывать в Главной Карточке (ClientCard)?
     // Если статус не idle -> показываем Активного клиента.
     // Если статус idle -> показываем Первого в очереди (preview), чтобы знать кого вызывать.
-    const displayClientObj = (computedStatus !== "idle" && snapshot?.activeClient)
-        ? snapshot.activeClient
-        : snapshot?.queue?.[0]; // Берем первого из очереди
+    
 
     const { refetch: refetchClients } = useGetRecordListByManagerQuery();
     useEffect(() => {
@@ -396,6 +397,21 @@ const handleCallNextClient = async () => {
                 return item.serviceNameRu;
         }
     };
+    const uniqueQueue = React.useMemo(() => {
+        if (!snapshot?.queue) return [];
+        
+        // Оставляем только те записи, у которых ticketNumber встречается впервые
+        return snapshot.queue.filter((client, index, self) => 
+            index === self.findIndex((t) => (
+                t.ticketNumber === client.ticketNumber
+            ))
+        );
+    }, [snapshot]);
+    const displayClientObj = (computedStatus !== "idle" && snapshot?.activeClient && snapshot.activeClient.ticketNumber !== -1)
+        ? snapshot.activeClient
+        : uniqueQueue[0];
+    
+
     const formattedClientData = displayClientObj
         ? {
               clientNumber: `${displayClientObj.ticketNumber}`,
@@ -532,10 +548,19 @@ const handleCallNextClient = async () => {
                 {Array(4)
                     .fill(null)
                     .map((_, index) => {
-                const item = snapshot?.queue?.[index];
+                        // БЕРЕМ ИЗ uniqueQueue
+                        // Логика: если displayClientObj - это uniqueQueue[0], 
+                        // то в маленьких карточках показываем начиная с uniqueQueue[1]
+                        
+                        // Если активный клиент уже вызван (не из очереди), то очередь показываем с 0
+                        // Но у вас логика была "index + 1", сохраним её, предполагая, что 0-й элемент сейчас на главном экране
+                        const item = uniqueQueue[index + 1];
+
                         return item ? (
                             <QueueCard
-                                key={item.ticketNumber}
+                                // clientNumber в вашей базе уникален (1,2,3,5), используем его для ключа, это надежнее всего
+                                key={item.clientNumber} 
+                                
                                 clientNumber={item.ticketNumber}
                                 service={getServiceName(item, currentLanguage)}
                                 bookingTime={new Date(
