@@ -29,7 +29,8 @@
         "confirmPassword": "Құпиясөзді растаңыз",
         "linkAlreadyUsed": "Сілтеме бұрыннан пайдаланылған, жаңасын сұраңыз:",
         "successEmail": "Хат сәтті жіберілді!",
-        "goToLogin": "Кіру бетіне өту"
+        "goToLogin": "Кіру бетіне өту",
+        "check": "Кіру"
     },
     "i18n_register": {
         "title": "Тіркеу",

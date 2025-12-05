@@ -41,7 +41,8 @@
         "iinError": "IIN must consist of 12 digits",
         "maxLengthError": "Maximum length is {{length}} characters",
         "minLengthError": "Minimum length is {{length}} characters",
-        "iinLengthError": "IIN must consist of 12 digits"
+        "iinLengthError": "IIN must consist of 12 digits",
+        "check": "Login"
     },
 
     "status": {
@@ -68,7 +69,7 @@
         "signUp": "Sign up",
         "number": "Your number №",
         "window": "Window",
-        "peopleAhead": "Your turn ",
+        "peopleAhead": "you're in line",
         "refuse": "Refuse",
         "cancel": "Cancel",
         "confirm": "Confirm",

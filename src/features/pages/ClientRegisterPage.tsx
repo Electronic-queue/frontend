@@ -177,7 +177,7 @@ const ClientRegisterPage = () => {
                         gap: theme.spacing(2),
                     }}
                 >
-                    <StyledTextField
+                    {/* <StyledTextField
                         name="iin"
                         control={control}
                         rules={{
@@ -189,7 +189,7 @@ const ClientRegisterPage = () => {
                         }}
                         labelKey="i18n_register.iin"
                         numericOnly={true}
-                    />
+                    /> */}
 
                     {showFullNameFields && (
                         <>

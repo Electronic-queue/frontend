@@ -42,7 +42,8 @@
         "iinError": "ИИН должен состоять из 12 цифр",
         "minLengthError": "Минимальная длина {{length}} символа",
         "maxLengthError": "Максимальная длина {{length}} символов",
-        "iinLengthError": "ИИН должен содержать 12 цифр"
+        "iinLengthError": "ИИН должен содержать 12 цифр",
+        "check": "Войти"
     },
     "status": {
         "accepted": "Приняты",
@@ -68,7 +69,7 @@
         "signUp": "Зарегистрироваться",
         "number": "Ваш номер №",
         "window": "Окно",
-        "peopleAhead": "Перед вами",
+        "peopleAhead": "Вы в очереди",
         "refuse": "Отказаться",
         "cancel": "Отменить",
         "confirm": "Подтвердить",
