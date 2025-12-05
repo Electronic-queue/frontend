@@ -104,10 +104,10 @@ const QueuePage: FC = () => {
     const [selectedTime, setSelectedTime] = useState<number>(1);
     const [isPauseModalOpen, setIsPauseModalOpen] = useState(false);
     const [isTimerModalOpen, setIsTimerModalOpen] = useState(false);
-    const [acceptClient] = useAcceptClientMutation();
+    const [acceptClient, { isLoading: isAccepting }] = useAcceptClientMutation();
     const currentLanguage = i18n.language || "ru";
-    const [callNext] = useCallNextMutation();
-    const [completeClient] = useCompleteClientMutation();
+    const [callNext, { isLoading: isCallingNext }] = useCallNextMutation();
+    const [completeClient, { isLoading: isCompleting }] = useCompleteClientMutation();
     const [pauseWindow] = usePauseWindowMutation();
     const [cancelQueue] = useCancelQueueMutation();
     const [startWindow] = useStartWindowMutation();
@@ -119,6 +119,7 @@ const QueuePage: FC = () => {
         severity: "success" | "error" | "warning" | "info";
     }>({ open: false, message: "", severity: "success" });
 
+    const isActionLoading = isAccepting || isCallingNext || isCompleting;
 
     const managerId: number = 6;
  
@@ -536,6 +537,7 @@ const handleCallNextClient = async () => {
                 callNext={handleCallNextClient}
                 onComplete={handleСompleteClient}
                 status={computedStatus} // 👈 Передаем вычисленный статус
+                isLoading={isActionLoading}
             />
 
             <Box

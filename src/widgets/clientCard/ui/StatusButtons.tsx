@@ -12,11 +12,11 @@ import {
     useRedirectClientMutation,
     useGetServicesForManagerMutation,
 } from "src/store/managerApi";
-
-import { t } from "i18next";
-import { Alert, Snackbar } from "@mui/material";
+import { Alert, Snackbar, CircularProgress } from "@mui/material";
 import { Service } from "src/widgets/serviceList/ui/ServiceList";
 import i18n from "src/i18n";
+
+// --- Интерфейсы ---
 
 interface StatusButtonsProps {
     status: string;
@@ -24,16 +24,10 @@ interface StatusButtonsProps {
     onAccept: () => void;
     onComplete: () => void;
     onRedirect: (serviceIdRedirect: number) => void;
+    isLoading: boolean; // 👈 Флаг загрузки от родителя
 }
 
-const IdleButton: FC<{ callNext: () => void }> = ({ callNext }) => {
-    const { t } = useTranslation();
-    return (
-        <CustomButton variantType="primary" sizeType="small" onClick={callNext}>
-            {t("i18n_queue.callNext")}
-        </CustomButton>
-    );
-};
+// --- Стили ---
 
 const MainWrapper = styled(Box)(({ theme }) => ({
     display: "flex",
@@ -47,12 +41,42 @@ const ButtonWrapperStyles = styled(Box)(({ theme }) => ({
     justifyContent: "flex-end",
 }));
 
+// Обертка для контента кнопки (текст или спиннер), чтобы центрировать их
+const ButtonContent = styled(Box)({
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: "8px",
+    width: "100%", 
+});
+
 const currentLanguage = i18n.language || "ru";
 
+// --- Компоненты Кнопок ---
+
+// 1. Кнопка "Вызвать следующего" (Idle)
+const IdleButton: FC<{ callNext: () => void; isLoading: boolean }> = ({ callNext, isLoading }) => {
+    const { t } = useTranslation();
+    return (
+        <CustomButton 
+            variantType="primary" 
+            sizeType="small" 
+            onClick={callNext}
+            disabled={isLoading} // Блокировка
+        >
+            <ButtonContent>
+                {isLoading ? <CircularProgress size={20} color="inherit" /> : t("i18n_queue.callNext")}
+            </ButtonContent>
+        </CustomButton>
+    );
+};
+
+// 2. Кнопки "Принять" и "Перенаправить" (Called)
 const CalledButtons: FC<{
     onAccept: () => void;
     onRedirect: (serviceIdRedirect: number) => void;
-}> = ({ onAccept, onRedirect }) => {
+    isLoading: boolean; // Global loading state (для кнопки Accept)
+}> = ({ onAccept, onRedirect, isLoading }) => {
     const { t } = useTranslation();
     const [isOpen, setIsOpen] = useState(false);
     const [searchValue, setSearchValue] = useState("");
@@ -64,10 +88,11 @@ const CalledButtons: FC<{
         null
     );
 
-    const [getServicesForManager, { data, error, isLoading }] =
+    // API Hooks
+    const [getServicesForManager, { data, error, isLoading: isServicesLoading }] =
         useGetServicesForManagerMutation();
 
-    const [redirectClient] = useRedirectClientMutation();
+    const [redirectClient, { isLoading: isRedirecting }] = useRedirectClientMutation();
 
     const handleOpen = async () => {
         try {
@@ -104,8 +129,8 @@ const CalledButtons: FC<{
                   currentLanguage === "kz"
                       ? service.nameKk
                       : currentLanguage === "en"
-                        ? service.nameEn
-                        : service.nameRu,
+                      ? service.nameEn
+                      : service.nameRu,
           }))
         : [];
 
@@ -129,10 +154,12 @@ const CalledButtons: FC<{
                 </Alert>
             </Snackbar>
 
+            {/* Кнопка открытия модалки перенаправления */}
             <CustomButton
                 variantType="primary"
                 sizeType="small"
                 onClick={handleOpen}
+                disabled={isLoading} // Блокируем если идет "Принятие"
             >
                 {t("i18n_queue.redirect")}
             </CustomButton>
@@ -164,8 +191,10 @@ const CalledButtons: FC<{
                         iconPosition="left"
                     />
 
-                    {isLoading ? (
-                        <p>Загрузка...</p>
+                    {isServicesLoading ? (
+                        <Box display="flex" justifyContent="center" p={2}>
+                            <CircularProgress />
+                        </Box>
                     ) : error ? (
                         <p>Ошибка загрузки данных</p>
                     ) : (
@@ -190,9 +219,15 @@ const CalledButtons: FC<{
                                 </CustomButton>
                                 <CustomButton
                                     onClick={handleRedirect}
-                                    disabled={!selectedServiceId}
+                                    disabled={!selectedServiceId || isRedirecting} // Блокировка кнопки внутри модалки
                                 >
-                                    {t("i18n_queue.redirectServiceAction")}
+                                    <ButtonContent>
+                                        {isRedirecting ? (
+                                            <CircularProgress size={20} color="inherit" />
+                                        ) : (
+                                            t("i18n_queue.redirectServiceAction")
+                                        )}
+                                    </ButtonContent>
                                 </CustomButton>
                             </ButtonWrapperStyles>
                         </MainWrapper>
@@ -200,16 +235,22 @@ const CalledButtons: FC<{
                 </Box>
             </ReusableModal>
 
+            {/* Кнопка "Принять" */}
             <CustomButton
                 variantType="primary"
                 sizeType="small"
                 onClick={onAccept}
+                disabled={isLoading} // Блокировка при загрузке
             >
-                {t("i18n_queue.accept")}
+                <ButtonContent>
+                    {isLoading ? <CircularProgress size={20} color="inherit" /> : t("i18n_queue.accept")}
+                </ButtonContent>
             </CustomButton>
         </Box>
     );
 };
+
+// --- Основной компонент ---
 
 const StatusButtons: FC<StatusButtonsProps> = ({
     status,
@@ -217,13 +258,20 @@ const StatusButtons: FC<StatusButtonsProps> = ({
     onAccept,
     onComplete,
     onRedirect,
+    isLoading, // 👈 Принимаем проп
 }) => {
+    const { t } = useTranslation();
+
     switch (status) {
         case "idle":
-            return <IdleButton callNext={callNext} />;
+            return <IdleButton callNext={callNext} isLoading={isLoading} />;
         case "called":
             return (
-                <CalledButtons onAccept={onAccept} onRedirect={onRedirect} />
+                <CalledButtons 
+                    onAccept={onAccept} 
+                    onRedirect={onRedirect} 
+                    isLoading={isLoading} 
+                />
             );
         case "accepted":
             return (
@@ -231,8 +279,11 @@ const StatusButtons: FC<StatusButtonsProps> = ({
                     variantType="primary"
                     sizeType="small"
                     onClick={onComplete}
+                    disabled={isLoading} // Блокировка
                 >
-                    {t("i18n_queue.complete")}
+                    <ButtonContent>
+                        {isLoading ? <CircularProgress size={20} color="inherit" /> : t("i18n_queue.complete")}
+                    </ButtonContent>
                 </CustomButton>
             );
         default:
