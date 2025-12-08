@@ -34,6 +34,7 @@
     },
     "i18n_register": {
         "title": "Тіркеу",
+        "authentication":"Авторизация",
         "iin": "Сіздің ЖСН",
         "firstName": "Сіздің атыңыз",
         "lastName": "Сіздің тегіңіз",
@@ -43,7 +44,8 @@
         "iinError": "ЖСН 12 цифрдан тұруы керек",
         "maxLengthError": "Максималды ұзындығы {{length}} символ",
         "minLengthError": "Минималды ұзындығы {{length}} символ",
-        "iinLengthError": "ЖСН 12 цифрдан тұруы керек"
+        "iinLengthError": "ЖСН 12 цифрдан тұруы керек",
+        "iinInvalidChecksum": "ЖСН қате"
     },
 
     "status": {

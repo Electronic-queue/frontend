@@ -32,6 +32,7 @@
     },
     "i18n_register": {
         "title": "Registration",
+        "authentication":"Authentication",
         "iin": "Your IIN",
         "firstName": "Your first name",
         "lastName": "Your last name",
@@ -42,7 +43,8 @@
         "maxLengthError": "Maximum length is {{length}} characters",
         "minLengthError": "Minimum length is {{length}} characters",
         "iinLengthError": "IIN must consist of 12 digits",
-        "check": "Login"
+        "check": "Login",
+        "iinInvalidChecksum": "Incorrect IIN"
     },
 
     "status": {

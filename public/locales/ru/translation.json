@@ -33,6 +33,7 @@
     },
     "i18n_register": {
         "title": "Регистрация",
+        "authentication":"Авторизация",
         "iin": "Ваш ИИН",
         "firstName": "Ваше имя",
         "lastName": "Ваша фамилия",
@@ -43,7 +44,8 @@
         "minLengthError": "Минимальная длина {{length}} символа",
         "maxLengthError": "Максимальная длина {{length}} символов",
         "iinLengthError": "ИИН должен содержать 12 цифр",
-        "check": "Войти"
+        "check": "Войти",
+        "iinInvalidChecksum": "Некорректный ИИН"
     },
     "status": {
         "accepted": "Приняты",
