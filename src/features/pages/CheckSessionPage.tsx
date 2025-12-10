@@ -16,23 +16,21 @@ import { useNavigate } from "react-router-dom";
 import { useLoginRecordMutation } from "src/store/userApi";
 import { useHandleExistingSession } from "src/hooks/useHandleExistingSession";
 
-// --- ВАЛИДАТОР ИИН (Алгоритм с весовыми коэффициентами) ---
+
 const validateIINChecksum = (iin: string): boolean => {
     if (!iin || iin.length !== 12) return false;
     
-    // Преобразуем строку в массив цифр
+
     const digits = iin.split('').map(Number);
-    // Последняя цифра - контрольная
+
     const controlDigit = digits[11];
 
-    // 1. Первый проход (веса 1..11)
     let sum1 = 0;
     for (let i = 0; i < 11; i++) {
         sum1 += digits[i] * (i + 1);
     }
     let result = sum1 % 11;
 
-    // 2. Если остаток 10, нужен второй проход (веса 3..11, 1, 2)
     if (result === 10) {
         let sum2 = 0;
         const weights2 = [3, 4, 5, 6, 7, 8, 9, 10, 11, 1, 2];
@@ -42,15 +40,14 @@ const validateIINChecksum = (iin: string): boolean => {
         result = sum2 % 11;
     }
 
-    // 3. Если снова 10 — ИИН невалиден
+
     if (result === 10) return false;
 
-    // 4. Сравниваем рассчитанную сумму с контрольной цифрой
     return result === controlDigit;
 };
 
 
-// Переиспользуем стили
+
 const BackgroundContainer = styled(Box)(({ theme }) => ({
     display: "flex",
     flexDirection: "column",
@@ -78,46 +75,40 @@ const CheckSessionPage = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
 
-    // API Mutation
+
     const [loginRecord, { isLoading: isLoggingIn }] = useLoginRecordMutation();
 
-    // Custom Hook для восстановления сессии
+
     const { handleExistingSession } = useHandleExistingSession();
 
-    // Form Setup - Только поле iin
+
     const {
         control,
         handleSubmit,
     } = useForm<FormValues>({
-        mode: "onChange", // Валидация срабатывает при вводе
+        mode: "onChange", 
         defaultValues: { iin: "" },
     });
 
-    const { required } = useValidationRules(); // Pattern убрал, т.к. проверка внутри validate
+    const { required } = useValidationRules(); 
 
-    // --- MAIN SUBMIT HANDLER ---
     const onSubmit = async (data: FormValues) => {
         try {
-            // 1. Пытаемся залогиниться (проверить, есть ли активная запись)
             const response = await loginRecord({ iin: data.iin }).unwrap();
-
-            // 2. Проверяем, вернулась ли активная сессия
             if (response && response.record && response.token) {
                 console.log("🔄 Найден активный талон. Восстанавливаем сессию...");
                 handleExistingSession(response);
                 return; 
             }
             
-            // Если unwrap() прошел, но нет записи/токена
             await handleNewClient(data.iin);
 
         } catch (error: any) {
-            // 3. Обработка ошибок входа (404/401 - нет активного талона/клиента)
             if (error?.status === 404 || error?.status === 401) {
                 console.log("ℹ️ Активной записи нет (404/401). Переходим на лендинг...");
                 await handleNewClient(data.iin);
             } 
-            // Другие ошибки
+          
             else {
                 console.error("❌ Ошибка входа (не 404/401). Попробуем перейти на лендинг:", error);
                 await handleNewClient(data.iin);
@@ -125,7 +116,7 @@ const CheckSessionPage = () => {
         }
     };
     
-    // Функция для сохранения ИИН и перехода на лендинг
+    
     const handleNewClient = (iin: string) => {
         dispatch(
             setUserInfo({ 
@@ -165,14 +156,14 @@ const CheckSessionPage = () => {
                         control={control}
                         rules={{
                             ...required,
-                            // Сначала проверяем длину и цифры (быстрая проверка)
+                            
                             pattern: {
                                 value: /^\d{12}$/,
-                                message: t("i18n_register.iinLengthError") // "ИИН должен состоять из 12 цифр"
+                                message: t("i18n_register.iinLengthError") 
                             },
-                            // Затем запускаем математический алгоритм (глубокая проверка)
+                           
                             validate: (value) => 
-                                validateIINChecksum(value) || t("i18n_register.iinInvalidChecksum") // "Некорректный ИИН"
+                                validateIINChecksum(value) || t("i18n_register.iinInvalidChecksum") 
                         }}
                         labelKey="i18n_register.iin"
                         numericOnly={true}
@@ -190,8 +181,7 @@ const CheckSessionPage = () => {
                         {isLoggingIn ? "..." : t("i18n_register.check")} 
                     </CustomButton>
                 </Box>
-                
-                {/* Текст подсказки с обновленными стилями */}
+
                 <Box sx={{
                     display: "flex", 
                     justifyContent: "center", 
@@ -200,11 +190,11 @@ const CheckSessionPage = () => {
                     paddingTop: "20px"
                 }}>
                     <Typography sx={{
-                        fontSize: "14px", // Уменьшил с 18px до 14px (UI совет)
-                        color: "#6B7280", // Серый цвет
+                        fontSize: "14px", 
+                        color: "#6B7280", 
                         lineHeight: 1.4
                     }}>
-                        Введите ИИН, чтобы записаться или проверить статус активного талона.
+                        Введите ИИН, чтобы записаться в электронную очередь или проверить статус активного талона.
                     </Typography>
                 </Box> 
             </FormContainer>
