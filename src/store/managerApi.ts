@@ -100,17 +100,21 @@ export const managerApi = createApi({
                 },
             }),
         }),
-        observer: builder.mutation<any, { connectionId: string, queueTypeId: string}>({
-            query: ({ connectionId, queueTypeId }) => ({
-                url: "Manager/observer",
-                method: "POST",
-                params: {
-                    connectionId,
-                    queueTypeId,
-                    "api-version": "1",
-                },
-            }),
-        }),
+        observer: builder.mutation<any, { connectionId: string; queueTypeId: string }>({
+    query: (payload) => ({
+        url: "Observer/register",
+        method: "POST",
+        params: {
+            "api-version": "1",
+        },
+        // Данные передаем именно в body, а не деструктурируем в params
+        body: payload, 
+        // Явно указываем, что отправляем JSON
+        headers: {
+            "Content-Type": "application/json",
+        },
+    }),
+}),
         redirectClient: builder.mutation<any, { serviceId: number }>({
             query: ({ serviceId }) => ({
                 url: "Manager/redirectclient",

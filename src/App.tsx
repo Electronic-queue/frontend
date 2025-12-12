@@ -50,9 +50,9 @@ const App: FC = () => {
                     <Route
                         path="/monitor"
                         element={
-                            <ProtectedRoute>
+                           
                                 <MonitorPage />
-                            </ProtectedRoute>
+                         
                         }
                     />
                     <Route
