@@ -1,12 +1,15 @@
+// src/features/pages/ClientRegisterPage.tsx
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
-import { styled } from "@mui/material/styles";
+// 1. Импортируем useTheme
+import { styled, useTheme } from "@mui/material/styles"; 
 import { useTranslation } from "react-i18next";
-import { SULogoM } from "src/assets";
-import theme from "src/styles/theme";
+// 2. Импортируем оба логотипа
+import { SULogoM, SULogoMDark } from "src/assets"; 
+// УДАЛЕНО: import theme from "src/styles/theme"; <-- Это мешало смене фона
 import CustomButton from "src/components/Button";
 import StyledTextField from "src/hooks/StyledTextField";
 import { useValidationRules } from "src/hooks/useValidationRules";
@@ -14,17 +17,18 @@ import { useDispatch, useSelector } from "react-redux";
 import { setUserInfo } from "src/store/userSlice";
 import { RootState } from "src/store/store";
 import { useNavigate } from "react-router-dom";
-import { startSignalR } from "../signalR"; // Убедись, что путь верный
+import { startSignalR } from "../signalR"; 
 import { useRegisterClientMutation } from "src/store/signalRClientApi";
 import { useLoginRecordMutation } from "src/store/userApi";
-import { useHandleExistingSession } from "src/hooks/useHandleExistingSession"; // Наш новый хук
+import { useHandleExistingSession } from "src/hooks/useHandleExistingSession";
 
 const BackgroundContainer = styled(Box)(({ theme }) => ({
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: theme.palette.background.default,
+    // Теперь цвет будет браться динамически из темы (белый или темный)
+    backgroundColor: theme.palette.background.default, 
     paddingTop: theme.spacing(5),
 }));
 
@@ -32,7 +36,8 @@ const FormContainer = styled(Stack)(({ theme }) => ({
     width: "100%",
     maxWidth: "400px",
     padding: theme.spacing(4),
-    backgroundColor: theme.palette.background.paper,
+    // В темной теме будет #121212 (или то, что в theme.ts для paper)
+    backgroundColor: theme.palette.background.paper, 
     borderRadius: theme.spacing(2),
     boxShadow: theme.shadows[4],
 }));
@@ -45,6 +50,8 @@ interface FormValues {
 }
 
 const ClientRegisterPage = () => {
+    // 3. Вызываем хук темы
+    const theme = useTheme();
     const { t } = useTranslation();
     const dispatch = useDispatch();
     const navigate = useNavigate();
@@ -76,17 +83,14 @@ const ClientRegisterPage = () => {
 
     const { required, pattern, maxLength } = useValidationRules();
 
-    // --- Логика для НОВОГО пользователя (вынесли в отдельную функцию для чистоты) ---
     const processNewUser = async (data: FormValues) => {
         console.log("👤 Обработка как Нового пользователя...");
         
-        // 1. Подготовка данных (фильтрация полей для "только ИИН" очередей)
         const ONLY_IIN_TYPE = "7e734f7d-5639-4826-9a00-6b11938762aa";
         const payload = queueTypeId === ONLY_IIN_TYPE
             ? { ...data, firstName: "", lastName: "", surname: "" }
             : data;
 
-        // 2. Сохраняем в Redux (чтобы на след. странице данные не пропали)
         dispatch(
             setUserInfo({
                 ...payload,
@@ -96,7 +100,6 @@ const ClientRegisterPage = () => {
             })
         );
 
-        // 3. Подключаем SignalR и регистрируем клиента
         try {
             const connectionId = await startSignalR();
             console.log("🔗 SignalR Connection ID:", connectionId);
@@ -109,42 +112,29 @@ const ClientRegisterPage = () => {
             }
         } catch (err) {
             console.error("❌ Ошибка SignalR при регистрации:", err);
-            // Даже если SignalR упал, мы все равно пускаем юзера выбрать услугу,
-            // возможно подключение восстановится позже
         }
 
-        // 4. Переход на выбор услуги
         navigate("/selection");
     };
 
     // --- MAIN SUBMIT HANDLER ---
     const onSubmit = async (data: FormValues) => {
         try {
-            // ШАГ 1: Пытаемся залогиниться (проверить, есть ли активная запись)
             const response = await loginRecord({ iin: data.iin }).unwrap();
             
-            // ШАГ 2: Проверяем, вернулась ли активная сессия
             if (response && response.record && response.token) {
                 console.log("🔄 Найден активный талон. Восстанавливаем сессию...");
-                
-                // 🔥 ВЫЗЫВАЕМ НАШ ХУК
                 handleExistingSession(response);
-                
-                return; // 🛑 ОСТАНАВЛИВАЕМСЯ ЗДЕСЬ (не регистрируем как нового)
+                return; 
             } else {
-                // Если ответ пришел пустой (маловероятно при unwrap, но все же)
                 await processNewUser(data);
             }
 
         } catch (error: any) {
-            // ШАГ 3: Обработка ошибок входа
-            
-            // Если 404 (Not Found) -> значит клиента нет или нет активного талона -> Это НОВЫЙ клиент
             if (error?.status === 404 || error?.status === 401) {
                 console.log("ℹ️ Активной записи нет (404/401). Регистрируем нового...");
                 await processNewUser(data);
             } 
-            // Если другие ошибки (500, 201 и т.д.), ваша логика тоже пускала дальше
             else {
                 console.warn("⚠️ Ошибка входа:", error?.status, ". Пробуем зарегистрировать как нового.");
                 await processNewUser(data);
@@ -158,7 +148,8 @@ const ClientRegisterPage = () => {
     return (
         <BackgroundContainer>
             <Box sx={{ paddingBottom: theme.spacing(2) }}>
-                <SULogoM />
+                {/* 4. Логика смены логотипа */}
+                {theme.palette.mode === 'dark' ? <SULogoMDark /> : <SULogoM />}
             </Box>
 
             <FormContainer as="form" onSubmit={handleSubmit(onSubmit)}>

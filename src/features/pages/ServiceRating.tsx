@@ -1,15 +1,18 @@
+// src/features/pages/ServiceRating.tsx
 import { useState, ChangeEvent, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { RootState } from "src/store/store";
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
-import { styled } from "@mui/material/styles";
+// 1. Добавляем useTheme
+import { styled, useTheme } from "@mui/material/styles";
 import TextField from "@mui/material/TextField";
 import Rating from "@mui/material/Rating";
 import { useTranslation } from "react-i18next";
-import { SULogoM } from "src/assets";
-import theme from "src/styles/theme";
+// 2. Импортируем оба логотипа
+import { SULogoM, SULogoMDark } from "src/assets";
+// УДАЛЕНО: import theme from "src/styles/theme";
 import { VALIDATION_RULES } from "src/config/validationConfig";
 import CustomButton from "src/components/Button";
 import { useCreateReviewMutation } from "src/store/managerApi";
@@ -61,6 +64,9 @@ interface ClientRecord {
 }
 
 const ServiceRating = () => {
+    // 3. Активируем хук
+    const theme = useTheme();
+    
     const { t } = useTranslation();
     const navigate = useNavigate();
     const dispatch = useDispatch();
@@ -150,7 +156,8 @@ const ServiceRating = () => {
     return (
         <BackgroundContainer>
             <Box sx={{ paddingBottom: theme.spacing(5) }}>
-                <SULogoM />
+                {/* 4. Логика смены логотипа */}
+                {theme.palette.mode === 'dark' ? <SULogoMDark /> : <SULogoM />}
             </Box>
             <FormContainer>
                 <Typography
@@ -163,7 +170,10 @@ const ServiceRating = () => {
                     <Box
                         sx={{
                             marginBottom: 2,
-                            backgroundColor: "#F0F4FF",
+                            // 5. Исправление цвета фона блока информации
+                            backgroundColor: theme.palette.mode === 'dark' 
+                                ? "rgba(255, 255, 255, 0.05)" 
+                                : "#F0F4FF",
                             borderRadius: theme.spacing(1),
                         }}
                     >
@@ -182,7 +192,7 @@ const ServiceRating = () => {
                                     variant="h6"
                                     sx={{
                                         marginBottom: 1,
-                                        color: "#929294ff",
+                                        color: theme.palette.text.secondary, // Используем text.secondary вместо хардкода
                                     }}
                                 >
                                     Услуга:
@@ -206,7 +216,10 @@ const ServiceRating = () => {
                         >
                             <Typography
                                 variant="h6"
-                                sx={{ marginBottom: 1, color: "#929294ff" }}
+                                sx={{ 
+                                    marginBottom: 1, 
+                                    color: theme.palette.text.secondary // Используем text.secondary
+                                }}
                             >
                                 Окно:
                             </Typography>

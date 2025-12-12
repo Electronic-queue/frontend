@@ -24,7 +24,6 @@ export const signalRManagerApi = createApi({
                 tokenToUse = rawToken.token;
             }
 
-            console.log("🔍 ИТОГОВЫЙ ТОКЕН:", tokenToUse ? "Найден" : "Пусто"); 
 
             if (tokenToUse) {
                 headers.set("Authorization", `Bearer ${tokenToUse}`);

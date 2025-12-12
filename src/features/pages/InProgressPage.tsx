@@ -1,12 +1,15 @@
+// src/features/pages/InProgress.tsx
 import { useEffect, useRef } from "react";
 import { Typography } from "@mui/material";
 import Stack from "@mui/material/Stack";
-import { styled } from "@mui/material/styles";
+// 1. Добавляем useTheme
+import { styled, useTheme } from "@mui/material/styles"; 
 import Box from "@mui/material/Box";
 import { useTranslation } from "react-i18next";
-import { SULogoM } from "src/assets";
+// 2. Импортируем темный логотип
+import { SULogoM, SULogoMDark } from "src/assets";
 
-import theme from "src/styles/theme";
+// УДАЛЕНО: import theme from "src/styles/theme"; 
 import { useNavigate } from "react-router-dom";
 import connection, { startSignalR } from "src/features/signalR";
 import { useGetRecordIdByTokenQuery } from "src/store/userApi";
@@ -34,6 +37,8 @@ const FormContainer = styled(Stack)(({ theme }) => ({
 }));
 
 const InProgress = () => {
+    const theme = useTheme();
+    
     const { t } = useTranslation();
     const navigate = useNavigate();
     
@@ -76,8 +81,6 @@ const InProgress = () => {
 
         connection.on("RecordCompleted", (data) => {
             // console.log("🏁 RecordCompleted event:", data);
-
-            
             navigate("/rating", { replace: true });
         });
 
@@ -90,11 +93,12 @@ const InProgress = () => {
     return (
         <BackgroundContainer>
             <Box sx={{ paddingBottom: theme.spacing(5) }}>
-                <SULogoM />
+                {/* 4. Логика смены логотипа */}
+                {theme.palette.mode === 'dark' ? <SULogoMDark /> : <SULogoM />}
             </Box>
             <FormContainer>
                  {ticketNumber && (
-                    <Typography variant="h3"  sx={{ mb: 2 }}>
+                    <Typography variant="h3" sx={{ mb: 2 }}>
                       Ваш номер  {ticketNumber}
                     </Typography>
                 )}

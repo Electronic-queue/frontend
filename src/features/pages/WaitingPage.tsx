@@ -1,10 +1,13 @@
+// src/features/pages/WaitingPage.tsx
 import { useEffect, useReducer, useCallback, useState, useRef } from "react";
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
-import { styled } from "@mui/material/styles";
+// 1. Добавляем useTheme
+import { styled, useTheme } from "@mui/material/styles";
 import { useTranslation } from "react-i18next";
-import { SULogoM } from "src/assets";
-import theme from "src/styles/theme";
+// 2. Импортируем темный логотип
+import { SULogoM, SULogoMDark } from "src/assets";
+// УДАЛЕНО: import theme from "src/styles/theme";
 import CustomButton from "src/components/Button";
 import ReusableModal from "src/components/ModalPage";
 
@@ -50,11 +53,13 @@ const InfoBlock = styled(Box)(({ theme }) => ({
     flexDirection: "column",
     gap: theme.spacing(2),
 }));
+
 interface RefuseModalProps {
     open: boolean;
     onClose: () => void;
     onConfirm: () => void;
 }
+
 interface ClientRecord {
     recordId: number;
     windowNumber: number;
@@ -67,6 +72,8 @@ interface ClientRecord {
 }
 
 const RefuseModal = ({ open, onClose, onConfirm }: RefuseModalProps) => {
+    // Получаем тему здесь, чтобы использовать theme.spacing
+    const theme = useTheme(); 
     const { t } = useTranslation();
     return (
         <ReusableModal
@@ -91,6 +98,9 @@ const RefuseModal = ({ open, onClose, onConfirm }: RefuseModalProps) => {
 };
 
 const WaitingPage = () => {
+    // 3. Активируем хук
+    const theme = useTheme();
+    
     const { t } = useTranslation();
     const navigate = useNavigate();
     const dispatch = useDispatch();
@@ -308,7 +318,8 @@ useEffect(() => {
     return (
         <BackgroundContainer>
             <Box sx={{ paddingBottom: theme.spacing(5) }}>
-                <SULogoM />
+                {/* 4. Смена логотипа */}
+                {theme.palette.mode === 'dark' ? <SULogoMDark /> : <SULogoM />}
             </Box>
             <FormContainer>
                 <Box

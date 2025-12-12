@@ -25,7 +25,6 @@ const connection = new signalR.HubConnectionBuilder()
 export const startSignalR = async () => {
     try {
         if (connection.state === signalR.HubConnectionState.Disconnected) {
-            console.log("Попытка подключения к SignalR...");
             await connection.start();
             
             // ✅ Connection ID доступен после connection.start()

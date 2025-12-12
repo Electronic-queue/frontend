@@ -1,13 +1,16 @@
+// src/features/pages/CallPage.tsx
 import React, { useEffect, useRef, useState } from "react";
 import { Typography } from "@mui/material";
 import Stack from "@mui/material/Stack";
-import { styled } from "@mui/material/styles";
+// 1. Добавляем useTheme
+import { styled, useTheme } from "@mui/material/styles";
 import Box from "@mui/material/Box";
 import { useTranslation } from "react-i18next";
-import { SULogoM } from "src/assets";
+// 2. Импортируем оба логотипа
+import { SULogoM, SULogoMDark } from "src/assets";
 import CustomButton from "src/components/Button";
 import ReusableModal from "src/components/ModalPage";
-import theme from "src/styles/theme";
+// УДАЛЕНО: import theme from "src/styles/theme";
 import { useNavigate } from "react-router-dom";
 import connection, { startSignalR } from "src/features/signalR";
 import {
@@ -43,7 +46,8 @@ const FormContainer = styled(Stack)(({ theme }) => ({
     width: "100%",
     maxWidth: theme.spacing(50),
     padding: theme.spacing(4),
-    backgroundColor: theme.palette.background.default,
+    // Используем paper, чтобы карточка выделялась на темном фоне
+    backgroundColor: theme.palette.background.paper, 
     borderRadius: theme.spacing(2),
     boxShadow: theme.shadows[2],
     textAlign: "center",
@@ -59,7 +63,7 @@ const TitleBox = styled(Box)(({ theme }) => ({
     justifyContent: "center",
 }));
 
-const RefuseModal = styled(Box)(({ theme }) => ({
+const RefuseModalBox = styled(Box)(({ theme }) => ({
     display: "flex",
     flexDirection: "column",
     gap: theme.spacing(2),
@@ -81,6 +85,7 @@ interface ClientRecord {
     expectedAcceptanceTime: string;
     ticketNumber: number;
 }
+
 const Timer: React.FC<TimerProps> = ({ onTimeout }) => {
     const [timeLeft, setTimeLeft] = useState(90);
 
@@ -96,7 +101,7 @@ const Timer: React.FC<TimerProps> = ({ onTimeout }) => {
     return (
         <FormContainer>
             <TitleBox>
-                <Typography variant="h1" sx={{ color: "red" }}>
+                <Typography variant="h1" sx={{ color: "error.main" }}>
                     {timeLeft}
                 </Typography>
             </TitleBox>
@@ -105,6 +110,9 @@ const Timer: React.FC<TimerProps> = ({ onTimeout }) => {
 };
 
 const CallPage = () => {
+    // 3. Активируем хук темы
+    const theme = useTheme();
+    
     const { t } = useTranslation();
     const navigate = useNavigate();
     const dispatch = useDispatch();
@@ -129,19 +137,21 @@ const CallPage = () => {
     const hasRegistered = useRef(false);
     const roomName = clientRecord?.nameRu;
     const windowNumber = clientRecord?.windowNumber ?? "-";
+    
     useEffect(() => {}, [storedRecordId]);
+    
     useEffect(() => {
         if (clientRecord) {
             setRecordData(clientRecord);
         }
     }, [clientRecord]);
+
     useEffect(() => {
-    if (!recordId) return; 
+        if (!recordId) return; 
 
         let isMounted = true;
 
         const initSignalR = async () => {
-    
             if (hasRegistered.current) return; 
 
             try {
@@ -152,7 +162,6 @@ const CallPage = () => {
                 }
 
                 if (connectionId && isMounted) {
-                    
                     await registerClient({ 
                         connectionId: connectionId 
                     }).unwrap();
@@ -166,11 +175,11 @@ const CallPage = () => {
 
         initSignalR();
         connection.on("RecordAccepted", (RecordAcceptedData) => {
-                    navigate("/progress", { replace: true });
-                });
+            navigate("/progress", { replace: true });
+        });
         connection.on("RecordRedirected", (RecordRedirectedData) => {
-                            console.log("RecordRedirected", RecordRedirectedData);
-                        });
+            console.log("RecordRedirected", RecordRedirectedData);
+        });
         connection.on("ReceiveRecordCreated", (newRecord) => {
             if (
                 newRecord.ticketNumber === ticketNumber &&
@@ -180,17 +189,20 @@ const CallPage = () => {
             }
         });
         connection.on("RecieveUpdateRecord", (queueList) => {
-            const updatedItem = queueList.find(
-                (item: { ticketNumber: number | null }) =>
-                    item.ticketNumber === storedTicketNumber
-            );
-            if (updatedItem && updatedItem.clientNumber === -2) {
-                navigate("/progress");
-            }
-        });
-        connection.on("RecieveUpdateRecord", (recordAccept) => {
-            if (recordAccept.ticketNumber === storedTicketNumber) {
-                navigate("/progress");
+            // Проверка: является ли queueList массивом
+            if (Array.isArray(queueList)) {
+                const updatedItem = queueList.find(
+                    (item: { ticketNumber: number | null }) =>
+                        item.ticketNumber === storedTicketNumber
+                );
+                if (updatedItem && updatedItem.clientNumber === -2) {
+                    navigate("/progress");
+                }
+            } else {
+                // Если пришел одиночный объект (логика из второго обработчика)
+                if (queueList.ticketNumber === storedTicketNumber) {
+                    navigate("/progress");
+                }
             }
         });
 
@@ -218,7 +230,7 @@ const CallPage = () => {
             connection.off("RecieveAcceptRecord");
             connection.off("RecieveRedirectClient");
         };
-    }, [storedTicketNumber, navigate]);
+    }, [storedTicketNumber, navigate, recordId, registerClient, ticketNumber, dispatch]);
 
     const handleModalOpen = () => setIsOpen(true);
     const handleClose = () => setIsOpen(false);
@@ -265,14 +277,16 @@ const CallPage = () => {
     return (
         <BackgroundContainer>
             <Box sx={{ paddingBottom: theme.spacing(5) }}>
-                <SULogoM />
+                {/* 4. Логика смены логотипа */}
+                {theme.palette.mode === 'dark' ? <SULogoMDark /> : <SULogoM />}
             </Box>
             <FormContainer>
                 {!expired ? (
                     <>
                         <Typography
                             variant="h4"
-                            sx={{ marginBottom: 2, color: "black" }}
+                            // Удален color: "black", используется наследование темы
+                            sx={{ marginBottom: 2 }}
                         >
                             {t("i18n_queue.approachWindow")} {windowNumber}
                         </Typography>
@@ -280,18 +294,19 @@ const CallPage = () => {
                             variant="h4"
                             sx={{
                                 marginBottom: 2,
-                                color: "black",
                                 marginTop: 2,
                             }}
                         >
                             {roomName}
                         </Typography>
+                        
                         <Timer
                             onTimeout={() => {
                                 setExpired(true);
                                 handleAvtomaticConfirmRefuse();
                             }}
                         />
+                        
                         <Box sx={{ paddingTop: theme.spacing(5) }}>
                             <CustomButton
                                 variantType="danger"
@@ -309,7 +324,7 @@ const CallPage = () => {
                             gap: theme.spacing(2),
                         }}
                     >
-                        <Typography variant="h5" sx={{ color: "black" }}>
+                        <Typography variant="h5">
                             {t("i18n_queue.timeoutMessage")}
                         </Typography>
                         <CustomButton
@@ -322,13 +337,14 @@ const CallPage = () => {
                     </Box>
                 )}
             </FormContainer>{" "}
+            
             <ReusableModal
                 open={isOpen}
                 onClose={handleClose}
                 width={340}
                 showCloseButton={false}
             >
-                <RefuseModal>
+                <RefuseModalBox>
                     <Box>
                         <Typography variant="h4">
                             {t("i18n_queue.refuseQueue")}
@@ -348,7 +364,7 @@ const CallPage = () => {
                             {t("i18n_queue.cancel")}
                         </CustomButton>
                     </Box>
-                </RefuseModal>
+                </RefuseModalBox>
             </ReusableModal>
         </BackgroundContainer>
     );

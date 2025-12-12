@@ -53,7 +53,7 @@
     };
     type ManagerSnapshotData = {
         managerId: string;
-        activeClient: ClientData | null; // 👈 Используем ClientData вместо any
+        activeClient: ClientData | null; 
         queue: ClientData[];
         stats: {
             inLine: number;
@@ -159,10 +159,13 @@
 
             const setupSignalR = async () => {
                 connection.on("ManagerQueueSnapshot",  (data: ManagerSnapshotData) => {
-                    console.log(data)
+             
                     setSnapshot(data); 
         
                 })
+                connection.on("ObserverUpdate",(observerData) => {
+                    console.log("observerData: ", observerData)
+                } )
                 // connection.on("ClientListByManagerId", (ClientData) => {
                 //     console.log(
                 //         "🔥 ClientListByManagerId получен:",
@@ -214,7 +217,7 @@
                 let connectionId = await startSignalR();
                 let attempts = 0;
                 while (!connectionId && attempts < 10 && isMounted) {
-                    console.log(`⏳ ID нет, ждем... (Попытка ${attempts + 1})`);
+                    
                     await new Promise((resolve) => setTimeout(resolve, 500)); 
                     
                     if (connection.state === "Connected" && connection.connectionId) {
@@ -227,11 +230,11 @@
 
                 if (connectionId && isMounted) {
                     try {
-                        console.log("🔗 ID получен:", connectionId);
+                        
                         await registerManager({ connectionId: connectionId }).unwrap();
-                        console.log("✅ Успешная авто-регистрация менеджера!");
+                        
                         await startWindow({ managerId }).unwrap();
-                        console.log("✅ Окно успешно запущено автоматически");
+                        
                         hasRegistered.current = true; // Запоминаем успех
                     } catch (err) {
                         console.error("🔥 Ошибка при вызове registerManager:", err);

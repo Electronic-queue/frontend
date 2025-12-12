@@ -100,6 +100,17 @@ export const managerApi = createApi({
                 },
             }),
         }),
+        observer: builder.mutation<any, { connectionId: string, queueTypeId: string}>({
+            query: ({ connectionId, queueTypeId }) => ({
+                url: "Manager/observer",
+                method: "POST",
+                params: {
+                    connectionId,
+                    queueTypeId,
+                    "api-version": "1",
+                },
+            }),
+        }),
         redirectClient: builder.mutation<any, { serviceId: number }>({
             query: ({ serviceId }) => ({
                 url: "Manager/redirectclient",
@@ -243,4 +254,5 @@ export const {
     useGetServicesForManagerMutation,
     useGetQueueTypeByTokenQuery,
     useGetQueueForClientsQuery,
+    useObserverMutation,
 } = managerApi;

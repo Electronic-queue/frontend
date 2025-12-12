@@ -8,15 +8,17 @@ import store from "./store/store.ts";
 import { ThemeProvider } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
 import theme from "./styles/theme.ts";
+import { ThemeContextProvider } from "./features/ThemeContext.tsx";
+
 
 createRoot(document.getElementById("root")!).render(
     <StrictMode>
         <Provider store={store}>
             <BrowserRouter>
-                <ThemeProvider theme={theme}>
-                    <CssBaseline />
+            <ThemeContextProvider>
                     <App />
-                </ThemeProvider>
+              </ThemeContextProvider>
+             
             </BrowserRouter>
         </Provider>
     </StrictMode>

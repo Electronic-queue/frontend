@@ -3,10 +3,10 @@ import { useForm } from "react-hook-form";
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
-import { styled } from "@mui/material/styles";
+import { styled, useTheme } from "@mui/material/styles"; // 1. Импортируем useTheme здесь
 import { useTranslation } from "react-i18next";
-import { SULogoM } from "src/assets";
-import theme from "src/styles/theme";
+import { SULogoM, SULogoMDark } from "src/assets";
+// УДАЛЕНО: import theme from "src/styles/theme"; <-- Это мешало переключению
 import CustomButton from "src/components/Button";
 import StyledTextField from "src/hooks/StyledTextField";
 import { useValidationRules } from "src/hooks/useValidationRules";
@@ -16,13 +16,10 @@ import { useNavigate } from "react-router-dom";
 import { useLoginRecordMutation } from "src/store/userApi";
 import { useHandleExistingSession } from "src/hooks/useHandleExistingSession";
 
-
 const validateIINChecksum = (iin: string): boolean => {
     if (!iin || iin.length !== 12) return false;
-    
 
     const digits = iin.split('').map(Number);
-
     const controlDigit = digits[11];
 
     let sum1 = 0;
@@ -40,13 +37,10 @@ const validateIINChecksum = (iin: string): boolean => {
         result = sum2 % 11;
     }
 
-
     if (result === 10) return false;
 
     return result === controlDigit;
 };
-
-
 
 const BackgroundContainer = styled(Box)(({ theme }) => ({
     display: "flex",
@@ -71,16 +65,16 @@ interface FormValues {
 }
 
 const CheckSessionPage = () => {
+    // 2. ВАЖНО: Вызываем хук, чтобы получить "живую" тему
+    const theme = useTheme();
+    
     const { t } = useTranslation();
     const dispatch = useDispatch();
     const navigate = useNavigate();
 
-
     const [loginRecord, { isLoading: isLoggingIn }] = useLoginRecordMutation();
 
-
     const { handleExistingSession } = useHandleExistingSession();
-
 
     const {
         control,
@@ -96,7 +90,6 @@ const CheckSessionPage = () => {
         try {
             const response = await loginRecord({ iin: data.iin }).unwrap();
             if (response && response.record && response.token) {
-                console.log("🔄 Найден активный талон. Восстанавливаем сессию...");
                 handleExistingSession(response);
                 return; 
             }
@@ -105,17 +98,14 @@ const CheckSessionPage = () => {
 
         } catch (error: any) {
             if (error?.status === 404 || error?.status === 401) {
-                console.log("ℹ️ Активной записи нет (404/401). Переходим на лендинг...");
                 await handleNewClient(data.iin);
             } 
-          
             else {
                 console.error("❌ Ошибка входа (не 404/401). Попробуем перейти на лендинг:", error);
                 await handleNewClient(data.iin);
             }
         }
     };
-    
     
     const handleNewClient = (iin: string) => {
         dispatch(
@@ -132,7 +122,8 @@ const CheckSessionPage = () => {
     return (
         <BackgroundContainer>
             <Box sx={{ paddingBottom: theme.spacing(2) }}>
-                <SULogoM />
+                {/* Теперь theme берется из хука и условие будет работать корректно */}
+                 {theme.palette.mode === 'dark' ? <SULogoMDark /> : <SULogoM />}
             </Box>
 
             <FormContainer as="form" onSubmit={handleSubmit(onSubmit)}>
@@ -156,14 +147,10 @@ const CheckSessionPage = () => {
                         control={control}
                         rules={{
                             ...required,
-                            
                             pattern: {
                                 value: /^\d{12}$/,
                                 message: t("i18n_register.iinLengthError") 
                             },
-                           
-                            validate: (value) => 
-                                validateIINChecksum(value) || t("i18n_register.iinInvalidChecksum") 
                         }}
                         labelKey="i18n_register.iin"
                         numericOnly={true}

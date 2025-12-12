@@ -1,6 +1,6 @@
 import { FC, useContext, useEffect, useState } from "react";
 import Stack from "@mui/material/Stack";
-import { styled } from "@mui/material/styles";
+import { styled, useTheme } from "@mui/material/styles";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useDispatch } from "react-redux";
@@ -13,13 +13,17 @@ import Snackbar from "@mui/material/Snackbar";
 import Alert from "@mui/material/Alert";
 import { logout } from "src/store/authSlice";
 import PageLinks from "src/components/PageLinks";
-import { SULogo } from "src/assets";
+import { SULogo, SuLogoDark } from "src/assets";
 import { UserLogo } from "src/assets";
 import LanguageSwitcher from "src/components/LanguageSwitcher";
 import { MediaContext } from "src/features/MediaProvider";
 import connection from "src/features/signalR";
 import NotificationsNoneIcon from "@mui/icons-material/NotificationsNone";
 import { useGetManagerIdQuery } from "src/store/managerApi";
+import Brightness4Icon from "@mui/icons-material/Brightness4"; // Луна
+import Brightness7Icon from "@mui/icons-material/Brightness7";
+
+import { ColorModeContext } from "src/features/ThemeContext";
 import i18n from "src/i18n";
 
 type notificationsForManager = {
@@ -37,9 +41,9 @@ type notificationsForManager = {
 
 const HeaderContainer = styled(Stack)(({ theme }) => ({
     width: "100%",
-    backgroundColor: "white",
+    backgroundColor: theme.palette.background.paper,
     alignItems: "center",
-    borderBottom: "1px solid #F3F3FD",
+    // borderBottom: "1px solid #F3F3FD",
     boxShadow: theme.shadows[2],
     flexDirection: "row",
     padding: `${theme.spacing(2)} ${theme.spacing(6)}`,
@@ -84,7 +88,8 @@ const Header: FC = () => {
     const { t } = useTranslation();
     const navigate = useNavigate();
     const dispatch = useDispatch();
-
+    const theme = useTheme();
+    const colorMode = useContext(ColorModeContext);
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const isMenuOpen = Boolean(anchorEl);
     const [notifications, setNotifications] = useState<string[]>([]);
@@ -205,7 +210,7 @@ const Header: FC = () => {
         >
             {!isMobile && (
                 <Stack justifyContent="flex-start">
-                    <SULogo />
+                    {theme.palette.mode === "dark" ? <SuLogoDark /> : <SULogo />}
                 </Stack>
             )}
             {!isMobile && (
@@ -238,6 +243,9 @@ const Header: FC = () => {
                                 </StyledNotificationCircle>
                             </IconButton>
                         </NotificationBadge>
+                        <IconButton onClick={colorMode.toggleColorMode} color="inherit">
+                {theme.palette.mode === 'dark' ? <Brightness7Icon sx={{color:"#3A6CB4", width: "30px", height:"40px"}} /> : <Brightness4Icon sx={{color:"#3A6CB4"}} />}
+            </IconButton>
                         <IconButton onClick={handleMenuOpen}>
                             <UserLogo />
                         </IconButton>
@@ -262,6 +270,10 @@ const Header: FC = () => {
                         </Menu>
                     </>
                 ) : (
+                    <>
+                     <IconButton onClick={colorMode.toggleColorMode} color="inherit">
+                {theme.palette.mode === 'dark' ? <Brightness7Icon sx={{color:"#3A6CB4", width: "30px", height:"40px"}} /> : <Brightness4Icon sx={{color:"#3A6CB4"}} />}
+            </IconButton>
                     <NotificationBadge
                         badgeContent={notifications.length}
                         color="primary"
@@ -272,6 +284,7 @@ const Header: FC = () => {
                             </StyledNotificationCircle>
                         </IconButton>
                     </NotificationBadge>
+                    </>
                 )}
             </RightSection>
 
