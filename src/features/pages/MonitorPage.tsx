@@ -1,4 +1,3 @@
-// src/features/pages/MonitorPage.tsx
 import { useEffect, useState, useRef } from "react";
 import {
   Box,
@@ -23,13 +22,11 @@ import CustomButton from "src/components/Button";
 import connection, { startSignalR } from "src/features/signalR";
 import i18n from "src/i18n";
 
-// API hooks
 import { 
   useGetQueueTypeQuery, 
   useObserverMutation 
 } from "src/store/managerApi";
 
-// --- ТИПЫ ДАННЫХ ---
 type ObserverItem = {
   recordId: number;
   ticketNumber: number;
@@ -37,21 +34,18 @@ type ObserverItem = {
   serviceNameRu: string;
   serviceNameKk: string;
   serviceNameEn: string;
-  statusId: number; // 3 - вызван, 1 - ожидает
+  statusId: number;
   clientNumber: number | null;
 };
 
 type ObserverData = {
-  calledQueue: ObserverItem[]; // Список вызванных (левая часть)
-  inLineQueue: ObserverItem[]; // Список ожидающих (правая часть)
+  calledQueue: ObserverItem[]; 
+  inLineQueue: ObserverItem[]; 
   calledCount: number;
   inLineCount: number;
   queueTypeId: string;
 };
 
-// --- СТИЛИ ---
-
-// Контейнер выбора очереди
 const SelectionContainer = styled(Box)(({ theme }) => ({
   display: "flex",
   flexDirection: "column",
@@ -74,7 +68,7 @@ const SelectionCard = styled(Stack)(({ theme }) => ({
   overflowY: "auto",
 }));
 
-// Контейнер Монитора
+
 const MonitorContainer = styled(Box)(({ theme }) => ({
   display: "flex",
   flexDirection: "column",
@@ -86,9 +80,9 @@ const MonitorContainer = styled(Box)(({ theme }) => ({
 
 const HeaderBox = styled(Box)(({ theme }) => ({
   display: "flex",
-  justifyContent: "center", // Логотип по центру
+  justifyContent: "center", 
   alignItems: "center",
-  marginBottom: theme.spacing(2),
+  marginBottom: theme.spacing(4),
   height: "80px"
 }));
 
@@ -125,31 +119,17 @@ const MonitorPage = () => {
   const theme = useTheme();
   const { t } = useTranslation();
   
-  // --- STATE ---
+
   const [step, setStep] = useState<"select" | "monitor">("select");
   const [selectedQueueId, setSelectedQueueId] = useState<string | null>(null);
   const [monitorData, setMonitorData] = useState<ObserverData | null>(null);
   
-  // Для часов (пока закомментировано)
-  // const [currentTime, setCurrentTime] = useState(new Date());
 
-  // API
   const { data: queueTypes, isLoading: isTypesLoading } = useGetQueueTypeQuery();
   const [registerObserver] = useObserverMutation();
 
   const hasRegisteredRef = useRef(false);
 
-  // --- ЧАСЫ (Закомментировано по просьбе) ---
-  /*
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentTime(new Date());
-    }, 1000);
-    return () => clearInterval(interval);
-  }, []);
-  */
-
-  // --- SIGNALR ---
   useEffect(() => {
     if (step !== "monitor" || !selectedQueueId) return;
 
@@ -159,14 +139,11 @@ const MonitorPage = () => {
         if (hasRegisteredRef.current) return;
 
         try {
-            console.log("📺 Запуск монитора...");
-            
-            // 1. Подключение
-            if (connection.state !== "Connected") {
+          if (connection.state !== "Connected") {
                 await startSignalR();
             }
 
-            // 2. Получение ID
+
             let attempts = 0;
             while (!connection.connectionId && attempts < 10) {
                 if (!isMounted) return;
@@ -176,9 +153,7 @@ const MonitorPage = () => {
 
             const connId = connection.connectionId;
 
-            // 3. Регистрация Observer (теперь отправляется JSON body, спасибо исправлению в managerApi)
             if (connId) {
-                console.log(`📡 Registering Observer: QueueType=${selectedQueueId}, ConnId=${connId}`);
                 await registerObserver({
                     connectionId: connId,
                     queueTypeId: selectedQueueId
@@ -194,9 +169,7 @@ const MonitorPage = () => {
 
     initMonitor();
 
-    // 4. Подписка на обновление данных
     connection.on("ObserverUpdate", (data: ObserverData) => {
-        // console.log("📥 Observer Update:", data);
         if (data.queueTypeId === selectedQueueId) {
             setMonitorData(data);
         }
@@ -210,15 +183,15 @@ const MonitorPage = () => {
   }, [step, selectedQueueId, registerObserver]);
 
 
-  // --- HELPER: Получение названия услуги ---
+
   const getServiceName = (item: ObserverItem) => {
       const lang = i18n.language;
       if (lang === 'en') return item.serviceNameEn;
       if (lang === 'kz') return item.serviceNameKk;
-      return item.serviceNameRu; // default ru
+      return item.serviceNameRu; 
   };
 
-  // --- RENDER: ШАГ 1 - ВЫБОР ---
+
   if (step === "select") {
     return (
         <SelectionContainer>
@@ -274,60 +247,8 @@ const MonitorPage = () => {
 
       {/* Основной контент - Таблицы на весь экран */}
       <Grid container spacing={3} sx={{ flex: 1, overflow: 'hidden' }}>
-          
-          {/* ЛЕВАЯ КОЛОНКА: ВЫЗВАННЫЕ (CALLED) */}
-          <Grid item xs={6} sx={{ height: '100%' }}>
-              <Paper elevation={6} sx={{ height: '100%', borderRadius: 3, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-                  <TableTitle sx={{ backgroundColor: '#2e7d32' }}> {/* Зеленый заголовок */}
-                      Сейчас обслуживаются
-                  </TableTitle>
-                  <TableContainer sx={{ flex: 1 }}>
-                      <Table stickyHeader>
-                          <TableHead>
-                              <TableRow>
-                                  <StyledHeaderCell>Талон</StyledHeaderCell>
-                                  <StyledHeaderCell>Окно</StyledHeaderCell>
-                                  <StyledHeaderCell align="right">Услуга</StyledHeaderCell>
-                              </TableRow>
-                          </TableHead>
-                          <TableBody>
-                              {calledList.length > 0 ? (
-                                  calledList.map((item, idx) => (
-                                      <TableRow 
-                                        key={item.recordId} 
-                                        sx={{ 
-                                            // Пульсация для привлечения внимания
-                                            animation: `pulse-green 2s infinite`,
-                                            backgroundColor: 'rgba(232, 245, 233, 0.5)'
-                                        }}
-                                      >
-                                          <StyledTableCell sx={{ color: '#2e7d32', fontSize: '2.5rem', fontWeight: 800 }}>
-                                              {item.ticketNumber}
-                                          </StyledTableCell>
-                                          <StyledTableCell sx={{ fontSize: '2.5rem', fontWeight: 800 }}>
-                                              {item.windowNumber}
-                                          </StyledTableCell>
-                                          <StyledTableCell align="right" sx={{ fontSize: '1.4rem', color: '#555' }}>
-                                              {getServiceName(item)}
-                                          </StyledTableCell>
-                                      </TableRow>
-                                  ))
-                              ) : (
-                                  <TableRow>
-                                      <StyledTableCell colSpan={3} align="center" sx={{ color: '#999', py: 10 }}>
-                                          Нет активных вызовов
-                                      </StyledTableCell>
-                                  </TableRow>
-                              )}
-                          </TableBody>
-                      </Table>
-                  </TableContainer>
-              </Paper>
-          </Grid>
-
-          {/* ПРАВАЯ КОЛОНКА: ОЧЕРЕДЬ (WAITING) */}
-          <Grid item xs={6} sx={{ height: '100%' }}>
-              <Paper elevation={6} sx={{ height: '100%', borderRadius: 3, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+            <Grid item xs={6} sx={{ height: '100%' }}>
+              <Paper elevation={6} sx={{ height: '90%', borderRadius: 3, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
                   <TableTitle sx={{ backgroundColor: '#1976d2' }}> {/* Синий заголовок */}
                       В очереди
                   </TableTitle>
@@ -363,6 +284,58 @@ const MonitorPage = () => {
                   </TableContainer>
               </Paper>
           </Grid>
+          {/* ЛЕВАЯ КОЛОНКА: ВЫЗВАННЫЕ (CALLED) */}
+          <Grid item xs={6} sx={{ height: '100%' }}>
+              <Paper elevation={6} sx={{ height: '90%', borderRadius: 3, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+                  <TableTitle sx={{ backgroundColor: '#2e7d32' }}> {/* Зеленый заголовок */}
+                      Вызванные
+                  </TableTitle>
+                  <TableContainer sx={{ flex: 1 }}>
+                      <Table stickyHeader>
+                          <TableHead>
+                              <TableRow>
+                                  <StyledHeaderCell>Талон</StyledHeaderCell>
+                                  <StyledHeaderCell>Окно</StyledHeaderCell>
+                                  <StyledHeaderCell align="right">Услуга</StyledHeaderCell>
+                              </TableRow>
+                          </TableHead>
+                          <TableBody>
+                              {calledList.length > 0 ? (
+                                  calledList.map((item, idx) => (
+                                      <TableRow 
+                                        key={item.recordId} 
+                                        sx={{ 
+                                            // Пульсация для привлечения внимания
+                                            animation: `pulse-green 2s infinite`,
+                                            backgroundColor: 'rgba(232, 245, 233, 0.5)'
+                                        }}
+                                      >
+                                          <StyledTableCell sx={{ color: '#2e7d32', fontSize: '2rem', fontWeight: 800 }}>
+                                              {item.ticketNumber}
+                                          </StyledTableCell>
+                                          <StyledTableCell sx={{ fontSize: '2rem', fontWeight: 800 }}>
+                                              {item.windowNumber}
+                                          </StyledTableCell>
+                                          <StyledTableCell align="right" sx={{ fontSize: '1.4rem', color: '#555' }}>
+                                              {getServiceName(item)}
+                                          </StyledTableCell>
+                                      </TableRow>
+                                  ))
+                              ) : (
+                                  <TableRow>
+                                      <StyledTableCell colSpan={3} align="center" sx={{ color: '#999', py: 10 }}>
+                                          Нет активных вызовов
+                                      </StyledTableCell>
+                                  </TableRow>
+                              )}
+                          </TableBody>
+                      </Table>
+                  </TableContainer>
+              </Paper>
+          </Grid>
+
+          {/* ПРАВАЯ КОЛОНКА: ОЧЕРЕДЬ (WAITING) */}
+        
       </Grid>
 
       {/* ВИДЕО И ВРЕМЯ - ЗАКОММЕНТИРОВАНО (СОХРАНЕНО НА БУДУЩЕЕ) */}

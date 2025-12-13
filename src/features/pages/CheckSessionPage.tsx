@@ -65,7 +65,7 @@ interface FormValues {
 }
 
 const CheckSessionPage = () => {
-    // 2. ВАЖНО: Вызываем хук, чтобы получить "живую" тему
+
     const theme = useTheme();
     
     const { t } = useTranslation();
@@ -178,7 +178,7 @@ const CheckSessionPage = () => {
                 }}>
                     <Typography sx={{
                         fontSize: "14px", 
-                        color: "#6B7280", 
+                        color: theme.palette.mode === 'dark' ? "#ffff": "#6B7280", 
                         lineHeight: 1.4
                     }}>
                         Введите ИИН, чтобы записаться в электронную очередь или проверить статус активного талона.
