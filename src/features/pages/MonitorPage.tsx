@@ -247,6 +247,7 @@ const MonitorPage = () => {
 
       {/* Основной контент - Таблицы на весь экран */}
       <Grid container spacing={3} sx={{ flex: 1, overflow: 'hidden' }}>
+            {/* ЛЕВАЯ КОЛОНКА: В ОЧЕРЕДИ */}
             <Grid item xs={6} sx={{ height: '100%' }}>
               <Paper elevation={6} sx={{ height: '90%', borderRadius: 3, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
                   <TableTitle sx={{ backgroundColor: '#1976d2' }}> {/* Синий заголовок */}
@@ -257,18 +258,18 @@ const MonitorPage = () => {
                           <TableHead>
                               <TableRow>
                                   <StyledHeaderCell>Талон</StyledHeaderCell>
-                                  <StyledHeaderCell align="right">Услуга</StyledHeaderCell>
+                                  <StyledHeaderCell align="right">Окно</StyledHeaderCell>
                               </TableRow>
                           </TableHead>
                           <TableBody>
                               {waitList.length > 0 ? (
-                                  waitList.slice(0, 8).map((item) => ( // Показываем топ 8, чтобы влезло
+                                  waitList.slice(0, 8).map((item) => ( // Показываем топ 8
                                       <TableRow key={item.recordId} hover>
                                           <StyledTableCell sx={{ fontWeight: 700, color: '#333' }}>
                                               {item.ticketNumber}
                                           </StyledTableCell>
                                           <StyledTableCell align="right" sx={{ fontSize: '1.4rem', color: '#666' }}>
-                                              {getServiceName(item)}
+                                              {item.windowNumber}
                                           </StyledTableCell>
                                       </TableRow>
                                   ))
@@ -284,7 +285,8 @@ const MonitorPage = () => {
                   </TableContainer>
               </Paper>
           </Grid>
-          {/* ЛЕВАЯ КОЛОНКА: ВЫЗВАННЫЕ (CALLED) */}
+
+          {/* ПРАВАЯ КОЛОНКА: ВЫЗВАННЫЕ */}
           <Grid item xs={6} sx={{ height: '100%' }}>
               <Paper elevation={6} sx={{ height: '90%', borderRadius: 3, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
                   <TableTitle sx={{ backgroundColor: '#2e7d32' }}> {/* Зеленый заголовок */}
@@ -295,8 +297,8 @@ const MonitorPage = () => {
                           <TableHead>
                               <TableRow>
                                   <StyledHeaderCell>Талон</StyledHeaderCell>
-                                  <StyledHeaderCell>Окно</StyledHeaderCell>
-                                  <StyledHeaderCell align="right">Услуга</StyledHeaderCell>
+                                  {/* ИСПРАВЛЕНИЕ: Добавлен align="right" */}
+                                  <StyledHeaderCell align="right">Окно</StyledHeaderCell>
                               </TableRow>
                           </TableHead>
                           <TableBody>
@@ -313,17 +315,15 @@ const MonitorPage = () => {
                                           <StyledTableCell sx={{ color: '#2e7d32', fontSize: '2rem', fontWeight: 800 }}>
                                               {item.ticketNumber}
                                           </StyledTableCell>
-                                          <StyledTableCell sx={{ fontSize: '2rem', fontWeight: 800 }}>
+                                          {/* ИСПРАВЛЕНИЕ: Добавлен align="right" */}
+                                          <StyledTableCell align="right" sx={{ fontSize: '2rem', fontWeight: 800 }}>
                                               {item.windowNumber}
-                                          </StyledTableCell>
-                                          <StyledTableCell align="right" sx={{ fontSize: '1.4rem', color: '#555' }}>
-                                              {getServiceName(item)}
                                           </StyledTableCell>
                                       </TableRow>
                                   ))
                               ) : (
                                   <TableRow>
-                                      <StyledTableCell colSpan={3} align="center" sx={{ color: '#999', py: 10 }}>
+                                      <StyledTableCell colSpan={2} align="center" sx={{ color: '#999', py: 10 }}>
                                           Нет активных вызовов
                                       </StyledTableCell>
                                   </TableRow>
@@ -333,17 +333,7 @@ const MonitorPage = () => {
                   </TableContainer>
               </Paper>
           </Grid>
-
-          {/* ПРАВАЯ КОЛОНКА: ОЧЕРЕДЬ (WAITING) */}
-        
       </Grid>
-
-      {/* ВИДЕО И ВРЕМЯ - ЗАКОММЕНТИРОВАНО (СОХРАНЕНО НА БУДУЩЕЕ) */}
-      {/* <Box sx={{ position: 'absolute', bottom: 20, right: 20, opacity: 0.8, display: 'none' }}>
-          <Typography variant="h3">{formattedTime}</Typography>
-          <Typography variant="h5">{formattedDate}</Typography>
-      </Box> 
-      */}
 
       {/* Стили для анимации */}
       <style>
