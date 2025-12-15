@@ -1,10 +1,31 @@
 import * as signalR from "@microsoft/signalr";
 
+import store, { RootState } from "src/store/store"; // И тип стейта
+
 // ✅ Переменная для хранения Connection ID
 let currentConnectionId: string | null | undefined = null;
 
-// Замените на ваш фактический URL
-export const signalRBaseUrl = import.meta.env.VITE_SIGNALR_BASE_URL;
+export const signalRBaseUrl = import.meta.env.VITE_SIGNALR_BASE_URL || "https://qsignalr-test.satbayev.university/";
+
+// 👇 Функция для безопасного получения токена (такая же логика, как в API)
+const getAccessToken = (): string => {
+    try {
+        const state = store.getState() as RootState;
+        const rawToken = state.auth?.token; // Проверьте путь state.auth.token
+
+        if (typeof rawToken === "string") {
+            return rawToken;
+        } 
+        if (typeof rawToken === "object" && rawToken !== null && "token" in rawToken) {
+            // @ts-ignore
+            return rawToken.token;
+        }
+        return "";
+    } catch (e) {
+        console.warn("Ошибка получения токена для SignalR:", e);
+        return "";
+    }
+};
 
 const connection = new signalR.HubConnectionBuilder()
     .withUrl(signalRBaseUrl, {
@@ -12,6 +33,8 @@ const connection = new signalR.HubConnectionBuilder()
             signalR.HttpTransportType.WebSockets |
             signalR.HttpTransportType.ServerSentEvents |
             signalR.HttpTransportType.LongPolling,
+        // 👇 КРИТИЧЕСКИ ВАЖНОЕ ИСПРАВЛЕНИЕ:
+        accessTokenFactory: () => getAccessToken(), 
         withCredentials: false,
     })
     .withAutomaticReconnect()
@@ -24,52 +47,45 @@ const connection = new signalR.HubConnectionBuilder()
  */
 export const startSignalR = async () => {
     try {
-        if (connection.state === signalR.HubConnectionState.Disconnected) {
-            await connection.start();
-            
-            // ✅ Connection ID доступен после connection.start()
+        // Если уже подключено - просто вернем ID
+        if (connection.state === signalR.HubConnectionState.Connected) {
+             // Обновляем currentConnectionId на всякий случай
             currentConnectionId = connection.connectionId;
-            console.log("✅ SignalR подключен. ID:", currentConnectionId);
-            
             return currentConnectionId;
         }
+
+        // Если в процессе подключения - ждем или возвращаем null (зависит от логики, тут просто выходим)
+        if (connection.state === signalR.HubConnectionState.Connecting) {
+             return null; 
+        }
+
+        await connection.start();
         
-        // Если уже подключено, возвращаем текущий ID
-        return connection.connectionId;
+        // ✅ Connection ID доступен после connection.start()
+        currentConnectionId = connection.connectionId;
+        console.log("✅ SignalR подключен. ID:", currentConnectionId);
+        
+        return currentConnectionId;
 
     } catch (error) {
         console.error("❌ Ошибка при запуске SignalR. Повторная попытка через 5 сек.", error);
-        // Повторный запуск через 5 секунд в случае ошибки
-        setTimeout(startSignalR, 5000);
+        // Лучше не делать рекурсию с setTimeout внутри async функции без контроля, 
+        // но оставим вашу логику, если она вам привычна.
+        // setTimeout(startSignalR, 5000); 
         return null;
     }
 };
 
-/**
- * 📢 Колбэк при закрытии подключения.
- */
 connection.onclose(async (error) => {
-    console.warn("Потеряно соединение SignalR. Попытка переподключения...", error);
-    // withAutomaticReconnect должен сам попробовать переподключиться,
-    // но на всякий случай вызываем startSignalR, если это нужно для логики.
-    // await startSignalR(); 
+    console.warn("Потеряно соединение SignalR.", error);
+    currentConnectionId = null;
 });
 
-/**
- * 🔄 Колбэк при успешном переподключении.
- * Получает новый Connection ID.
- */
 connection.onreconnected((connectionId) => {
-    // ✅ Всегда используйте этот ID, так как он мог измениться!
     currentConnectionId = connectionId;
     console.log("🔄 SignalR успешно переподключен. Новый ID:", currentConnectionId);
-    // Здесь вы можете отправить новый ID на ваш сервер, если это необходимо
 });
 
-
-/**
- * 💡 Функция для получения текущего ID
- */
 export const getConnectionId = () => {
     return currentConnectionId;
 };

@@ -183,12 +183,12 @@ export const managerApi = createApi({
             }),
         }),
 
-        startWindow: builder.mutation<any, { managerId: number }>({
-            query: ({ managerId }) => ({
+        startWindow: builder.mutation<any, { }>({
+            query: ({ }) => ({
                 url: "Manager/startwindow",
                 method: "POST",
                 params: {
-                    managerId,
+                    
                     "api-version": "1",
                 },
             }),

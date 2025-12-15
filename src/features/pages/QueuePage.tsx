@@ -108,8 +108,8 @@
         const currentLanguage = i18n.language || "ru";
         const [callNext, { isLoading: isCallingNext }] = useCallNextMutation();
         const [completeClient, { isLoading: isCompleting }] = useCompleteClientMutation();
-        const [pauseWindow] = usePauseWindowMutation();
-        const [cancelQueue] = useCancelQueueMutation();
+        // const [pauseWindow] = usePauseWindowMutation();
+        // const [cancelQueue] = useCancelQueueMutation();
         const [startWindow] = useStartWindowMutation();
         
         const [registerManager, { isLoading: isRegistering }] = useRegisterManagerMutation();
@@ -120,7 +120,7 @@
         }>({ open: false, message: "", severity: "success" });
 
         const isActionLoading = isAccepting || isCallingNext || isCompleting;
-
+        const token = useSelector((state: RootState) => state.auth.token); // ⚠️ Adjust 'state.auth.token' to match your actual Redux slice path
         const managerId: number = 6;
     
         const [snapshot, setSnapshot] = useState<ManagerSnapshotData | null>(null)
@@ -139,23 +139,13 @@
         const computedStatus = getComputedStatus();
 
         
-        // 2. Кого показывать в Главной Карточке (ClientCard)?
-        // Если статус не idle -> показываем Активного клиента.
-        // Если статус idle -> показываем Первого в очереди (preview), чтобы знать кого вызывать.
-        
 
-        const { refetch: refetchClients } = useGetRecordListByManagerQuery();
-        useEffect(() => {
-            refetchClients();
-        }, []);
+    
 
-
-        const { data: managerIdData } = useGetManagerIdQuery() as {
-            data?: string | undefined;
-        };
+     
                 
         useEffect(() => {
-            if (!managerIdData) return;
+           
 
             const setupSignalR = async () => {
                 connection.on("ManagerQueueSnapshot",  (data: ManagerSnapshotData) => {
@@ -163,53 +153,22 @@
                     setSnapshot(data); 
         
                 })
-                connection.on("ObserverUpdate",(observerData) => {
-                    console.log("observerData: ", observerData)
-                } )
-                // connection.on("ClientListByManagerId", (ClientData) => {
-                //     console.log(
-                //         "🔥 ClientListByManagerId получен:",
-                //         ClientData
-                //     );
-                //     if (!Array.isArray(ClientData)) return;
-                //     if (
-                //         ClientData.length === 0 ||
-                //         String(ClientData[0].managerId) ===
-                //             String(managerIdData)
-                //     ) {
-                //         setClientsSignalR(ClientData);
-                //     }
-                // });
-            
-                // connection.on("ReceiveManagersStatic", (windowInfo) => {
-                //     console.log("🔥 ReceiveManagersStatic получен:", windowInfo);
-                // });
-
-                // try {
-                //     // Проверяем статус, чтобы не пытаться подключиться дважды
-                //     if (connection.state === "Disconnected") {
-                //         await startSignalR();
-                //         console.log("✅ SignalR подключен успешно");
-                //     }
-                // } catch (err) {
-                //     console.error("❌ Ошибка подключения SignalR: ", err);
-                // }
             };
-
             setupSignalR();
 
-            // --- 3. ОЧИСТКА ПРИ РАЗМОНТИРОВАНИИ ---
             return () => {
-                // Обязательно удаляем подписки, чтобы не дублировались вызовы
-                // connection.off("ClientListByManagerId");
-                // connection.off("RecieveManagerStatic");
-                // connection.off("ReceiveManagersStatic");
                 connection.off("ManagerQueueSnapshot")
             };
-        }, [managerIdData]); 
+        }, []); 
         const hasRegistered = useRef(false);
-
+        
         useEffect(() => {
+            if (!token) {
+        console.log("⏳ Token not ready yet, waiting...");
+        return; 
+    }   
+    
+
             let isMounted = true;
 
             const initAndRegister = async () => {
@@ -233,11 +192,15 @@
                         
                         await registerManager({ connectionId: connectionId }).unwrap();
                         
-                        await startWindow({ managerId }).unwrap();
+                        await startWindow({ }).unwrap();
                         
-                        hasRegistered.current = true; // Запоминаем успех
-                    } catch (err) {
+                        hasRegistered.current = true; 
+                    } catch (err:any) {
                         console.error("🔥 Ошибка при вызове registerManager:", err);
+                        if (err?.status === 503) {
+                            console.log("♻️ Ловим 503, перезагружаем страницу...");
+                            window.location.reload();
+                        }
                     }
                 } else {
                     console.warn("⚠️ Не удалось получить ID после нескольких попыток.");
@@ -252,26 +215,26 @@
 
 
 
-        const handleUpdateClientList = async () => {
-            try {
-                const { data } = await refetchClients();
-                if (data) {
-                    setSnackbar({
-                        open: true,
-                        message: t("i18n_queue.clientListUpdated"),
-                        severity: "success",
-                    });
-                }
+        // const handleUpdateClientList = async () => {
+        //     try {
+              
+        //         if (data) {
+        //             setSnackbar({
+        //                 open: true,
+        //                 message: t("i18n_queue.clientListUpdated"),
+        //                 severity: "success",
+        //             });
+        //         }
                 
-            } catch (error) {
-                console.error("Error updating client list:", error);
-                setSnackbar({
-                    open: true,
-                    message: t("i18n_queue.updateError"),
-                    severity: "error",
-                });
-            }
-        };
+        //     } catch (error) {
+        //         console.error("Error updating client list:", error);
+        //         setSnackbar({
+        //             open: true,
+        //             message: t("i18n_queue.updateError"),
+        //             severity: "error",
+        //         });
+        //     }
+        // };
 
         // const handlePauseWindow = async () => {
         //     try {
@@ -303,24 +266,24 @@
         //         });
         //     }
         // };
-        const handleCancelQueue = async () => {
-            try {
-                await cancelQueue({}).unwrap();
-                setSnackbar({
-                    open: true,
-                    message: t("i18n_queue.queueCanceled"),
-                    severity: "success",
-                });
+        // const handleCancelQueue = async () => {
+        //     try {
+        //         await cancelQueue({}).unwrap();
+        //         setSnackbar({
+        //             open: true,
+        //             message: t("i18n_queue.queueCanceled"),
+        //             severity: "success",
+        //         });
 
-            } catch (err) {
-                console.error("Error while canceling the queue:", err);
-                setSnackbar({
-                    open: true,
-                    message: t("i18n_queue.cancelError"),
-                    severity: "error",
-                });
-            }
-        };
+        //     } catch (err) {
+        //         console.error("Error while canceling the queue:", err);
+        //         setSnackbar({
+        //             open: true,
+        //             message: t("i18n_queue.cancelError"),
+        //             severity: "error",
+        //         });
+        //     }
+        // };
 
         const handleAcceptClient = async () => {
             try {
@@ -341,7 +304,7 @@
                     severity: "success",
                 });
 
-                refetchClients();
+          
 
             } catch (err) {}
         };
@@ -366,12 +329,20 @@
                 message: t("i18n_queue.startQueue"),
                 severity: "success",
             });
-            } catch (err) {
-            setSnackbar({
-                open: true,
-                message: "Ошибка вызова клиента",
-                severity: "error",
-            });
+            } catch (err: any) {
+                // 👇 ЖЕСТКИЙ КОСТЫЛЬ 👇
+                // Если при нажатии кнопки сервер ответил 503 - перезагружаем
+                if (err?.status === 503) {
+                    window.location.reload();
+                    return; 
+                }
+                // 👆 КОНЕЦ КОСТЫЛЯ 👆
+
+                setSnackbar({
+                    open: true,
+                    message: "Ошибка вызова клиента",
+                    severity: "error",
+                });
             }
         };
 
@@ -384,7 +355,7 @@
                     severity: "success",
                 });
 
-                await refetchClients();
+              
             } catch (err) {
                 console.error("Error completing client:", err);
             }
@@ -404,7 +375,6 @@
         const uniqueQueue = React.useMemo(() => {
             if (!snapshot?.queue) return [];
             
-            // Оставляем только те записи, у которых ticketNumber встречается впервые
             return snapshot.queue.filter((client, index, self) => 
                 index === self.findIndex((t) => (
                     t.ticketNumber === client.ticketNumber
@@ -428,12 +398,12 @@
             : defaultClientData;
 
 
-        const handlePauseModalOpen = () => {
-            setIsPauseModalOpen(true);
-            setSelectedTime(1);
-        };
+        // const handlePauseModalOpen = () => {
+        //     setIsPauseModalOpen(true);
+        //     setSelectedTime(1);
+        // };
 
-        const [rotateIcon, setRotateIcon] = useState(false);
+        // const [rotateIcon, setRotateIcon] = useState(false);
     
         return (
             <>
