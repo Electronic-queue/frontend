@@ -84,7 +84,7 @@ const CheckSessionPage = () => {
         defaultValues: { iin: "" },
     });
 
-    const { required } = useValidationRules(); 
+    const { required, pattern } = useValidationRules(); 
 
     const onSubmit = async (data: FormValues) => {
         try {
@@ -149,8 +149,12 @@ const CheckSessionPage = () => {
                             ...required,
                             pattern: {
                                 value: /^\d{12}$/,
-                                message: t("i18n_register.iinLengthError") 
+                                message: t("i18n_register.iinLengthError") // "ИИН должен состоять из 12 цифр"
                             },
+                            // Затем запускаем математический алгоритм (глубокая проверка)
+                            validate: (value) => 
+                                validateIINChecksum(value) || t("i18n_register.iinInvalidChecksum") // "Некорректный ИИН"
+
                         }}
                         labelKey="i18n_register.iin"
                         numericOnly={true}
