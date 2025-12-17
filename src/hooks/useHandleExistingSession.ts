@@ -58,7 +58,7 @@ export const useHandleExistingSession = () => {
     localStorage.setItem("selectedService", JSON.stringify(serviceObjectForStorage));
 
     // 5. Умный редирект в зависимости от статуса
-    console.log(`♻️ Восстановление сессии. Статус талона: ${record.statusId}`);
+
     
     switch (record.statusId) {
       case 3: // Вызван к окну

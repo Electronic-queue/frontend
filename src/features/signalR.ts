@@ -63,7 +63,7 @@ export const startSignalR = async () => {
         
         // ✅ Connection ID доступен после connection.start()
         currentConnectionId = connection.connectionId;
-        console.log("✅ SignalR подключен. ID:", currentConnectionId);
+        
         
         return currentConnectionId;
 
@@ -83,7 +83,7 @@ connection.onclose(async (error) => {
 
 connection.onreconnected((connectionId) => {
     currentConnectionId = connectionId;
-    console.log("🔄 SignalR успешно переподключен. Новый ID:", currentConnectionId);
+ 
 });
 
 export const getConnectionId = () => {

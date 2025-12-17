@@ -97,6 +97,7 @@
         "details": "Details",
         "callNext": "Call next",
         "logOut": "Log out",
+        "logIn":"Log in",
         "beingServed": "Being served",
         "selectTime": "Select time (minutes)",
         "pauseWindow": "Pause window",

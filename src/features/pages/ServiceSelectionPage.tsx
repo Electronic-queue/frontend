@@ -122,7 +122,7 @@ const ServiceSelection = () => {
                 serviceId: selectedService.id,
                 fcmToken: userFcmToken,
             }).unwrap();
-            console.log('RRResponse', response)
+            
             if (response.token) {
                 localStorage.setItem("token", response.token);
                 dispatch(setToken(response.token));

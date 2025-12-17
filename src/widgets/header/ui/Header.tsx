@@ -3,11 +3,12 @@ import Stack from "@mui/material/Stack";
 import { styled, useTheme } from "@mui/material/styles";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import IconButton from "@mui/material/IconButton";
 import LogoutIcon from "@mui/icons-material/Logout";
+import LoginIcon from "@mui/icons-material/Login";
 import Badge from "@mui/material/Badge";
 import Snackbar from "@mui/material/Snackbar";
 import Alert from "@mui/material/Alert";
@@ -25,6 +26,9 @@ import Brightness7Icon from "@mui/icons-material/Brightness7";
 
 import { ColorModeContext } from "src/features/ThemeContext";
 import i18n from "src/i18n";
+import { Typography } from "@mui/material";
+import { Box } from "@mui/system";
+import { RootState } from "src/store/store";
 
 type notificationsForManager = {
     contentEn: string;
@@ -88,6 +92,7 @@ const Header: FC = () => {
     const { t } = useTranslation();
     const navigate = useNavigate();
     const dispatch = useDispatch();
+    const { isAuthenticated } = useSelector((state: RootState) => state.auth);
     const theme = useTheme();
     const colorMode = useContext(ColorModeContext);
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -215,7 +220,7 @@ const Header: FC = () => {
             )}
             {!isMobile && (
                 <Stack direction="row" justifyContent="center" flexGrow={1}>
-                    <LinksContainer>
+                    {/* <LinksContainer>
                         <PageLinks
                             onClick={() => navigate("/manager/queue")}
                             link={{
@@ -223,7 +228,7 @@ const Header: FC = () => {
                                 label: t("I18N_QUEUE_MANAGEMENT"),
                             }}
                         />
-                    </LinksContainer>
+                    </LinksContainer> */}
                 </Stack>
             )}
 
@@ -246,10 +251,17 @@ const Header: FC = () => {
                         <IconButton onClick={colorMode.toggleColorMode} color="inherit">
                 {theme.palette.mode === 'dark' ? <Brightness7Icon sx={{color:"#3A6CB4", width: "30px", height:"40px"}} /> : <Brightness4Icon sx={{color:"#3A6CB4"}} />}
             </IconButton>
+                        <Box sx={{
+                            display:"flex",
+                            justifyContent:"center",
+                            alignItems:"center"
+                        }}>
+                            {/* <Typography variant="h6" color="text" fontWeight="bold">войти</Typography> */}
                         <IconButton onClick={handleMenuOpen}>
+                            
                             <UserLogo />
                         </IconButton>
-
+                        </Box>
                         <Menu
                             anchorEl={anchorEl}
                             open={isMenuOpen}
@@ -263,10 +275,22 @@ const Header: FC = () => {
                                 horizontal: "right",
                             }}
                         >
-                            <MenuItem onClick={handleLogout}>
-                                <LogoutIcon sx={{ marginRight: 1 }} />
-                                {t("i18n_queue.logOut")}
-                            </MenuItem>
+                            {isAuthenticated ? (
+                                <MenuItem onClick={handleLogout}>
+                                    <LogoutIcon sx={{ marginRight: 1 }} />
+                                    {t("i18n_queue.logOut")}
+                                </MenuItem>
+                            ) : (
+                                <MenuItem
+                                    onClick={() => {
+                                        handleMenuClose();
+                                        navigate("/login");
+                                    }}
+                                >
+                                    <LoginIcon sx={{ marginRight: 1 }} />
+                                    {t("i18n_queue.logIn")}
+                                </MenuItem>
+                            )}
                         </Menu>
                     </>
                 ) : (

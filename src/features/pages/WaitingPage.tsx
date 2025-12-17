@@ -123,7 +123,6 @@ const WaitingPage = () => {
     const { data: clientRecord } = useGetClientRecordByIdQuery(recordId ?? 0, {
         skip: !recordId,
     });
-    console.log("client reocored", clientRecord)
     const [updateQueueItem, { isLoading: isUpdating }] = useUpdateQueueItemMutation();
     const [registerClient] = useRegisterClientMutation();
 
@@ -164,16 +163,16 @@ useEffect(() => {
         const initSignalR = async () => {
             // 1. Проверка на повторный вход
             if (hasRegistered.current) {
-                console.log("🔒 Уже зарегистрированы (skip)");
+              
                 return;
             }
 
             try {
-                console.log("🚀 Запуск initSignalR...");
+                
 
                 // 2. Если не подключены - подключаемся
                 if (connection.state !== "Connected") {
-                    console.log("🔌 Статус не Connected, вызываем startSignalR...");
+                   
                     await startSignalR();
                 }
 
@@ -182,23 +181,19 @@ useEffect(() => {
                 let attempts = 0;
                 while (!connection.connectionId && attempts < 10) {
                     if (!isMounted) return; // Если ушли со страницы - прекращаем ждать
-                    console.log(`⏳ Ждем Connection ID... Попытка ${attempts + 1}/10`);
                     await new Promise((resolve) => setTimeout(resolve, 500));
                     attempts++;
                 }
 
                 const finalConnectionId = connection.connectionId;
-                console.log("🆔 Final Connection ID:", finalConnectionId);
 
                 // 4. Регистрируем клиента
                 if (finalConnectionId && isMounted) {
-                    console.log("nt Отправка registerClient...");
                     
                     const response = await registerClient({
                         connectionId: finalConnectionId
                     }).unwrap();
 
-                    console.log("✅ Клиент успешно зарегистрирован:", response);
                     hasRegistered.current = true;
                 } else {
                     console.warn("⚠️ Тайм-аут: Connection ID так и не пришел или компонент размонтирован");
@@ -214,23 +209,24 @@ useEffect(() => {
 
         // Подписки на события
         const handleRecordCreated = (newRecord: any) => {
-           console.log("recordCreated", newRecord)
         };
 
         const handleRecordCalled = () => {
             navigate("/call", { replace: true });
         };
         
+        const handleWindowPaused = (data: any) => {
+           console.log("Window paused", data);
+        }
+        
     const handleQueueUpdate = (positionUpdate: Record<string, number>) => {
-            console.log("Queue update received:", positionUpdate);
 
             // Проверяем, есть ли наш ID в списке обновлений
             // Обращаемся к объекту по ключу [recordId]
             if (recordId && positionUpdate[recordId] !== undefined) {
                 const newClientNumber = positionUpdate[recordId];
                 
-                console.log(`📉 Очередь сдвинулась! Перед вами теперь: ${newClientNumber}`);
-
+                
                 // Обновляем стейт, чтобы React перерисовал цифру
                 setRecordData((prevData) => {
                     // Если prevData еще нет, берем данные из clientRecord (начальные данные)
@@ -248,9 +244,10 @@ useEffect(() => {
         connection.on("ReceiveRecordCreated", handleRecordCreated);
         connection.on("RecordCalled", handleRecordCalled);
         connection.on("QueuePositionUpdate", handleQueueUpdate);
+        connection.on("WindowPaused",handleWindowPaused);
+
 
         return () => {
-            console.log("🧹 Cleanup WaitingPage");
             isMounted = false;
             // Сбрасываем флаг, чтобы при возврате можно было снова зарегистрироваться
             hasRegistered.current = false;
@@ -347,9 +344,14 @@ useEffect(() => {
                             <Typography variant="h6">
                                 {t("i18n_queue.peopleAhead")}: {activeRecord.clientNumber ?? "—"}
                             </Typography>
-                            <Typography variant="h6">
-                                {t("i18n_queue.expectedTime")}:{" "}
-                                {activeRecord.expectedAcceptanceTime ?? "—"}
+                           <Typography variant="h6">
+                         {t("i18n_queue.expectedTime")}:{" "}
+                            {activeRecord.expectedAcceptanceTime
+                            ? new Date(activeRecord.expectedAcceptanceTime).toLocaleTimeString([], {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                          })
+                            : "—"}
                             </Typography>
                         </>
                     ) : (

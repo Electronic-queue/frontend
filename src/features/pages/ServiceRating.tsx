@@ -100,7 +100,7 @@ const ServiceRating = () => {
     const { data: clientRecord } = useGetClientRecordByIdQuery(recordId1 ?? 0, {
         skip: !recordId1,
     });
-    console.log("Fetched Client Record:", clientRecord);
+    
     useEffect(() => {
         if (clientRecord) {
             setRecordData(clientRecord);

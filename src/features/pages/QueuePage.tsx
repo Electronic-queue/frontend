@@ -108,7 +108,7 @@
         const currentLanguage = i18n.language || "ru";
         const [callNext, { isLoading: isCallingNext }] = useCallNextMutation();
         const [completeClient, { isLoading: isCompleting }] = useCompleteClientMutation();
-        // const [pauseWindow] = usePauseWindowMutation();
+        const [pauseWindow] = usePauseWindowMutation();
         // const [cancelQueue] = useCancelQueueMutation();
         const [startWindow] = useStartWindowMutation();
         
@@ -164,7 +164,7 @@
         
         useEffect(() => {
             if (!token) {
-        console.log("⏳ Token not ready yet, waiting...");
+        
         return; 
     }   
     
@@ -198,7 +198,7 @@
                     } catch (err:any) {
                         console.error("🔥 Ошибка при вызове registerManager:", err);
                         if (err?.status === 503) {
-                            console.log("♻️ Ловим 503, перезагружаем страницу...");
+                            
                             window.location.reload();
                         }
                     }
@@ -236,36 +236,29 @@
         //     }
         // };
 
-        // const handlePauseWindow = async () => {
-        //     try {
-        //         await pauseWindow({
-        //             managerId,
-        //             exceedingTime: selectedTime,
-        //         }).unwrap();
-        //         setIsPauseModalOpen(false);
-        //         setIsTimerModalOpen(true);
-        //         setSnackbar({
-        //             open: true,
-        //             message: t("i18n_queue.windowPaused"),
-        //             severity: "success",
-        //         });
-        //         if (clientsSignalR.length > 1) {
-        //             setStatus("called");
-        //             sessionStorage.setItem("clientStatus", "called");
-        //         } else {
-        //             setClientsSignalR([]);
-        //             setStatus("idle");
-        //             sessionStorage.removeItem("clientStatus");
-        //         }
-        //     } catch (error) {
-        //         console.error("Error while pausing the window:", error);
-        //         setSnackbar({
-        //             open: true,
-        //             message: t("i18n_queue.pauseError"),
-        //             severity: "error",
-        //         });
-        //     }
-        // };
+        const handlePauseWindow = async () => {
+            try {
+                await pauseWindow({
+                    managerId,
+                    exceedingTime: selectedTime,
+                }).unwrap();
+                setIsPauseModalOpen(false);
+                setIsTimerModalOpen(true);
+                setSnackbar({
+                    open: true,
+                    message: t("i18n_queue.windowPaused"),
+                    severity: "success",
+                });
+                
+            } catch (error) {
+                console.error("Error while pausing the window:", error);
+                setSnackbar({
+                    open: true,
+                    message: t("i18n_queue.pauseError"),
+                    severity: "error",
+                });
+            }
+        };
         // const handleCancelQueue = async () => {
         //     try {
         //         await cancelQueue({}).unwrap();
@@ -398,12 +391,12 @@
             : defaultClientData;
 
 
-        // const handlePauseModalOpen = () => {
-        //     setIsPauseModalOpen(true);
-        //     setSelectedTime(1);
-        // };
+        const handlePauseModalOpen = () => {
+            setIsPauseModalOpen(true);
+            setSelectedTime(1);
+        };
 
-        // const [rotateIcon, setRotateIcon] = useState(false);
+        const [rotateIcon, setRotateIcon] = useState(false);
     
         return (
             <>
@@ -434,7 +427,7 @@
                         </Alert>
                     </Snackbar>
                 </Box>
-                {/* <Box
+                <Box
                     sx={{
                         display: "flex",
                         justifyContent: "space-between",
@@ -449,51 +442,17 @@
                         >
                             {t("i18n_queue.pause")}
                         </CustomButton>
-                        <CustomButton
+                        {/* <CustomButton
                             variantType="primary"
                             sizeType="medium"
                             onClick={() => handleCancelQueue()}
                         >
                             {t("i18n_queue.cancelQueue")}
-                        </CustomButton>
-                        <CustomButton
-                            variantType="primary"
-                            sizeType="medium"
-                            onClick={() => navigate("/monitor")}
-                        >
-                            {t("i18n_queue.monitor")}
-                        </CustomButton>
+                        </CustomButton> */}
+                    
                     </ButtonWrapper>
-                    <Box
-                        sx={{
-                            display: "flex",
-                            alignItems: "center",
-                        }}
-                    >
-                        <CustomButton
-                            variantType="primary"
-                            sizeType="medium"
-                            onClick={() => {
-                                setIsPauseModalOpen(false);
-                                handleUpdateClientList();
-                                setRotateIcon(true);
-                                setTimeout(() => setRotateIcon(false), 500);
-                            }}
-                            sx={{
-                                marginRight: theme.spacing(3),
-                            }}
-                        >
-                            <LoopIcon
-                                sx={{
-                                    transition: "transform 0.5s ease",
-                                    transform: rotateIcon
-                                        ? "rotate(180deg)"
-                                        : "rotate(0deg)",
-                                }}
-                            />
-                        </CustomButton>
-                    </Box>
-                </Box> */}
+                 
+                </Box>
 
             <StatusCardWrapper>
                     <StatusCard variant="accepted" number={snapshot?.stats.serviced || 0} />
@@ -544,7 +503,11 @@
                                         hour: "2-digit",
                                         minute: "2-digit",
                                     })}
-                                    expectedTime={item.expectedAcceptanceTime}
+                                    expectedTime={item.expectedAcceptanceTime?new Date(item.expectedAcceptanceTime).toLocaleTimeString([], {
+                                        hour: "2-digit",
+                                        minute: "2-digit",
+                                        }): "-"}
+                                    
                                 />
                             ) : (
                                 <QueueCard
@@ -572,7 +535,7 @@
                                 onTimeSelect={(time) => setSelectedTime(time)}
                             />
                         </Box>
-                        {/* <CustomButton
+                        <CustomButton
                             variantType="primary"
                             sizeType="medium"
                             onClick={() => {
@@ -582,7 +545,7 @@
                             }}
                         >
                             {t("i18n_queue.pauseWindow")}
-                        </CustomButton> */}
+                        </CustomButton>
                     </Box>
                 </ReusableModal>
 
@@ -605,5 +568,3 @@
     };
 
     export default QueuePage;
-
-
