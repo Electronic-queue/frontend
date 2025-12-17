@@ -49,9 +49,9 @@ type ObserverData = {
 };
 
 // --- CONSTANTS ---
-const ITEMS_PER_COLUMN = 7; // Сколько строк влезает в одну половинку карточки
+const ITEMS_PER_COLUMN = 7; 
 
-// --- STYLES (Твои оригинальные стили) ---
+// --- STYLES ---
 const SelectionContainer = styled(Box)(({ theme }) => ({
   display: "flex",
   flexDirection: "column",
@@ -78,7 +78,7 @@ const MonitorContainer = styled(Box)(({ theme }) => ({
   display: "flex",
   flexDirection: "column",
   height: "100vh",
-  backgroundColor: "#f4f6f8", // Твой светло-серый фон
+  backgroundColor: "#f4f6f8",
   padding: theme.spacing(2),
   overflow: "hidden"
 }));
@@ -87,24 +87,22 @@ const HeaderBox = styled(Box)(({ theme }) => ({
   display: "flex",
   justifyContent: "center",
   alignItems: "center",
-  marginBottom: theme.spacing(2), // Чуть уменьшил отступ, чтобы влезло больше данных
+  marginBottom: theme.spacing(2),
   height: "80px"
 }));
 
-// Заголовки таблиц
 const TableTitle = styled(Typography)(({ theme }) => ({
   fontSize: "2rem",
   fontWeight: 700,
   color: "#fff",
   padding: theme.spacing(2),
   textAlign: "center",
-  borderTopLeftRadius: theme.spacing(1), // Радиус только сверху, т.к. это шапка карточки
+  borderTopLeftRadius: theme.spacing(1),
   borderTopRightRadius: theme.spacing(1),
   textTransform: "uppercase",
   letterSpacing: "1px",
 }));
 
-// Ячейки таблицы (Твои стили)
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
   fontSize: "1.8rem",
   fontWeight: 600,
@@ -120,14 +118,8 @@ const StyledHeaderCell = styled(TableCell)(({ theme }) => ({
   padding: theme.spacing(1),
 }));
 
-// Вспомогательный компонент для отрисовки под-таблицы
-const SubTable = ({ 
-    items, 
-    type 
-}: { 
-    items: ObserverItem[], 
-    type: 'wait' | 'called' 
-}) => {
+// Вспомогательный компонент для под-таблицы
+const SubTable = ({ items, type }: { items: ObserverItem[], type: 'wait' | 'called' }) => {
     return (
         <Table stickyHeader>
             <TableHead>
@@ -146,7 +138,6 @@ const SubTable = ({
                             backgroundColor: 'rgba(232, 245, 233, 0.5)'
                         } : {}}
                     >
-                        {/* Стили для "В Очереди" */}
                         {type === 'wait' && (
                             <>
                                 <StyledTableCell sx={{ fontWeight: 700, color: '#333' }}>
@@ -157,8 +148,6 @@ const SubTable = ({
                                 </StyledTableCell>
                             </>
                         )}
-
-                        {/* Стили для "Вызванные" */}
                         {type === 'called' && (
                             <>
                                 <StyledTableCell sx={{ color: '#2e7d32', fontSize: '2rem', fontWeight: 800 }}>
@@ -171,7 +160,6 @@ const SubTable = ({
                         )}
                     </TableRow>
                 ))}
-                {/* Если список пустой, рендерим пустые строки чтобы сохранить сетку, или просто ничего */}
                 {items.length === 0 && (
                      <TableRow>
                         <StyledTableCell colSpan={2} align="center" sx={{ borderBottom: 'none' }} />
@@ -181,7 +169,6 @@ const SubTable = ({
         </Table>
     );
 };
-
 
 const MonitorPage = () => {
   const theme = useTheme();
@@ -195,6 +182,41 @@ const MonitorPage = () => {
   const [registerObserver] = useObserverMutation();
 
   const hasRegisteredRef = useRef(false);
+  
+  // --- НОВАЯ ЛОГИКА ОЗВУЧКИ ---
+  // Храним ID последнего озвученного вызова, чтобы не повторять
+  const lastAnnouncedRecordId = useRef<number | null>(null);
+
+  const speakText = (ticket: number | string, windowNum: number | string) => {
+    // Отменяем предыдущую речь, если она еще идет
+    window.speechSynthesis.cancel();
+
+    const lang = i18n.language; // 'ru', 'kz', 'en' (проверьте, какие коды у вас используются)
+    let text = "";
+    let voiceLang = "ru-RU";
+
+    // Формируем фразу в зависимости от языка
+    if (lang === 'kz' || lang === 'kk') {
+        text = `Талон нөмірі ${ticket}, ${windowNum} терезеге барыңыз`;
+        voiceLang = "kk-KZ"; // Казахский голос (если есть в браузере) или fallback на RU
+    } else if (lang === 'en') {
+        text = `Ticket number ${ticket}, please go to window ${windowNum}`;
+        voiceLang = "en-US";
+    } else {
+        // По умолчанию русский
+        text = `Талон номер ${ticket}, пройдите к окну ${windowNum}`;
+        voiceLang = "ru-RU";
+    }
+
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = voiceLang;
+    utterance.rate = 0.9; // Чуть медленнее для четкости
+    utterance.pitch = 1;
+
+    // Пытаемся говорить
+    window.speechSynthesis.speak(utterance);
+  };
+  // -----------------------------
 
   useEffect(() => {
     if (step !== "monitor" || !selectedQueueId) return;
@@ -223,7 +245,6 @@ const MonitorPage = () => {
                     connectionId: connId,
                     queueTypeId: selectedQueueId
                 }).unwrap();
-                
                 hasRegisteredRef.current = true;
             }
 
@@ -237,6 +258,20 @@ const MonitorPage = () => {
     connection.on("ObserverUpdate", (data: ObserverData) => {
         if (data.queueTypeId === selectedQueueId) {
             setMonitorData(data);
+
+            // --- ПРОВЕРКА НА НОВЫЙ ВЫЗОВ ---
+            const newestCall = data.calledQueue[0]; // Берем верхнего в списке вызванных
+            if (newestCall) {
+                // Если ID отличается от последнего озвученного -> говорим
+                if (newestCall.recordId !== lastAnnouncedRecordId.current) {
+                    lastAnnouncedRecordId.current = newestCall.recordId;
+                    // Небольшая задержка (500мс), чтобы интерфейс успел отрисоваться
+                    setTimeout(() => {
+                        speakText(newestCall.ticketNumber, newestCall.windowNumber);
+                    }, 500);
+                }
+            }
+            // -------------------------------
         }
     });
 
@@ -244,11 +279,13 @@ const MonitorPage = () => {
         isMounted = false;
         hasRegisteredRef.current = false;
         connection.off("ObserverUpdate");
+        window.speechSynthesis.cancel(); // Остановить речь при уходе
     };
   }, [step, selectedQueueId, registerObserver]);
 
 
   if (step === "select") {
+    // (Код выбора очереди без изменений)
     return (
         <SelectionContainer>
             <Box sx={{ paddingBottom: theme.spacing(4) }}>
@@ -288,7 +325,7 @@ const MonitorPage = () => {
     );
   }
 
-  // --- ПОДГОТОВКА ДАННЫХ (SPLIT) ---
+  // Данные для колонок
   const waitList = monitorData?.inLineQueue || [];
   const waitListLeft = waitList.slice(0, ITEMS_PER_COLUMN);
   const waitListRight = waitList.slice(ITEMS_PER_COLUMN, ITEMS_PER_COLUMN * 2);
@@ -299,22 +336,17 @@ const MonitorPage = () => {
 
   return (
     <MonitorContainer>
-      {/* Логотип */}
       <HeaderBox>
          <SULogoCustom /> 
       </HeaderBox>
 
-      {/* Основной контент */}
       <Grid container spacing={3} sx={{ flex: 1, overflow: 'hidden' }}>
-            
-            {/* === ЛЕВАЯ КОЛОНКА: В ОЧЕРЕДИ (СИНЯЯ) === */}
+            {/* ЛЕВАЯ КОЛОНКА */}
             <Grid item xs={6} sx={{ height: '100%' }}>
               <Paper elevation={6} sx={{ height: '95%', borderRadius: 3, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
                   <TableTitle sx={{ backgroundColor: '#1976d2' }}> 
                       В очереди
                   </TableTitle>
-                  
-                  {/* Контейнер для двух таблиц внутри карточки */}
                   <TableContainer sx={{ flex: 1, display: 'flex', flexDirection: 'row' }}>
                       {waitList.length === 0 ? (
                            <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
@@ -322,28 +354,20 @@ const MonitorPage = () => {
                            </Box>
                       ) : (
                           <>
-                            {/* Левая половина списка */}
-                            <Box sx={{ flex: 1, borderRight: '1px solid #e0e0e0' }}>
-                                <SubTable items={waitListLeft} type="wait" />
-                            </Box>
-                            {/* Правая половина списка */}
-                            <Box sx={{ flex: 1 }}>
-                                <SubTable items={waitListRight} type="wait" />
-                            </Box>
+                            <Box sx={{ flex: 1, borderRight: '1px solid #e0e0e0' }}><SubTable items={waitListLeft} type="wait" /></Box>
+                            <Box sx={{ flex: 1 }}><SubTable items={waitListRight} type="wait" /></Box>
                           </>
                       )}
                   </TableContainer>
               </Paper>
             </Grid>
 
-            {/* === ПРАВАЯ КОЛОНКА: ВЫЗВАННЫЕ (ЗЕЛЕНАЯ) === */}
+            {/* ПРАВАЯ КОЛОНКА */}
             <Grid item xs={6} sx={{ height: '100%' }}>
               <Paper elevation={6} sx={{ height: '95%', borderRadius: 3, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
                   <TableTitle sx={{ backgroundColor: '#2e7d32' }}> 
                       Вызванные
                   </TableTitle>
-                  
-                  {/* Контейнер для двух таблиц внутри карточки */}
                   <TableContainer sx={{ flex: 1, display: 'flex', flexDirection: 'row' }}>
                        {calledList.length === 0 ? (
                            <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
@@ -351,14 +375,8 @@ const MonitorPage = () => {
                            </Box>
                       ) : (
                           <>
-                            {/* Левая половина списка */}
-                            <Box sx={{ flex: 1, borderRight: '1px solid #e0e0e0' }}>
-                                <SubTable items={calledListLeft} type="called" />
-                            </Box>
-                            {/* Правая половина списка */}
-                            <Box sx={{ flex: 1 }}>
-                                <SubTable items={calledListRight} type="called" />
-                            </Box>
+                            <Box sx={{ flex: 1, borderRight: '1px solid #e0e0e0' }}><SubTable items={calledListLeft} type="called" /></Box>
+                            <Box sx={{ flex: 1 }}><SubTable items={calledListRight} type="called" /></Box>
                           </>
                       )}
                   </TableContainer>
@@ -366,7 +384,6 @@ const MonitorPage = () => {
             </Grid>
       </Grid>
 
-      {/* Стили для анимации */}
       <style>
         {`
           @keyframes pulse-green {
@@ -377,7 +394,6 @@ const MonitorPage = () => {
         `}
       </style>
 
-      {/* Кнопка сброса (скрытая) */}
       <Box position="fixed" bottom={0} left={0} p={1} sx={{ opacity: 0, '&:hover': { opacity: 1 } }}>
           <CustomButton 
             variantType="danger" 
@@ -386,6 +402,7 @@ const MonitorPage = () => {
                 setStep("select");
                 setMonitorData(null);
                 hasRegisteredRef.current = false;
+                lastAnnouncedRecordId.current = null; // Сброс озвучки при выходе
                 connection.off("ObserverUpdate");
             }}
           >
