@@ -12,7 +12,8 @@ import {
   Stack,
   CircularProgress,
   Grid,
-  Paper
+  Paper,
+  Divider
 } from "@mui/material";
 import { useTranslation } from "react-i18next";
 import SULogoCustom from "src/assets/su-logoCustom";
@@ -22,11 +23,12 @@ import CustomButton from "src/components/Button";
 import connection, { startSignalR } from "src/features/signalR";
 import i18n from "src/i18n";
 
-import { 
-  useGetQueueTypeQuery, 
-  useObserverMutation 
+import {
+  useGetQueueTypeQuery,
+  useObserverMutation
 } from "src/store/managerApi";
 
+// --- TYPES ---
 type ObserverItem = {
   recordId: number;
   ticketNumber: number;
@@ -39,13 +41,17 @@ type ObserverItem = {
 };
 
 type ObserverData = {
-  calledQueue: ObserverItem[]; 
-  inLineQueue: ObserverItem[]; 
+  calledQueue: ObserverItem[];
+  inLineQueue: ObserverItem[];
   calledCount: number;
   inLineCount: number;
   queueTypeId: string;
 };
 
+// --- CONSTANTS ---
+const ITEMS_PER_COLUMN = 7; // Сколько строк влезает в одну половинку карточки
+
+// --- STYLES (Твои оригинальные стили) ---
 const SelectionContainer = styled(Box)(({ theme }) => ({
   display: "flex",
   flexDirection: "column",
@@ -68,21 +74,20 @@ const SelectionCard = styled(Stack)(({ theme }) => ({
   overflowY: "auto",
 }));
 
-
 const MonitorContainer = styled(Box)(({ theme }) => ({
   display: "flex",
   flexDirection: "column",
   height: "100vh",
-  backgroundColor: "#f4f6f8", // Светло-серый фон для контраста
+  backgroundColor: "#f4f6f8", // Твой светло-серый фон
   padding: theme.spacing(2),
   overflow: "hidden"
 }));
 
 const HeaderBox = styled(Box)(({ theme }) => ({
   display: "flex",
-  justifyContent: "center", 
+  justifyContent: "center",
   alignItems: "center",
-  marginBottom: theme.spacing(4),
+  marginBottom: theme.spacing(2), // Чуть уменьшил отступ, чтобы влезло больше данных
   height: "80px"
 }));
 
@@ -93,15 +98,15 @@ const TableTitle = styled(Typography)(({ theme }) => ({
   color: "#fff",
   padding: theme.spacing(2),
   textAlign: "center",
-  borderTopLeftRadius: theme.spacing(1),
+  borderTopLeftRadius: theme.spacing(1), // Радиус только сверху, т.к. это шапка карточки
   borderTopRightRadius: theme.spacing(1),
   textTransform: "uppercase",
   letterSpacing: "1px",
 }));
 
-// Ячейки таблицы (увеличенный шрифт)
+// Ячейки таблицы (Твои стили)
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
-  fontSize: "1.8rem", 
+  fontSize: "1.8rem",
   fontWeight: 600,
   padding: theme.spacing(1.5),
   borderBottom: "1px solid rgba(224, 224, 224, 1)",
@@ -115,15 +120,76 @@ const StyledHeaderCell = styled(TableCell)(({ theme }) => ({
   padding: theme.spacing(1),
 }));
 
+// Вспомогательный компонент для отрисовки под-таблицы
+const SubTable = ({ 
+    items, 
+    type 
+}: { 
+    items: ObserverItem[], 
+    type: 'wait' | 'called' 
+}) => {
+    return (
+        <Table stickyHeader>
+            <TableHead>
+                <TableRow>
+                    <StyledHeaderCell>Талон</StyledHeaderCell>
+                    <StyledHeaderCell align="right">Окно</StyledHeaderCell>
+                </TableRow>
+            </TableHead>
+            <TableBody>
+                {items.map((item) => (
+                    <TableRow 
+                        key={item.recordId} 
+                        hover 
+                        sx={type === 'called' ? {
+                            animation: `pulse-green 2s infinite`,
+                            backgroundColor: 'rgba(232, 245, 233, 0.5)'
+                        } : {}}
+                    >
+                        {/* Стили для "В Очереди" */}
+                        {type === 'wait' && (
+                            <>
+                                <StyledTableCell sx={{ fontWeight: 700, color: '#333' }}>
+                                    {item.ticketNumber}
+                                </StyledTableCell>
+                                <StyledTableCell align="right" sx={{ fontSize: '1.4rem', color: '#666' }}>
+                                    {item.windowNumber}
+                                </StyledTableCell>
+                            </>
+                        )}
+
+                        {/* Стили для "Вызванные" */}
+                        {type === 'called' && (
+                            <>
+                                <StyledTableCell sx={{ color: '#2e7d32', fontSize: '2rem', fontWeight: 800 }}>
+                                    {item.ticketNumber}
+                                </StyledTableCell>
+                                <StyledTableCell align="right" sx={{ fontSize: '2rem', fontWeight: 800 }}>
+                                    {item.windowNumber}
+                                </StyledTableCell>
+                            </>
+                        )}
+                    </TableRow>
+                ))}
+                {/* Если список пустой, рендерим пустые строки чтобы сохранить сетку, или просто ничего */}
+                {items.length === 0 && (
+                     <TableRow>
+                        <StyledTableCell colSpan={2} align="center" sx={{ borderBottom: 'none' }} />
+                     </TableRow>
+                )}
+            </TableBody>
+        </Table>
+    );
+};
+
+
 const MonitorPage = () => {
   const theme = useTheme();
   const { t } = useTranslation();
-  
 
   const [step, setStep] = useState<"select" | "monitor">("select");
   const [selectedQueueId, setSelectedQueueId] = useState<string | null>(null);
   const [monitorData, setMonitorData] = useState<ObserverData | null>(null);
-  
 
   const { data: queueTypes, isLoading: isTypesLoading } = useGetQueueTypeQuery();
   const [registerObserver] = useObserverMutation();
@@ -142,7 +208,6 @@ const MonitorPage = () => {
           if (connection.state !== "Connected") {
                 await startSignalR();
             }
-
 
             let attempts = 0;
             while (!connection.connectionId && attempts < 10) {
@@ -181,15 +246,6 @@ const MonitorPage = () => {
         connection.off("ObserverUpdate");
     };
   }, [step, selectedQueueId, registerObserver]);
-
-
-
-  const getServiceName = (item: ObserverItem) => {
-      const lang = i18n.language;
-      if (lang === 'en') return item.serviceNameEn;
-      if (lang === 'kz') return item.serviceNameKk;
-      return item.serviceNameRu; 
-  };
 
 
   if (step === "select") {
@@ -232,107 +288,82 @@ const MonitorPage = () => {
     );
   }
 
-  // --- RENDER: ШАГ 2 - МОНИТОР ---
-  const calledList = monitorData?.calledQueue || [];
+  // --- ПОДГОТОВКА ДАННЫХ (SPLIT) ---
   const waitList = monitorData?.inLineQueue || [];
+  const waitListLeft = waitList.slice(0, ITEMS_PER_COLUMN);
+  const waitListRight = waitList.slice(ITEMS_PER_COLUMN, ITEMS_PER_COLUMN * 2);
+
+  const calledList = monitorData?.calledQueue || [];
+  const calledListLeft = calledList.slice(0, ITEMS_PER_COLUMN);
+  const calledListRight = calledList.slice(ITEMS_PER_COLUMN, ITEMS_PER_COLUMN * 2);
 
   return (
     <MonitorContainer>
       {/* Логотип */}
       <HeaderBox>
          <SULogoCustom /> 
-         {/* Если нужен стандартный логотип, раскомментируйте ниже, а Custom уберите */}
-         {/* <SULogoM style={{ height: '60px' }} /> */}
       </HeaderBox>
 
-      {/* Основной контент - Таблицы на весь экран */}
+      {/* Основной контент */}
       <Grid container spacing={3} sx={{ flex: 1, overflow: 'hidden' }}>
-            {/* ЛЕВАЯ КОЛОНКА: В ОЧЕРЕДИ */}
+            
+            {/* === ЛЕВАЯ КОЛОНКА: В ОЧЕРЕДИ (СИНЯЯ) === */}
             <Grid item xs={6} sx={{ height: '100%' }}>
-              <Paper elevation={6} sx={{ height: '90%', borderRadius: 3, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-                  <TableTitle sx={{ backgroundColor: '#1976d2' }}> {/* Синий заголовок */}
+              <Paper elevation={6} sx={{ height: '95%', borderRadius: 3, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+                  <TableTitle sx={{ backgroundColor: '#1976d2' }}> 
                       В очереди
                   </TableTitle>
-                  <TableContainer sx={{ flex: 1 }}>
-                      <Table stickyHeader>
-                          <TableHead>
-                              <TableRow>
-                                  <StyledHeaderCell>Талон</StyledHeaderCell>
-                                  <StyledHeaderCell align="right">Окно</StyledHeaderCell>
-                              </TableRow>
-                          </TableHead>
-                          <TableBody>
-                              {waitList.length > 0 ? (
-                                  waitList.slice(0, 8).map((item) => ( // Показываем топ 8
-                                      <TableRow key={item.recordId} hover>
-                                          <StyledTableCell sx={{ fontWeight: 700, color: '#333' }}>
-                                              {item.ticketNumber}
-                                          </StyledTableCell>
-                                          <StyledTableCell align="right" sx={{ fontSize: '1.4rem', color: '#666' }}>
-                                              {item.windowNumber}
-                                          </StyledTableCell>
-                                      </TableRow>
-                                  ))
-                              ) : (
-                                  <TableRow>
-                                      <StyledTableCell colSpan={2} align="center" sx={{ color: '#999', py: 10 }}>
-                                          Очередь пуста
-                                      </StyledTableCell>
-                                  </TableRow>
-                              )}
-                          </TableBody>
-                      </Table>
+                  
+                  {/* Контейнер для двух таблиц внутри карточки */}
+                  <TableContainer sx={{ flex: 1, display: 'flex', flexDirection: 'row' }}>
+                      {waitList.length === 0 ? (
+                           <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                                <Typography variant="h4" color="textSecondary">Очередь пуста</Typography>
+                           </Box>
+                      ) : (
+                          <>
+                            {/* Левая половина списка */}
+                            <Box sx={{ flex: 1, borderRight: '1px solid #e0e0e0' }}>
+                                <SubTable items={waitListLeft} type="wait" />
+                            </Box>
+                            {/* Правая половина списка */}
+                            <Box sx={{ flex: 1 }}>
+                                <SubTable items={waitListRight} type="wait" />
+                            </Box>
+                          </>
+                      )}
                   </TableContainer>
               </Paper>
-          </Grid>
+            </Grid>
 
-          {/* ПРАВАЯ КОЛОНКА: ВЫЗВАННЫЕ */}
-          <Grid item xs={6} sx={{ height: '100%' }}>
-              <Paper elevation={6} sx={{ height: '90%', borderRadius: 3, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-                  <TableTitle sx={{ backgroundColor: '#2e7d32' }}> {/* Зеленый заголовок */}
+            {/* === ПРАВАЯ КОЛОНКА: ВЫЗВАННЫЕ (ЗЕЛЕНАЯ) === */}
+            <Grid item xs={6} sx={{ height: '100%' }}>
+              <Paper elevation={6} sx={{ height: '95%', borderRadius: 3, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+                  <TableTitle sx={{ backgroundColor: '#2e7d32' }}> 
                       Вызванные
                   </TableTitle>
-                  <TableContainer sx={{ flex: 1 }}>
-                      <Table stickyHeader>
-                          <TableHead>
-                              <TableRow>
-                                  <StyledHeaderCell>Талон</StyledHeaderCell>
-                                  {/* ИСПРАВЛЕНИЕ: Добавлен align="right" */}
-                                  <StyledHeaderCell align="right">Окно</StyledHeaderCell>
-                              </TableRow>
-                          </TableHead>
-                          <TableBody>
-                              {calledList.length > 0 ? (
-                                  calledList.map((item, idx) => (
-                                      <TableRow 
-                                        key={item.recordId} 
-                                        sx={{ 
-                                            // Пульсация для привлечения внимания
-                                            animation: `pulse-green 2s infinite`,
-                                            backgroundColor: 'rgba(232, 245, 233, 0.5)'
-                                        }}
-                                      >
-                                          <StyledTableCell sx={{ color: '#2e7d32', fontSize: '2rem', fontWeight: 800 }}>
-                                              {item.ticketNumber}
-                                          </StyledTableCell>
-                                          {/* ИСПРАВЛЕНИЕ: Добавлен align="right" */}
-                                          <StyledTableCell align="right" sx={{ fontSize: '2rem', fontWeight: 800 }}>
-                                              {item.windowNumber}
-                                          </StyledTableCell>
-                                      </TableRow>
-                                  ))
-                              ) : (
-                                  <TableRow>
-                                      <StyledTableCell colSpan={2} align="center" sx={{ color: '#999', py: 10 }}>
-                                          Нет активных вызовов
-                                      </StyledTableCell>
-                                  </TableRow>
-                              )}
-                          </TableBody>
-                      </Table>
+                  
+                  {/* Контейнер для двух таблиц внутри карточки */}
+                  <TableContainer sx={{ flex: 1, display: 'flex', flexDirection: 'row' }}>
+                       {calledList.length === 0 ? (
+                           <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                                <Typography variant="h4" color="textSecondary">Нет активных вызовов</Typography>
+                           </Box>
+                      ) : (
+                          <>
+                            {/* Левая половина списка */}
+                            <Box sx={{ flex: 1, borderRight: '1px solid #e0e0e0' }}>
+                                <SubTable items={calledListLeft} type="called" />
+                            </Box>
+                            {/* Правая половина списка */}
+                            <Box sx={{ flex: 1 }}>
+                                <SubTable items={calledListRight} type="called" />
+                            </Box>
+                          </>
+                      )}
                   </TableContainer>
               </Paper>
-          </Grid>
+            </Grid>
       </Grid>
 
       {/* Стили для анимации */}
@@ -346,6 +377,7 @@ const MonitorPage = () => {
         `}
       </style>
 
+      {/* Кнопка сброса (скрытая) */}
       <Box position="fixed" bottom={0} left={0} p={1} sx={{ opacity: 0, '&:hover': { opacity: 1 } }}>
           <CustomButton 
             variantType="danger" 

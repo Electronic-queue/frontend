@@ -1,570 +1,332 @@
-    import { FC, useState, useEffect, useRef } from "react";
-    import Box from "@mui/material/Box";
-    import Stack from "@mui/material/Stack";
-    import { styled } from "@mui/material/styles";
-    import { useTranslation } from "react-i18next";
-    import CustomButton from "../../components/Button";
-    import StatusCard from "../../widgets/statusCard/ui/StatusCard";
-    import ClientCard from "../../widgets/clientCard/ui/ClientCard";
-    import QueueCard from "src/widgets/queueCard/ui/QueueCard";
-    import ReusableModal from "src/components/ModalPage";
-    import theme from "src/styles/theme";
-    import SelectTime from "src/widgets/selectTiem/ui/SelectTime";
-    import Timer from "src/widgets/timer/ui/Timer";
-    import {
-        useAcceptClientMutation,
-        useCallNextMutation,
-        useRedirectClientMutation,
-        useCompleteClientMutation,
-        useGetRecordListByManagerQuery,
-        usePauseWindowMutation,
-        useGetManagerIdQuery,
-        useCancelQueueMutation,
-        useStartWindowMutation,
-    } from "src/store/managerApi";
-    import { Alert, Button, Snackbar } from "@mui/material";
-    import connection, { startSignalR } from "src/features/signalR";
-    import i18n from "src/i18n";
-    type StatusType = "idle" | "called" | "accepted" | "redirected";
-    import LoopIcon from "@mui/icons-material/Loop";
-    import { useNavigate } from "react-router-dom";
-    import { useRegisterManagerMutation } from "src/store/signalRManagerApi";
-    import { useSelector } from "react-redux";
-    import { RootState } from "src/store/store";
-    import React from "react";
+import { FC, useState, useEffect, useRef } from "react";
+import Box from "@mui/material/Box";
+import Stack from "@mui/material/Stack";
+import { styled } from "@mui/material/styles";
+import { useTranslation } from "react-i18next";
+import StatusCard from "../../widgets/statusCard/ui/StatusCard";
+import ClientCard from "../../widgets/clientCard/ui/ClientCard";
+import QueueCard from "src/widgets/queueCard/ui/QueueCard";
+import theme from "src/styles/theme";
+import {
+    useAcceptClientMutation,
+    useCallNextMutation,
+    useCompleteClientMutation,
+    useStartWindowMutation,
+    useGetManagerIdQuery,
+} from "src/store/managerApi";
+import { Alert, Snackbar } from "@mui/material";
+import connection, { startSignalR } from "src/features/signalR";
+import i18n from "src/i18n";
+import { useRegisterManagerMutation } from "src/store/signalRManagerApi";
+import { useSelector } from "react-redux";
+import { RootState } from "src/store/store";
+import React from "react";
 
+type StatusType = "idle" | "called" | "accepted" | "redirected";
 
-    type ClientData = {
-        clientNumber: number;
-        ticketNumber: number;
-        lastName: string | null;
-        firstName: string | null;
-        surname: string | null; 
-        serviceNameRu: string;
-        serviceNameKk: string;
-        serviceNameEn: string;
-        iin: string;
-        expectedAcceptanceTime: string;
-        createdOn?: string;
-        averageExecutionTime: number;
-        statusId?: number; 
-        serviceId?: string; 
-        managerId?: string;
-    };
-    type ManagerSnapshotData = {
-        managerId: string;
-        activeClient: ClientData | null; 
-        queue: ClientData[];
-        stats: {
-            inLine: number;
-            redirected: number;
-            rejected: number;
-            serviced: number;
-        };
-    };
-    type managerStatic = {
-        managerId: string;
-        serviced: number;
-        rejected: number;
-        redirected: number;
+type ClientData = {
+    clientNumber: number;
+    ticketNumber: number;
+    lastName: string | null;
+    firstName: string | null;
+    surname: string | null;
+    serviceNameRu: string;
+    serviceNameKk: string;
+    serviceNameEn: string;
+    iin: string;
+    expectedAcceptanceTime: string;
+    createdOn?: string;
+    averageExecutionTime: number;
+    statusId?: number;
+    serviceId?: string;
+    managerId?: string;
+};
+
+type ManagerSnapshotData = {
+    managerId: string;
+    activeClient: ClientData | null;
+    queue: ClientData[];
+    stats: {
         inLine: number;
+        redirected: number;
+        rejected: number;
+        serviced: number;
     };
-    const ButtonWrapper = styled(Box)(({ theme }) => ({
-        marginBottom: theme.spacing(3),
-        display: "flex",
-        gap: theme.spacing(3),
-        justifyContent: "flex-start",
-        flexDirection: "row",
-    }));
+};
 
-    const StatusCardWrapper = styled(Stack)(({ theme }) => ({
-        display: "flex",
-        flexDirection: "row",
-        gap: theme.spacing(3),
-        justifyContent: "center",
-        marginTop: theme.spacing(3),
-        marginBottom: theme.spacing(6),
-    }));
+const StatusCardWrapper = styled(Stack)(({ theme }) => ({
+    display: "flex",
+    flexDirection: "row",
+    gap: theme.spacing(3),
+    justifyContent: "center",
+    marginTop: theme.spacing(3), // чуть подняли, т.к. убрали кнопки сверху
+    marginBottom: theme.spacing(6),
+}));
 
-    const defaultClientData = {
-        clientNumber: "-",
-        lastName: "-",
-        firstName: "-",
-        patronymic: "-",
-        service: "-",
-        iin: "-",
-    };
+const defaultClientData = {
+    clientNumber: "-",
+    lastName: "-",
+    firstName: "-",
+    patronymic: "-",
+    service: "-",
+    iin: "-",
+};
 
+const serviceTime1 = "0";
 
-    const serviceTime1 = "0";
-    const QueuePage: FC = () => {
-        const { t } = useTranslation();
-        const navigate = useNavigate();
-
-        const [selectedTime, setSelectedTime] = useState<number>(1);
-        const [isPauseModalOpen, setIsPauseModalOpen] = useState(false);
-        const [isTimerModalOpen, setIsTimerModalOpen] = useState(false);
-        const [acceptClient, { isLoading: isAccepting }] = useAcceptClientMutation();
-        const currentLanguage = i18n.language || "ru";
-        const [callNext, { isLoading: isCallingNext }] = useCallNextMutation();
-        const [completeClient, { isLoading: isCompleting }] = useCompleteClientMutation();
-        const [pauseWindow] = usePauseWindowMutation();
-        // const [cancelQueue] = useCancelQueueMutation();
-        const [startWindow] = useStartWindowMutation();
-        
-        const [registerManager, { isLoading: isRegistering }] = useRegisterManagerMutation();
-        const [snackbar, setSnackbar] = useState<{
-            open: boolean;
-            message: string;
-            severity: "success" | "error" | "warning" | "info";
-        }>({ open: false, message: "", severity: "success" });
-
-        const isActionLoading = isAccepting || isCallingNext || isCompleting;
-        const token = useSelector((state: RootState) => state.auth.token); // ⚠️ Adjust 'state.auth.token' to match your actual Redux slice path
-        const managerId: number = 6;
+const QueuePage: FC = () => {
+    const { t } = useTranslation();
+    const [acceptClient, { isLoading: isAccepting }] = useAcceptClientMutation();
+    const currentLanguage = i18n.language || "ru";
+    const [callNext, { isLoading: isCallingNext }] = useCallNextMutation();
+    const [completeClient, { isLoading: isCompleting }] = useCompleteClientMutation();
+    const [startWindow] = useStartWindowMutation();
+    const [registerManager] = useRegisterManagerMutation();
     
-        const [snapshot, setSnapshot] = useState<ManagerSnapshotData | null>(null)
-    // 1. Статус текущего окна (на основе activeClient из снепшота)
-        const getComputedStatus = (): StatusType => {
-            const active = snapshot?.activeClient;
-            if (!active) return "idle"; // Если активного нет -> idle
-            
-            // Маппинг statusId из бекенда
-            if (active.statusId === 3) return "called"; // Вызван
-            if (active.statusId === 4) return "accepted"; // Принят
-            
-            return "idle"; // -1 или любой другой
+    const [snackbar, setSnackbar] = useState<{
+        open: boolean;
+        message: string;
+        severity: "success" | "error" | "warning" | "info";
+    }>({ open: false, message: "", severity: "success" });
+
+    const isActionLoading = isAccepting || isCallingNext || isCompleting;
+    const token = useSelector((state: RootState) => state.auth.token);
+    
+    // Получаем ID из API, чтобы не хардкодить
+    const { data: managerIdData } = useGetManagerIdQuery();
+    const managerId = managerIdData ? Number(managerIdData) : 6;
+
+    const [snapshot, setSnapshot] = useState<ManagerSnapshotData | null>(null);
+
+    const getComputedStatus = (): StatusType => {
+        const active = snapshot?.activeClient;
+        if (!active) return "idle";
+        if (active.statusId === 3) return "called";
+        if (active.statusId === 4) return "accepted";
+        return "idle";
+    };
+
+    const computedStatus = getComputedStatus();
+
+    useEffect(() => {
+        const setupSignalR = async () => {
+            connection.on("ManagerQueueSnapshot", (data: ManagerSnapshotData) => {
+                setSnapshot(data);
+            });
         };
+        setupSignalR();
 
-        const computedStatus = getComputedStatus();
+        return () => {
+            connection.off("ManagerQueueSnapshot");
+        };
+    }, []);
 
-        
+    const hasRegistered = useRef(false);
 
-    
+    useEffect(() => {
+        if (!token) return;
 
-     
-                
-        useEffect(() => {
-           
+        let isMounted = true;
 
-            const setupSignalR = async () => {
-                connection.on("ManagerQueueSnapshot",  (data: ManagerSnapshotData) => {
-             
-                    setSnapshot(data); 
-        
-                })
-            };
-            setupSignalR();
-
-            return () => {
-                connection.off("ManagerQueueSnapshot")
-            };
-        }, []); 
-        const hasRegistered = useRef(false);
-        
-        useEffect(() => {
-            if (!token) {
-        
-        return; 
-    }   
-    
-
-            let isMounted = true;
-
-            const initAndRegister = async () => {
-                if (hasRegistered.current) return;
-                let connectionId = await startSignalR();
-                let attempts = 0;
-                while (!connectionId && attempts < 10 && isMounted) {
-                    
-                    await new Promise((resolve) => setTimeout(resolve, 500)); 
-                    
-                    if (connection.state === "Connected" && connection.connectionId) {
-                        connectionId = connection.connectionId;
-                    } else {
-                        connectionId = await startSignalR();
-                    }
-                    attempts++;
-                }
-
-                if (connectionId && isMounted) {
-                    try {
-                        
-                        await registerManager({ connectionId: connectionId }).unwrap();
-                        
-                        await startWindow({ }).unwrap();
-                        
-                        hasRegistered.current = true; 
-                    } catch (err:any) {
-                        console.error("🔥 Ошибка при вызове registerManager:", err);
-                        if (err?.status === 503) {
-                            
-                            window.location.reload();
-                        }
-                    }
+        const initAndRegister = async () => {
+            if (hasRegistered.current) return;
+            let connectionId = await startSignalR();
+            let attempts = 0;
+            while (!connectionId && attempts < 10 && isMounted) {
+                await new Promise((resolve) => setTimeout(resolve, 500));
+                if (connection.state === "Connected" && connection.connectionId) {
+                    connectionId = connection.connectionId;
                 } else {
-                    console.warn("⚠️ Не удалось получить ID после нескольких попыток.");
+                    connectionId = await startSignalR();
                 }
-            };
+                attempts++;
+            }
 
-            initAndRegister();
-
-            return () => { isMounted = false; };
-        }, []);
-    
-
-
-
-        // const handleUpdateClientList = async () => {
-        //     try {
-              
-        //         if (data) {
-        //             setSnackbar({
-        //                 open: true,
-        //                 message: t("i18n_queue.clientListUpdated"),
-        //                 severity: "success",
-        //             });
-        //         }
-                
-        //     } catch (error) {
-        //         console.error("Error updating client list:", error);
-        //         setSnackbar({
-        //             open: true,
-        //             message: t("i18n_queue.updateError"),
-        //             severity: "error",
-        //         });
-        //     }
-        // };
-
-        const handlePauseWindow = async () => {
-            try {
-                await pauseWindow({
-                    managerId,
-                    exceedingTime: selectedTime,
-                }).unwrap();
-                setIsPauseModalOpen(false);
-                setIsTimerModalOpen(true);
-                setSnackbar({
-                    open: true,
-                    message: t("i18n_queue.windowPaused"),
-                    severity: "success",
-                });
-                
-            } catch (error) {
-                console.error("Error while pausing the window:", error);
-                setSnackbar({
-                    open: true,
-                    message: t("i18n_queue.pauseError"),
-                    severity: "error",
-                });
+            if (connectionId && isMounted) {
+                try {
+                    await registerManager({ connectionId: connectionId }).unwrap();
+                    await startWindow({}).unwrap();
+                    hasRegistered.current = true;
+                } catch (err: any) {
+                    console.error("🔥 Ошибка при вызове registerManager:", err);
+                    if (err?.status === 503) {
+                        window.location.reload();
+                    }
+                }
+            } else {
+                console.warn("⚠️ Не удалось получить ID после нескольких попыток.");
             }
         };
-        // const handleCancelQueue = async () => {
-        //     try {
-        //         await cancelQueue({}).unwrap();
-        //         setSnackbar({
-        //             open: true,
-        //             message: t("i18n_queue.queueCanceled"),
-        //             severity: "success",
-        //         });
 
-        //     } catch (err) {
-        //         console.error("Error while canceling the queue:", err);
-        //         setSnackbar({
-        //             open: true,
-        //             message: t("i18n_queue.cancelError"),
-        //             severity: "error",
-        //         });
-        //     }
-        // };
+        initAndRegister();
+        return () => { isMounted = false; };
+    }, [token, registerManager, startWindow]);
 
-        const handleAcceptClient = async () => {
-            try {
-                await acceptClient({}).unwrap();
-                setSnackbar({
-                    open: true,
-                    message: t("i18n_queue.clientAccepted"),
-                    severity: "success",
-                });
-            } catch (err) {}
-        };
+    const handleAcceptClient = async () => {
+        try {
+            await acceptClient({}).unwrap();
+            setSnackbar({
+                open: true,
+                message: t("i18n_queue.clientAccepted"),
+                severity: "success",
+            });
+        } catch (err) { }
+    };
 
-        const handleRedirectClient = () => {
-            try {
-                setSnackbar({
-                    open: true,
-                    message: t("i18n_queue.clientRedirected"),
-                    severity: "success",
-                });
-
-          
-
-            } catch (err) {}
-        };
+    const handleRedirectClient = () => {
+        try {
+            setSnackbar({
+                open: true,
+                message: t("i18n_queue.clientRedirected"),
+                severity: "success",
+            });
+        } catch (err) { }
+    };
 
     const handleCallNextClient = async () => {
-            // Проверяем очередь через snapshot
-            if (!snapshot?.queue?.length) {
-                setSnackbar({
-                    open: true,
-                    message: t("i18n_queue.emptyQueue"),
-                    severity: "warning",
-                });
-                return;
-            }
-            
-            // 👇 РАСКОММЕНТИРУЙ ЭТОТ БЛОК 👇
-            try {
+        if (!snapshot?.queue?.length) {
+            setSnackbar({
+                open: true,
+                message: t("i18n_queue.emptyQueue"),
+                severity: "warning",
+            });
+            return;
+        }
+
+        try {
             await callNext({}).unwrap();
-            // setStatus и sessionStorage здесь больше не нужны, интерфейс обновит snapshot
             setSnackbar({
                 open: true,
                 message: t("i18n_queue.startQueue"),
                 severity: "success",
             });
-            } catch (err: any) {
-                // 👇 ЖЕСТКИЙ КОСТЫЛЬ 👇
-                // Если при нажатии кнопки сервер ответил 503 - перезагружаем
-                if (err?.status === 503) {
-                    window.location.reload();
-                    return; 
-                }
-                // 👆 КОНЕЦ КОСТЫЛЯ 👆
-
-                setSnackbar({
-                    open: true,
-                    message: "Ошибка вызова клиента",
-                    severity: "error",
-                });
+        } catch (err: any) {
+            if (err?.status === 503) {
+                window.location.reload();
+                return;
             }
-        };
-
-        const handleСompleteClient = async () => {
-            try {
-                await completeClient({ managerId }).unwrap();
-                setSnackbar({
-                    open: true,
-                    message: t("i18n_queue.serviceCompleted"),
-                    severity: "success",
-                });
-
-              
-            } catch (err) {
-                console.error("Error completing client:", err);
-            }
-        };
-
-
-        const getServiceName = (item: ClientData, lang: string) => {
-            switch (lang) {
-                case "en":
-                    return item.serviceNameEn;
-                case "kz":
-                    return item.serviceNameKk;
-                default:
-                    return item.serviceNameRu;
-            }
-        };
-        const uniqueQueue = React.useMemo(() => {
-            if (!snapshot?.queue) return [];
-            
-            return snapshot.queue.filter((client, index, self) => 
-                index === self.findIndex((t) => (
-                    t.ticketNumber === client.ticketNumber
-                ))
-            );
-        }, [snapshot]);
-        const displayClientObj = (computedStatus !== "idle" && snapshot?.activeClient && snapshot.activeClient.ticketNumber !== -1)
-            ? snapshot.activeClient
-            : uniqueQueue[0];
-        
-
-        const formattedClientData = displayClientObj
-            ? {
-                clientNumber: `${displayClientObj.ticketNumber}`,
-                lastName: displayClientObj.lastName || "-",
-                firstName: displayClientObj.firstName || "-",
-                patronymic: displayClientObj.surname || "-",
-                service: getServiceName(displayClientObj, currentLanguage),
-                iin: displayClientObj.iin || "-",
-            }
-            : defaultClientData;
-
-
-        const handlePauseModalOpen = () => {
-            setIsPauseModalOpen(true);
-            setSelectedTime(1);
-        };
-
-        const [rotateIcon, setRotateIcon] = useState(false);
-    
-        return (
-            <>
-                <Box sx={{ position: "fixed", bottom: 16, left: 16 }}>
-                    <Snackbar
-                        open={snackbar.open}
-                        autoHideDuration={3000}
-                        onClose={() =>
-                            setSnackbar({
-                                open: false,
-                                message: "",
-                                severity: "success",
-                            })
-                        }
-                    >
-                        <Alert
-                            severity={snackbar.severity}
-                            onClose={() =>
-                                setSnackbar({
-                                    open: false,
-                                    message: "",
-                                    severity: "success",
-                                })
-                            }
-                            sx={{ fontSize: theme.typography.body1.fontSize }}
-                        >
-                            {snackbar.message}
-                        </Alert>
-                    </Snackbar>
-                </Box>
-                <Box
-                    sx={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        width: "100%",
-                    }}
-                >
-                    <ButtonWrapper>
-                        <CustomButton
-                            variantType="primary"
-                            sizeType="medium"
-                            onClick={() => handlePauseModalOpen()}
-                        >
-                            {t("i18n_queue.pause")}
-                        </CustomButton>
-                        {/* <CustomButton
-                            variantType="primary"
-                            sizeType="medium"
-                            onClick={() => handleCancelQueue()}
-                        >
-                            {t("i18n_queue.cancelQueue")}
-                        </CustomButton> */}
-                    
-                    </ButtonWrapper>
-                 
-                </Box>
-
-            <StatusCardWrapper>
-                    <StatusCard variant="accepted" number={snapshot?.stats.serviced || 0} />
-                    <StatusCard variant="not_accepted" number={snapshot?.stats.rejected || 0} />
-                    <StatusCard variant="redirected" number={snapshot?.stats.redirected || 0} />
-                    <StatusCard variant="in_anticipation" number={snapshot?.stats.inLine || 0} />
-                </StatusCardWrapper>
-
-            <ClientCard
-                    clientData={formattedClientData} // 👈 Новые подготовленные данные
-                    serviceTime={displayClientObj ? String(displayClientObj.averageExecutionTime) : serviceTime1}
-                    onRedirect={handleRedirectClient}
-                    onAccept={handleAcceptClient}
-                    callNext={handleCallNextClient}
-                    onComplete={handleСompleteClient}
-                    status={computedStatus} // 👈 Передаем вычисленный статус
-                    isLoading={isActionLoading}
-                />
-
-                <Box
-                    sx={{
-                        display: "flex",
-                        gap: 3,
-                        paddingBottom: theme.spacing(3),
-                    }}
-                >
-                    {Array(4)
-                        .fill(null)
-                        .map((_, index) => {
-                            // БЕРЕМ ИЗ uniqueQueue
-                            // Логика: если displayClientObj - это uniqueQueue[0], 
-                            // то в маленьких карточках показываем начиная с uniqueQueue[1]
-                            
-                            // Если активный клиент уже вызван (не из очереди), то очередь показываем с 0
-                            // Но у вас логика была "index + 1", сохраним её, предполагая, что 0-й элемент сейчас на главном экране
-                            const item = uniqueQueue[index + 1];
-
-                            return item ? (
-                                <QueueCard
-                                    // clientNumber в вашей базе уникален (1,2,3,5), используем его для ключа, это надежнее всего
-                                    key={item.clientNumber} 
-                                    
-                                    clientNumber={item.ticketNumber}
-                                    service={getServiceName(item, currentLanguage)}
-                                    bookingTime={new Date(
-                                        item.createdOn ?? ""
-                                    ).toLocaleTimeString([], {
-                                        hour: "2-digit",
-                                        minute: "2-digit",
-                                    })}
-                                    expectedTime={item.expectedAcceptanceTime?new Date(item.expectedAcceptanceTime).toLocaleTimeString([], {
-                                        hour: "2-digit",
-                                        minute: "2-digit",
-                                        }): "-"}
-                                    
-                                />
-                            ) : (
-                                <QueueCard
-                                    key={`mock-${index}`}
-                                    clientNumber={0}
-                                    service="-"
-                                    bookingTime="-"
-                                    expectedTime="-"
-                                />
-                            );
-                        })}
-                </Box>
-
-                <ReusableModal
-                    open={isPauseModalOpen}
-                    onClose={() => setIsPauseModalOpen(false)}
-                    title={t("i18n_queue.stopWindow")}
-                    width={theme.spacing(99)}
-                    height={theme.spacing(29)}
-                    showCloseButton={false}
-                >
-                    <Box sx={{ display: "flex", justifyContent: "center", gap: 3 }}>
-                        <Box sx={{ display: "flex", justifyContent: "center" }}>
-                            <SelectTime
-                                onTimeSelect={(time) => setSelectedTime(time)}
-                            />
-                        </Box>
-                        <CustomButton
-                            variantType="primary"
-                            sizeType="medium"
-                            onClick={() => {
-                                setIsPauseModalOpen(false);
-                                setIsTimerModalOpen(true);
-                                handlePauseWindow();
-                            }}
-                        >
-                            {t("i18n_queue.pauseWindow")}
-                        </CustomButton>
-                    </Box>
-                </ReusableModal>
-
-                <ReusableModal
-                    open={isTimerModalOpen}
-                    onClose={() => setIsTimerModalOpen(false)}
-                    title={t("i18n_queue.windowPausedMessage")}
-                    width={theme.spacing(99)}
-                    showCloseButton={false}
-                    ignoreBackdropClick={true}
-                >
-                    <Timer
-                        initialTime={selectedTime}
-                        onResume={() => setIsTimerModalOpen(false)}
-                        managerId={managerId}
-                    />
-                </ReusableModal>
-            </>
-        );
+            setSnackbar({
+                open: true,
+                message: "Ошибка вызова клиента",
+                severity: "error",
+            });
+        }
     };
 
-    export default QueuePage;
+    const handleСompleteClient = async () => {
+        try {
+          await completeClient({ managerId }).unwrap();
+            setSnackbar({
+                open: true,
+                message: t("i18n_queue.serviceCompleted"),
+                severity: "success",
+            });
+        } catch (err) {
+            console.error("Error completing client:", err);
+        }
+    };
+
+    const getServiceName = (item: ClientData, lang: string) => {
+        switch (lang) {
+            case "en": return item.serviceNameEn;
+            case "kz": return item.serviceNameKk;
+            default: return item.serviceNameRu;
+        }
+    };
+
+    const uniqueQueue = React.useMemo(() => {
+        if (!snapshot?.queue) return [];
+        return snapshot.queue.filter((client, index, self) =>
+            index === self.findIndex((t) => (
+                t.ticketNumber === client.ticketNumber
+            ))
+        );
+    }, [snapshot]);
+
+    const displayClientObj = (computedStatus !== "idle" && snapshot?.activeClient && snapshot.activeClient.ticketNumber !== -1)
+        ? snapshot.activeClient
+        : uniqueQueue[0];
+
+    const formattedClientData = displayClientObj
+        ? {
+            clientNumber: `${displayClientObj.ticketNumber}`,
+            lastName: displayClientObj.lastName || "-",
+            firstName: displayClientObj.firstName || "-",
+            patronymic: displayClientObj.surname || "-",
+            service: getServiceName(displayClientObj, currentLanguage),
+            iin: displayClientObj.iin || "-",
+        }
+        : defaultClientData;
+
+    return (
+        <>
+            <Box sx={{ position: "fixed", bottom: 16, left: 16 }}>
+                <Snackbar
+                    open={snackbar.open}
+                    autoHideDuration={3000}
+                    onClose={() =>
+                        setSnackbar({ ...snackbar, open: false })
+                    }
+                >
+                    <Alert
+                        severity={snackbar.severity}
+                        onClose={() => setSnackbar({ ...snackbar, open: false })}
+                        sx={{ fontSize: theme.typography.body1.fontSize }}
+                    >
+                        {snackbar.message}
+                    </Alert>
+                </Snackbar>
+            </Box>
+
+            {/* Карточки статистики подняты выше */}
+            <StatusCardWrapper>
+                <StatusCard variant="accepted" number={snapshot?.stats.serviced || 0} />
+                <StatusCard variant="not_accepted" number={snapshot?.stats.rejected || 0} />
+                <StatusCard variant="redirected" number={snapshot?.stats.redirected || 0} />
+                <StatusCard variant="in_anticipation" number={snapshot?.stats.inLine || 0} />
+            </StatusCardWrapper>
+
+            <ClientCard
+                clientData={formattedClientData}
+                serviceTime={displayClientObj ? String(displayClientObj.averageExecutionTime) : serviceTime1}
+                onRedirect={handleRedirectClient}
+                onAccept={handleAcceptClient}
+                callNext={handleCallNextClient}
+                onComplete={handleСompleteClient}
+                status={computedStatus}
+                isLoading={isActionLoading}
+            />
+
+            <Box
+                sx={{
+                    display: "flex",
+                    gap: 3,
+                    paddingBottom: theme.spacing(3),
+                }}
+            >
+                {Array(4).fill(null).map((_, index) => {
+                    const item = uniqueQueue[index + 1];
+                    return item ? (
+                        <QueueCard
+                            key={item.clientNumber}
+                            clientNumber={item.ticketNumber}
+                            service={getServiceName(item, currentLanguage)}
+                            bookingTime={new Date(item.createdOn ?? "").toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                            expectedTime={item.expectedAcceptanceTime ? new Date(item.expectedAcceptanceTime).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "-"}
+                        />
+                    ) : (
+                        <QueueCard
+                            key={`mock-${index}`}
+                            clientNumber={0}
+                            service="-"
+                            bookingTime="-"
+                            expectedTime="-"
+                        />
+                    );
+                })}
+            </Box>
+        </>
+    );
+};
+
+export default QueuePage;
