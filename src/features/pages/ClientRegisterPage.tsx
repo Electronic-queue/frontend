@@ -84,7 +84,7 @@ const ClientRegisterPage = () => {
     const { required, pattern, maxLength } = useValidationRules();
 
     const processNewUser = async (data: FormValues) => {
-        console.log("👤 Обработка как Нового пользователя...");
+       
         
         const ONLY_IIN_TYPE = "7e734f7d-5639-4826-9a00-6b11938762aa";
         const payload = queueTypeId === ONLY_IIN_TYPE
@@ -102,11 +102,10 @@ const ClientRegisterPage = () => {
 
         try {
             const connectionId = await startSignalR();
-            console.log("🔗 SignalR Connection ID:", connectionId);
 
             if (connectionId) {
                 await registerClient({ connectionId }).unwrap();
-                console.log("✅ SignalR: Клиент успешно зарегистрирован");
+                
             } else {
                 console.warn("⚠️ SignalR: Не удалось получить ID, но переходим дальше...");
             }
@@ -123,7 +122,6 @@ const ClientRegisterPage = () => {
             const response = await loginRecord({ iin: data.iin }).unwrap();
             
             if (response && response.record && response.token) {
-                console.log("🔄 Найден активный талон. Восстанавливаем сессию...");
                 handleExistingSession(response);
                 return; 
             } else {
@@ -132,7 +130,6 @@ const ClientRegisterPage = () => {
 
         } catch (error: any) {
             if (error?.status === 404 || error?.status === 401) {
-                console.log("ℹ️ Активной записи нет (404/401). Регистрируем нового...");
                 await processNewUser(data);
             } 
             else {

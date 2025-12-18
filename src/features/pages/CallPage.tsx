@@ -2,15 +2,12 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Typography } from "@mui/material";
 import Stack from "@mui/material/Stack";
-// 1. Добавляем useTheme
 import { styled, useTheme } from "@mui/material/styles";
 import Box from "@mui/material/Box";
 import { useTranslation } from "react-i18next";
-// 2. Импортируем оба логотипа
 import { SULogoM, SULogoMDark } from "src/assets";
 import CustomButton from "src/components/Button";
 import ReusableModal from "src/components/ModalPage";
-// УДАЛЕНО: import theme from "src/styles/theme";
 import { useNavigate } from "react-router-dom";
 import connection, { startSignalR } from "src/features/signalR";
 import {
@@ -29,6 +26,7 @@ import {
 } from "src/store/userAuthSlice";
 import { RootState } from "src/store/store";
 import { useRegisterClientMutation } from "src/store/signalRClientApi";
+import i18n from "src/i18n"; // Импорт i18n для определения языка
 
 const BackgroundContainer = styled(Box)(({ theme }) => ({
     display: "flex",
@@ -46,8 +44,7 @@ const FormContainer = styled(Stack)(({ theme }) => ({
     width: "100%",
     maxWidth: theme.spacing(50),
     padding: theme.spacing(4),
-    // Используем paper, чтобы карточка выделялась на темном фоне
-    backgroundColor: theme.palette.background.paper, 
+    backgroundColor: theme.palette.background.paper,
     borderRadius: theme.spacing(2),
     boxShadow: theme.shadows[2],
     textAlign: "center",
@@ -110,14 +107,17 @@ const Timer: React.FC<TimerProps> = ({ onTimeout }) => {
 };
 
 const CallPage = () => {
-    // 3. Активируем хук темы
     const theme = useTheme();
-    
     const { t } = useTranslation();
     const navigate = useNavigate();
     const dispatch = useDispatch();
     const [expired, setExpired] = useState(false);
     const [isOpen, setIsOpen] = useState(false);
+    
+    // --- Refs ---
+    const hasRegistered = useRef(false);
+    const hasAnnounced = useRef(false); // Ref для предотвращения повторной озвучки
+
     const [storedRecordId, setStoredRecordId] = useState<number | null>(() => {
         const savedRecordId = localStorage.getItem("recordId");
         return savedRecordId ? Number(savedRecordId) : null;
@@ -133,39 +133,77 @@ const CallPage = () => {
     const { data: clientRecord } = useGetClientRecordByIdQuery(recordId ?? 0, {
         skip: !recordId,
     });
-    const [registerClient] = useRegisterClientMutation(); 
-    const hasRegistered = useRef(false);
+    const [registerClient] = useRegisterClientMutation();
+    
     const roomName = clientRecord?.nameRu;
     const windowNumber = clientRecord?.windowNumber ?? "-";
-    
+
+    // --- ФУНКЦИЯ ОЗВУЧКИ ---
+    const speakCall = (windowNum: number | string) => {
+        if (!windowNum || windowNum === "-") return;
+
+        window.speechSynthesis.cancel(); // Сброс очереди
+
+        const lang = i18n.language;
+        let text = "";
+        let voiceLang = "ru-RU";
+
+        if (lang === 'kz' || lang === 'kk') {
+            text = `Сізді ${windowNum} терезеге шақырады`;
+            voiceLang = "kk-KZ";
+        } else if (lang === 'en') {
+            text = `You are called to window ${windowNum}`;
+            voiceLang = "en-US";
+        } else {
+            text = `Вас вызывают к окну номер ${windowNum}`;
+            voiceLang = "ru-RU";
+        }
+
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = voiceLang;
+        utterance.rate = 1; 
+        
+        window.speechSynthesis.speak(utterance);
+    };
+    // ------------------------
+
     useEffect(() => {}, [storedRecordId]);
-    
+
     useEffect(() => {
         if (clientRecord) {
             setRecordData(clientRecord);
+            
+            // Запускаем озвучку, когда данные загрузились и если еще не озвучивали
+            if (clientRecord.windowNumber && !hasAnnounced.current) {
+                // Небольшая задержка, чтобы пользователь успел понять, что произошло
+                setTimeout(() => {
+                    speakCall(clientRecord.windowNumber);
+                }, 500);
+                hasAnnounced.current = true;
+            }
         }
     }, [clientRecord]);
 
     useEffect(() => {
-        if (!recordId) return; 
+        if (!recordId) return;
 
         let isMounted = true;
 
         const initSignalR = async () => {
-            if (hasRegistered.current) return; 
+            if (hasRegistered.current) return;
 
             try {
                 let connectionId = await startSignalR();
-                
+
                 if (!connectionId && connection.state === "Connected") {
                     connectionId = connection.connectionId;
                 }
 
                 if (connectionId && isMounted) {
-                    await registerClient({ 
-                        connectionId: connectionId 
+                    await registerClient({
+                        connectionId: connectionId
                     }).unwrap();
-                    
+
                     hasRegistered.current = true;
                 }
             } catch (err) {
@@ -189,7 +227,6 @@ const CallPage = () => {
             }
         });
         connection.on("RecieveUpdateRecord", (queueList) => {
-            // Проверка: является ли queueList массивом
             if (Array.isArray(queueList)) {
                 const updatedItem = queueList.find(
                     (item: { ticketNumber: number | null }) =>
@@ -199,7 +236,6 @@ const CallPage = () => {
                     navigate("/progress");
                 }
             } else {
-                // Если пришел одиночный объект (логика из второго обработчика)
                 if (queueList.ticketNumber === storedTicketNumber) {
                     navigate("/progress");
                 }
@@ -229,6 +265,7 @@ const CallPage = () => {
             connection.off("RecieveUpdateRecord");
             connection.off("RecieveAcceptRecord");
             connection.off("RecieveRedirectClient");
+            window.speechSynthesis.cancel(); // Остановить звук при уходе
         };
     }, [storedTicketNumber, navigate, recordId, registerClient, ticketNumber, dispatch]);
 
@@ -277,7 +314,6 @@ const CallPage = () => {
     return (
         <BackgroundContainer>
             <Box sx={{ paddingBottom: theme.spacing(5) }}>
-                {/* 4. Логика смены логотипа */}
                 {theme.palette.mode === 'dark' ? <SULogoMDark /> : <SULogoM />}
             </Box>
             <FormContainer>
@@ -285,7 +321,6 @@ const CallPage = () => {
                     <>
                         <Typography
                             variant="h4"
-                            // Удален color: "black", используется наследование темы
                             sx={{ marginBottom: 2 }}
                         >
                             {t("i18n_queue.approachWindow")} {windowNumber}
@@ -299,14 +334,14 @@ const CallPage = () => {
                         >
                             {roomName}
                         </Typography>
-                        
+
                         <Timer
                             onTimeout={() => {
                                 setExpired(true);
                                 handleAvtomaticConfirmRefuse();
                             }}
                         />
-                        
+
                         <Box sx={{ paddingTop: theme.spacing(5) }}>
                             <CustomButton
                                 variantType="danger"
@@ -336,8 +371,8 @@ const CallPage = () => {
                         </CustomButton>
                     </Box>
                 )}
-            </FormContainer>{" "}
-            
+            </FormContainer>
+
             <ReusableModal
                 open={isOpen}
                 onClose={handleClose}

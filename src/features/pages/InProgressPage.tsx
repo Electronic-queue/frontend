@@ -80,7 +80,6 @@ const InProgress = () => {
         initSignalR();
 
         connection.on("RecordCompleted", (data) => {
-            // console.log("🏁 RecordCompleted event:", data);
             navigate("/rating", { replace: true });
         });
 

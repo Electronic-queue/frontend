@@ -72,11 +72,10 @@ const Landing = () => {
         error: queueError,
     } = useGetQueueTypeQuery();
     
-    console.log("queueTypeData", queueTypeData)
+
     
     const handleSelectQueueType = (queueTypeId: string) => {
         dispatch(setQueueTypeId(queueTypeId));
-        console.log("choosen queueTypeId", queueTypeId)
         navigate("/register");
     };
 

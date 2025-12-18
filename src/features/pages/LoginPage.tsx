@@ -141,7 +141,7 @@ const LoginPage: FC = () => {
                 })
             );
 
-            console.log("👉 Результат логина:", resultAction);
+         
 
             if (login.fulfilled.match(resultAction)) {
                 // 1. Извлекаем данные из новой структуры
@@ -150,7 +150,7 @@ const LoginPage: FC = () => {
                 const windowInfo = payload?.window;
 
                 if (token) {
-                    console.log("✅ Токен получен:", token);
+                   
                     
                     // 2. ОБЯЗАТЕЛЬНО сохраняем в localStorage, чтобы он не пропал при F5
                     localStorage.setItem("token", token);
@@ -218,8 +218,7 @@ const LoginPage: FC = () => {
             if (connectionId) {
                 
                 await registerManager({ connectionId }).unwrap();
-                console.log("conectionId",connectionId)
-                console.log("✅ SignalR: Клиент успешно зарегистрирован");
+             
 
             } else {
                 console.warn("⚠️ SignalR: Не удалось получить ID, но продолжаем...");

@@ -2,14 +2,12 @@
 import { useEffect, useReducer, useCallback, useState, useRef } from "react";
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
-// 1. Добавляем useTheme
 import { styled, useTheme } from "@mui/material/styles";
 import { useTranslation } from "react-i18next";
-// 2. Импортируем темный логотип
 import { SULogoM, SULogoMDark } from "src/assets";
-// УДАЛЕНО: import theme from "src/styles/theme";
 import CustomButton from "src/components/Button";
 import ReusableModal from "src/components/ModalPage";
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined'; // Опционально: иконка для красоты
 
 import {
     useGetClientRecordByIdQuery,
@@ -37,6 +35,7 @@ const BackgroundContainer = styled(Box)(({ theme }) => ({
     justifyContent: "center",
     backgroundColor: theme.palette.background.default,
     paddingTop: theme.spacing(5),
+    paddingBottom: theme.spacing(5), // Добавил отступ снизу, чтобы текст не прилипал к краю
 }));
 
 const FormContainer = styled(Box)(({ theme }) => ({
@@ -53,6 +52,17 @@ const InfoBlock = styled(Box)(({ theme }) => ({
     flexDirection: "column",
     gap: theme.spacing(2),
 }));
+
+// --- НОВЫЙ СТИЛЬ ДЛЯ ПОДСКАЗКИ ---
+const HintContainer = styled(Box)(({ theme }) => ({
+    marginTop: theme.spacing(3),
+    maxWidth: theme.spacing(50),
+    width: "100%",
+    textAlign: "center",
+    padding: theme.spacing(0, 2),
+    opacity: 0.8, // Делаем текст чуть менее акцентным
+}));
+// ---------------------------------
 
 interface RefuseModalProps {
     open: boolean;
@@ -72,8 +82,7 @@ interface ClientRecord {
 }
 
 const RefuseModal = ({ open, onClose, onConfirm }: RefuseModalProps) => {
-    // Получаем тему здесь, чтобы использовать theme.spacing
-    const theme = useTheme(); 
+    const theme = useTheme();
     const { t } = useTranslation();
     return (
         <ReusableModal
@@ -98,13 +107,11 @@ const RefuseModal = ({ open, onClose, onConfirm }: RefuseModalProps) => {
 };
 
 const WaitingPage = () => {
-    // 3. Активируем хук
     const theme = useTheme();
-    
     const { t } = useTranslation();
     const navigate = useNavigate();
     const dispatch = useDispatch();
-    
+
     const recordId = useSelector((state: RootState) => state.user.recordId);
     const wasRedirected = useSelector((state: RootState) => state.user.wasRedirected);
     const cabinetNameRu = useSelector((state: RootState) => state.user.nameRu);
@@ -149,48 +156,39 @@ const WaitingPage = () => {
             refetchTicketNumber();
         }
     }, [token]);
+
     useEffect(() => {
         if (clientRecord) {
             setRecordData(clientRecord);
         }
     }, [clientRecord]);
 
-useEffect(() => {
+    useEffect(() => {
         if (!recordId) return;
 
         let isMounted = true;
 
         const initSignalR = async () => {
-            // 1. Проверка на повторный вход
             if (hasRegistered.current) {
-              
                 return;
             }
 
             try {
-                
-
-                // 2. Если не подключены - подключаемся
                 if (connection.state !== "Connected") {
-                   
                     await startSignalR();
                 }
 
-                // 3. ЖДЕМ ID (Самое важное исправление)
-                // Ждем до 5 секунд (10 попыток по 500мс), пока появится ID
                 let attempts = 0;
                 while (!connection.connectionId && attempts < 10) {
-                    if (!isMounted) return; // Если ушли со страницы - прекращаем ждать
+                    if (!isMounted) return;
                     await new Promise((resolve) => setTimeout(resolve, 500));
                     attempts++;
                 }
 
                 const finalConnectionId = connection.connectionId;
 
-                // 4. Регистрируем клиента
                 if (finalConnectionId && isMounted) {
-                    
-                    const response = await registerClient({
+                    await registerClient({
                         connectionId: finalConnectionId
                     }).unwrap();
 
@@ -207,36 +205,25 @@ useEffect(() => {
 
         initSignalR();
 
-        // Подписки на события
-        const handleRecordCreated = (newRecord: any) => {
-        };
+        const handleRecordCreated = (newRecord: any) => { };
 
         const handleRecordCalled = () => {
             navigate("/call", { replace: true });
         };
-        
-        const handleWindowPaused = (data: any) => {
-           console.log("Window paused", data);
-        }
-        
-    const handleQueueUpdate = (positionUpdate: Record<string, number>) => {
 
-            // Проверяем, есть ли наш ID в списке обновлений
-            // Обращаемся к объекту по ключу [recordId]
+        const handleWindowPaused = (data: any) => {
+            console.log("Window paused", data);
+        }
+
+        const handleQueueUpdate = (positionUpdate: Record<string, number>) => {
             if (recordId && positionUpdate[recordId] !== undefined) {
                 const newClientNumber = positionUpdate[recordId];
-                
-                
-                // Обновляем стейт, чтобы React перерисовал цифру
                 setRecordData((prevData) => {
-                    // Если prevData еще нет, берем данные из clientRecord (начальные данные)
                     const currentData = prevData || clientRecord;
-
                     if (!currentData) return null;
-
                     return {
                         ...currentData,
-                        clientNumber: newClientNumber, // Записываем новое число
+                        clientNumber: newClientNumber,
                     };
                 });
             }
@@ -244,43 +231,42 @@ useEffect(() => {
         connection.on("ReceiveRecordCreated", handleRecordCreated);
         connection.on("RecordCalled", handleRecordCalled);
         connection.on("QueuePositionUpdate", handleQueueUpdate);
-        connection.on("WindowPaused",handleWindowPaused);
+        connection.on("WindowPaused", handleWindowPaused);
 
 
         return () => {
             isMounted = false;
-            // Сбрасываем флаг, чтобы при возврате можно было снова зарегистрироваться
             hasRegistered.current = false;
 
             connection.off("ReceiveRecordCreated", handleRecordCreated);
             connection.off("RecordCalled", handleRecordCalled);
             connection.off("QueuePositionUpdate", handleQueueUpdate);
         };
-    }, [recordId, ticketNumber, navigate, registerClient, refetch, clientRecord]);    
+    }, [recordId, ticketNumber, navigate, registerClient, refetch, clientRecord]);
 
-     const handleConfirmRefuse = useCallback(async () => {
+    const handleConfirmRefuse = useCallback(async () => {
         if (!recordId) return;
         try {
             await updateQueueItem({ id: recordId }).unwrap();
         } catch (error) {
             console.error("Ошибка при обновлении очереди:", error);
         }
-        
+
         localStorage.removeItem("token");
         localStorage.removeItem("recordId");
         localStorage.removeItem("ticketNumber");
-        
+
         dispatch(setTicketNumber(null));
         dispatch(setToken(null));
         dispatch(setRecordId(null));
-        
+
         connection.off("ReceiveRecordCreated");
         connection.off("RecieveUpdateRecord");
-        
-        
+
+
         navigate("/");
     }, [recordId, dispatch, navigate, updateQueueItem]);
-    
+
     if (isFetchingRecordId) {
         return (
             <BackgroundContainer>
@@ -305,17 +291,16 @@ useEffect(() => {
                 ? cabinetNameKk
                 : activeRecord?.nameKk
             : i18n.language === "en"
-            ? wasRedirected
-                ? cabinetNameEn
-                : activeRecord?.nameEn
-            : wasRedirected
-            ? cabinetNameRu
-            : activeRecord?.nameRu) || "—";
+                ? wasRedirected
+                    ? cabinetNameEn
+                    : activeRecord?.nameEn
+                : wasRedirected
+                    ? cabinetNameRu
+                    : activeRecord?.nameRu) || "—";
 
     return (
         <BackgroundContainer>
             <Box sx={{ paddingBottom: theme.spacing(5) }}>
-                {/* 4. Смена логотипа */}
                 {theme.palette.mode === 'dark' ? <SULogoMDark /> : <SULogoM />}
             </Box>
             <FormContainer>
@@ -344,14 +329,14 @@ useEffect(() => {
                             <Typography variant="h6">
                                 {t("i18n_queue.peopleAhead")}: {activeRecord.clientNumber ?? "—"}
                             </Typography>
-                           <Typography variant="h6">
-                         {t("i18n_queue.expectedTime")}:{" "}
-                            {activeRecord.expectedAcceptanceTime
-                            ? new Date(activeRecord.expectedAcceptanceTime).toLocaleTimeString([], {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                          })
-                            : "—"}
+                            <Typography variant="h6">
+                                {t("i18n_queue.expectedTime")}:{" "}
+                                {activeRecord.expectedAcceptanceTime
+                                    ? new Date(activeRecord.expectedAcceptanceTime).toLocaleTimeString([], {
+                                        hour: "2-digit",
+                                        minute: "2-digit",
+                                    })
+                                    : "—"}
                             </Typography>
                         </>
                     ) : (
@@ -374,6 +359,16 @@ useEffect(() => {
                     </CustomButton>
                 </Box>
             </FormContainer>
+
+            <HintContainer>
+                <Typography variant="h6" color="textSecondary" sx={{ fontWeight: 500, mb: 1 }}>
+                    {t("i18n_queue.hintDoNotClose") || "Пожалуйста, не закрывайте эту страницу"}
+                </Typography>
+                <Typography variant="h6" color="textSecondary">
+                    {t("i18n_queue.hintWaitUpdate") || "Ваш статус обновится автоматически, как только подойдет ваша очередь. Просто ожидайте."}
+                </Typography>
+            </HintContainer>  
+
             <RefuseModal
                 open={isOpen}
                 onClose={toggleModal}
