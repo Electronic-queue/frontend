@@ -214,6 +214,10 @@ const WaitingPage = () => {
         const handleWindowPaused = (data: any) => {
             console.log("Window paused", data);
         }
+        const handleRecordServiceUdpated = (dataUpdated: any) => {
+            console.log("dataUpdated", dataUpdated);
+        navigate("/wait", { replace: true });
+        }
 
         const handleQueueUpdate = (positionUpdate: Record<string, number>) => {
             if (recordId && positionUpdate[recordId] !== undefined) {
@@ -232,6 +236,7 @@ const WaitingPage = () => {
         connection.on("RecordCalled", handleRecordCalled);
         connection.on("QueuePositionUpdate", handleQueueUpdate);
         connection.on("WindowPaused", handleWindowPaused);
+        connection.on("RecordServiceUdpated", handleRecordServiceUdpated);
 
 
         return () => {

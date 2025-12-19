@@ -115,16 +115,25 @@ export const managerApi = createApi({
         },
     }),
 }),
-        redirectClient: builder.mutation<any, { serviceId: number }>({
-            query: ({ serviceId }) => ({
-                url: "Manager/redirectclient",
-                method: "POST",
-                params: {
-                    serviceId,
-                    "api-version": "1",
-                },
-            }),
-        }),
+       redirectClient: builder.mutation<any, void>({
+    query: () => ({
+        url: "Manager/redirectclient",
+        method: "POST",
+        params: {
+            "api-version": "1",
+        },
+    }),
+}),
+updateClientService: builder.mutation<any, { serviceId: string }>({
+    query: (payload) => ({
+        url: "Manager/update-client-service",
+        method: "POST",
+        params: {
+            "api-version": "1",
+        },
+        body: payload, // Отправит { "serviceId": "..." }
+    }),
+}),
         getServicesForManager: builder.mutation<any, void>({
             query: () => ({
                 url: "Service/get-services-for-manager",
@@ -259,4 +268,5 @@ export const {
     useGetQueueTypeByTokenQuery,
     useGetQueueForClientsQuery,
     useObserverMutation,
+    useUpdateClientServiceMutation,
 } = managerApi;

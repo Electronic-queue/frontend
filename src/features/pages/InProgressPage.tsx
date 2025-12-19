@@ -82,7 +82,9 @@ const InProgress = () => {
         connection.on("RecordCompleted", (data) => {
             navigate("/rating", { replace: true });
         });
-
+        connection.on("RecordServiceUpdated", (updatedService)=> {
+            console.log("RecordServiceUpdated", updatedService);
+        })
         return () => {
             isMounted = false;
             connection.off("RecordCompleted");

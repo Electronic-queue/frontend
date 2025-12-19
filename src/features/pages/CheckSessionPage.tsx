@@ -152,8 +152,8 @@ const CheckSessionPage = () => {
                                 message: t("i18n_register.iinLengthError") // "ИИН должен состоять из 12 цифр"
                             },
                             // Затем запускаем математический алгоритм (глубокая проверка)
-                            validate: (value) => 
-                                validateIINChecksum(value) || t("i18n_register.iinInvalidChecksum") // "Некорректный ИИН"
+                            // validate: (value) => 
+                            //     validateIINChecksum(value) || t("i18n_register.iinInvalidChecksum") // "Некорректный ИИН"
 
                         }}
                         labelKey="i18n_register.iin"

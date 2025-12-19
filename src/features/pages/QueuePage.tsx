@@ -111,6 +111,7 @@ const QueuePage: FC = () => {
     useEffect(() => {
         const setupSignalR = async () => {
             connection.on("ManagerQueueSnapshot", (data: ManagerSnapshotData) => {
+               console.log("spanshot", data)
                 setSnapshot(data);
             });
         };

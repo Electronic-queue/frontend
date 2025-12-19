@@ -1,4 +1,4 @@
-import { FC, useState } from "react";
+import { FC, useState, useEffect } from "react";
 import Box from "@mui/material/Box";
 import { useTranslation } from "react-i18next";
 import CustomButton from "../../../components/Button";
@@ -11,9 +11,9 @@ import { styled } from "@mui/material/styles";
 import {
     useRedirectClientMutation,
     useGetServicesForManagerMutation,
+    useUpdateClientServiceMutation,
 } from "src/store/managerApi";
-import { Alert, Snackbar, CircularProgress } from "@mui/material";
-import { Service } from "src/widgets/serviceList/ui/ServiceList";
+import { CircularProgress } from "@mui/material";
 import i18n from "src/i18n";
 
 // --- Интерфейсы ---
@@ -23,8 +23,8 @@ interface StatusButtonsProps {
     callNext: () => void;
     onAccept: () => void;
     onComplete: () => void;
-    onRedirect: (serviceIdRedirect: number) => void;
-    isLoading: boolean; // 👈 Флаг загрузки от родителя
+    onRedirect: (serviceIdRedirect: string) => void;
+    isLoading: boolean;
 }
 
 // --- Стили ---
@@ -41,29 +41,22 @@ const ButtonWrapperStyles = styled(Box)(({ theme }) => ({
     justifyContent: "flex-end",
 }));
 
-// Обертка для контента кнопки (текст или спиннер), чтобы центрировать их
 const ButtonContent = styled(Box)({
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
     gap: "8px",
-    width: "100%", 
+    width: "100%",
 });
 
 const currentLanguage = i18n.language || "ru";
 
-// --- Компоненты Кнопок ---
+// --- Вспомогательные компоненты кнопок ---
 
-// 1. Кнопка "Вызвать следующего" (Idle)
 const IdleButton: FC<{ callNext: () => void; isLoading: boolean }> = ({ callNext, isLoading }) => {
     const { t } = useTranslation();
     return (
-        <CustomButton 
-            variantType="primary" 
-            sizeType="small" 
-            onClick={callNext}
-            disabled={isLoading} // Блокировка
-        >
+        <CustomButton variantType="primary" sizeType="small" onClick={callNext} disabled={isLoading}>
             <ButtonContent>
                 {isLoading ? <CircularProgress size={20} color="inherit" /> : t("i18n_queue.callNext")}
             </ButtonContent>
@@ -71,224 +64,185 @@ const IdleButton: FC<{ callNext: () => void; isLoading: boolean }> = ({ callNext
     );
 };
 
-// 2. Кнопки "Принять" и "Перенаправить" (Called)
-const CalledButtons: FC<{
-    onAccept: () => void;
-    onRedirect: (serviceIdRedirect: number) => void;
-    isLoading: boolean; // Global loading state (для кнопки Accept)
-}> = ({ onAccept, onRedirect, isLoading }) => {
+const CalledButtons: FC<{ onAccept: () => void; isLoading: boolean }> = ({ onAccept, isLoading }) => {
     const { t } = useTranslation();
-    const [isOpen, setIsOpen] = useState(false);
-    const [searchValue, setSearchValue] = useState("");
-    const [snackbar, setSnackbar] = useState({
-        open: false,
-        message: "",
-    });
-    const [selectedServiceId, setSelectedServiceId] = useState<number | null>(
-        null
+    return (
+        <CustomButton variantType="primary" sizeType="small" onClick={onAccept} disabled={isLoading}>
+            <ButtonContent>
+                {isLoading ? <CircularProgress size={20} color="inherit" /> : t("i18n_queue.accept")}
+            </ButtonContent>
+        </CustomButton>
     );
+};
 
-    // API Hooks
-    const [getServicesForManager, { data, error, isLoading: isServicesLoading }] =
-        useGetServicesForManagerMutation();
-
+// Компонент кнопок для статуса "Принят" (Accepted)
+const AcceptedButtons: FC<{
+    onComplete: () => void;
+    onOpenRedirect: () => void;
+    isLoading: boolean;
+}> = ({ onComplete, onOpenRedirect, isLoading }) => {
+    const { t } = useTranslation();
     const [redirectClient, { isLoading: isRedirecting }] = useRedirectClientMutation();
 
-    const handleOpen = async () => {
+    const handleInitialRedirectClick = async () => {
         try {
-            await getServicesForManager().unwrap();
-            setIsOpen(true);
+            // Вызываем редирект (по токену)
+            redirectClient(); 
+            // Открываем модалку через родительский стейт
+            onOpenRedirect();
         } catch (err) {
-            console.error("Ошибка загрузки услуг:", err);
+            console.error(err);
         }
     };
-
-    const handleRedirect = async () => {
-        if (!selectedServiceId) {
-            console.warn("Не выбрана услуга!");
-            return;
-        }
-        try {
-            await redirectClient({ serviceId: selectedServiceId }).unwrap();
-            onRedirect(selectedServiceId);
-            setIsOpen(false);
-            setSnackbar({
-                open: true,
-                message: t("i18n_queue.serviceRedirected"),
-            });
-        } catch (error) {
-            console.error("Ошибка перенаправления клиента:", error);
-        }
-    };
-
-    const services: Service[] = Array.isArray(data)
-        ? data.map((service: any, index: number) => ({
-              id: service.serviceId,
-              displayId: index + 1,
-              name:
-                  currentLanguage === "kz"
-                      ? service.nameKk
-                      : currentLanguage === "en"
-                      ? service.nameEn
-                      : service.nameRu,
-          }))
-        : [];
-
-    const filteredData = services.filter((service) =>
-        service.name.toLowerCase().includes(searchValue.toLowerCase())
-    );
 
     return (
         <Box sx={{ display: "flex", gap: theme.spacing(2) }}>
-            <Snackbar
-                open={snackbar.open}
-                autoHideDuration={3000}
-                onClose={() => setSnackbar({ open: false, message: "" })}
-            >
-                <Alert
-                    severity="success"
-                    onClose={() => setSnackbar({ open: false, message: "" })}
-                    sx={{ fontSize: theme.typography.body1.fontSize }}
-                >
-                    {snackbar.message}
-                </Alert>
-            </Snackbar>
-
-            {/* Кнопка открытия модалки перенаправления */}
             <CustomButton
                 variantType="primary"
                 sizeType="small"
-                onClick={handleOpen}
-                disabled={isLoading} // Блокируем если идет "Принятие"
-            >
-                {t("i18n_queue.redirect")}
-            </CustomButton>
-
-            <ReusableModal
-                open={isOpen}
-                onClose={() => setIsOpen(false)}
-                title={t("i18n_queue.redirectService")}
-                width={theme.spacing(99)}
-                showCloseButton={false}
-            >
-                <Box
-                    sx={{
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: theme.spacing(2),
-                    }}
-                >
-                    <CustomSearchInput
-                        placeholder={t("i18n_queue.searchServicePlaceholder")}
-                        icon={<SearchIcon style={{ color: "#667085" }} />}
-                        value={searchValue}
-                        onChange={(e) => setSearchValue(e.target.value)}
-                        width={theme.spacing(87)}
-                        height={theme.spacing(6)}
-                        borderColor={theme.palette.lightBlueGray.main}
-                        borderRadius={theme.shape.borderRadius}
-                        backgroundColor={theme.palette.lightGray.main}
-                        iconPosition="left"
-                    />
-
-                    {isServicesLoading ? (
-                        <Box display="flex" justifyContent="center" p={2}>
-                            <CircularProgress />
-                        </Box>
-                    ) : error ? (
-                        <p>Ошибка загрузки данных</p>
-                    ) : (
-                        <MainWrapper>
-                            <ReusableTable
-                                data={filteredData}
-                                columns={[
-                                    { accessorKey: "displayId", header: "№" },
-                                    {
-                                        accessorKey: "name",
-                                        header: t("i18n_queue.serviceName"),
-                                    },
-                                ]}
-                                pageSize={5}
-                                onRowClick={(row) =>
-                                    setSelectedServiceId(row.id)
-                                }
-                            />
-                            <ButtonWrapperStyles>
-                                <CustomButton onClick={() => setIsOpen(false)}>
-                                    {t("i18n_queue.cancel")}
-                                </CustomButton>
-                                <CustomButton
-                                    onClick={handleRedirect}
-                                    disabled={!selectedServiceId || isRedirecting} // Блокировка кнопки внутри модалки
-                                >
-                                    <ButtonContent>
-                                        {isRedirecting ? (
-                                            <CircularProgress size={20} color="inherit" />
-                                        ) : (
-                                            t("i18n_queue.redirectServiceAction")
-                                        )}
-                                    </ButtonContent>
-                                </CustomButton>
-                            </ButtonWrapperStyles>
-                        </MainWrapper>
-                    )}
-                </Box>
-            </ReusableModal>
-
-            {/* Кнопка "Принять" */}
-            <CustomButton
-                variantType="primary"
-                sizeType="small"
-                onClick={onAccept}
-                disabled={isLoading} // Блокировка при загрузке
+                onClick={handleInitialRedirectClick}
+                disabled={isRedirecting}
             >
                 <ButtonContent>
-                    {isLoading ? <CircularProgress size={20} color="inherit" /> : t("i18n_queue.accept")}
+                    {isRedirecting ? <CircularProgress size={20} color="inherit" /> : t("i18n_queue.redirect")}
+                </ButtonContent>
+            </CustomButton>
+
+            <CustomButton variantType="primary" sizeType="small" onClick={onComplete} disabled={isLoading}>
+                <ButtonContent>
+                    {isLoading ? <CircularProgress size={20} color="inherit" /> : t("i18n_queue.complete")}
                 </ButtonContent>
             </CustomButton>
         </Box>
     );
 };
 
-// --- Основной компонент ---
+// --- Компонент модалки (вынесен отдельно, чтобы не закрывался при смене статуса) ---
 
-const StatusButtons: FC<StatusButtonsProps> = ({
-    status,
-    callNext,
-    onAccept,
-    onComplete,
-    onRedirect,
-    isLoading, // 👈 Принимаем проп
-}) => {
+const RedirectModal: FC<{
+    open: boolean;
+    onClose: () => void;
+    onSuccess: (id: string) => void;
+}> = ({ open, onClose, onSuccess }) => {
     const { t } = useTranslation();
+    const [searchValue, setSearchValue] = useState("");
+    const [selectedServiceId, setSelectedServiceId] = useState<string | null>(null);
 
-    switch (status) {
-        case "idle":
-            return <IdleButton callNext={callNext} isLoading={isLoading} />;
-        case "called":
-            return (
-                <CalledButtons 
-                    onAccept={onAccept} 
-                    onRedirect={onRedirect} 
-                    isLoading={isLoading} 
+    const [getServicesForManager, { data, isLoading: isServicesLoading }] = useGetServicesForManagerMutation();
+    const [updateClientService, { isLoading: isUpdating }] = useUpdateClientServiceMutation();
+
+    useEffect(() => {
+        if (open) {
+            getServicesForManager();
+            setSearchValue("");
+            setSelectedServiceId(null);
+        }
+    }, [open, getServicesForManager]);
+
+    const handleFinalServiceSubmit = async () => {
+        if (!selectedServiceId) return;
+        try {
+            await updateClientService({ serviceId: selectedServiceId }).unwrap();
+            onSuccess(selectedServiceId);
+            onClose();
+        } catch (err) {
+            console.error("Ошибка при обновлении услуги:", err);
+        }
+    };
+
+    const services = Array.isArray(data)
+        ? data.map((s: any, idx: number) => ({
+            id: s.serviceId,
+            displayId: idx + 1,
+            name: currentLanguage === "kz" ? s.nameKk : currentLanguage === "en" ? s.nameEn : s.nameRu,
+        }))
+        : [];
+
+    const filtered = services.filter(s => s.name.toLowerCase().includes(searchValue.toLowerCase()));
+
+    return (
+        <ReusableModal
+            open={open}
+            onClose={onClose}
+            title={t("i18n_queue.redirectService")}
+            width={theme.spacing(99)}
+        >
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                <CustomSearchInput
+                    placeholder={t("i18n_queue.searchServicePlaceholder")}
+                    icon={<SearchIcon />}
+                    value={searchValue}
+                    onChange={(e) => setSearchValue(e.target.value)}
+                    width="100%"
                 />
-            );
-        case "accepted":
-            return (
-                <CustomButton
-                    variantType="primary"
-                    sizeType="small"
-                    onClick={onComplete}
-                    disabled={isLoading} // Блокировка
-                >
-                    <ButtonContent>
-                        {isLoading ? <CircularProgress size={20} color="inherit" /> : t("i18n_queue.complete")}
-                    </ButtonContent>
-                </CustomButton>
-            );
-        default:
-            return null;
-    }
+
+                {isServicesLoading ? (
+                    <Box display="flex" justifyContent="center" p={3}><CircularProgress /></Box>
+                ) : (
+                    <MainWrapper>
+                        <ReusableTable
+                            data={filtered}
+                            columns={[
+                                { accessorKey: "displayId", header: "№" },
+                                { accessorKey: "name", header: t("i18n_queue.serviceName") },
+                            ]}
+                            pageSize={5}
+                            onRowClick={(row) => setSelectedServiceId(row.id)}
+                        />
+                        <ButtonWrapperStyles>
+                            <CustomButton onClick={onClose}>{t("i18n_queue.cancel")}</CustomButton>
+                            <CustomButton
+                                onClick={handleFinalServiceSubmit}
+                                disabled={!selectedServiceId || isUpdating}
+                            >
+                                <ButtonContent>
+                                    {isUpdating ? <CircularProgress size={20} color="inherit" /> : t("i18n_queue.redirectServiceAction")}
+                                </ButtonContent>
+                            </CustomButton>
+                        </ButtonWrapperStyles>
+                    </MainWrapper>
+                )}
+            </Box>
+        </ReusableModal>
+    );
+};
+
+// --- Основной компонент экспорта ---
+
+const StatusButtons: FC<StatusButtonsProps> = (props) => {
+    const [isRedirectModalOpen, setIsRedirectModalOpen] = useState(false);
+
+    return (
+        <>
+            <Box sx={{ display: "flex", gap: theme.spacing(2) }}>
+                {(() => {
+                    switch (props.status) {
+                        case "idle":
+                            return <IdleButton callNext={props.callNext} isLoading={props.isLoading} />;
+                        case "called":
+                            return <CalledButtons onAccept={props.onAccept} isLoading={props.isLoading} />;
+                        case "accepted":
+                            return (
+                                <AcceptedButtons
+                                    onComplete={props.onComplete}
+                                    onOpenRedirect={() => setIsRedirectModalOpen(true)}
+                                    isLoading={props.isLoading}
+                                />
+                            );
+                        default:
+                            return null;
+                    }
+                })()}
+            </Box>
+
+            {/* Модалка вынесена за пределы switch, поэтому она не исчезнет при смене статуса */}
+            <RedirectModal
+                open={isRedirectModalOpen}
+                onClose={() => setIsRedirectModalOpen(false)}
+                onSuccess={props.onRedirect}
+            />
+        </>
+    );
 };
 
 export default StatusButtons;
