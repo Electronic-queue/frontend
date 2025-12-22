@@ -122,7 +122,6 @@ const CheckSessionPage = () => {
     return (
         <BackgroundContainer>
             <Box sx={{ paddingBottom: theme.spacing(2) }}>
-                {/* Теперь theme берется из хука и условие будет работать корректно */}
                  {theme.palette.mode === 'dark' ? <SULogoMDark /> : <SULogoM />}
             </Box>
 
@@ -149,9 +148,8 @@ const CheckSessionPage = () => {
                             ...required,
                             pattern: {
                                 value: /^\d{12}$/,
-                                message: t("i18n_register.iinLengthError") // "ИИН должен состоять из 12 цифр"
+                                message: t("i18n_register.iinLengthError") 
                             },
-                            // Затем запускаем математический алгоритм (глубокая проверка)
                             // validate: (value) => 
                             //     validateIINChecksum(value) || t("i18n_register.iinInvalidChecksum") // "Некорректный ИИН"
 

@@ -1,6 +1,7 @@
 import { TextField } from "@mui/material";
 import { Controller, Control, RegisterOptions } from "react-hook-form";
 import { useTranslation } from "react-i18next";
+import { useTheme } from "@mui/material/styles";
 
 interface StyledTextFieldProps {
     name: string;
@@ -24,6 +25,7 @@ const StyledTextField: React.FC<StyledTextFieldProps> = ({
     numericOnly = false,
 }) => {
     const { t } = useTranslation();
+    const theme = useTheme();
 
     return (
         <Controller
@@ -42,6 +44,37 @@ const StyledTextField: React.FC<StyledTextFieldProps> = ({
                     helperText={error?.message}
                     fullWidth={fullWidth}
                     type={numericOnly ? "tel" : type}
+                    sx={{
+                        "& input:-webkit-autofill": {
+                            WebkitBoxShadow: `0 0 0 100px ${theme.palette.background.paper} inset !important`,
+                            WebkitTextFillColor: `${theme.palette.text.primary} !important`,
+                            transition: "background-color 5000s ease-in-out 0s",
+                        },
+                        "& .MuiInputBase-input": {
+                            color: theme.palette.text.primary,
+                        },
+                        "& .MuiInputLabel-root": {
+                            color: theme.palette.text.secondary,
+                        },
+                        "& .MuiInputLabel-root.Mui-focused": {
+                            color: error ? theme.palette.error.main : theme.palette.text.primary,
+                        },
+                        "& .MuiOutlinedInput-root": {
+                            "& fieldset": {
+                                borderColor: theme.palette.divider,
+                            },
+                            "&:hover fieldset": {
+                                borderColor: theme.palette.text.secondary,
+                            },
+                            "&.Mui-focused fieldset": {
+                                borderColor: error ? theme.palette.error.main : theme.palette.text.primary,
+                                borderWidth: "1px",
+                            },
+                        },
+                        "& .MuiOutlinedInput-root.Mui-error .MuiOutlinedInput-notchedOutline": {
+                            borderColor: theme.palette.error.main,
+                        }
+                    }}
                     inputProps={
                         numericOnly
                             ? { inputMode: "numeric", pattern: "[0-9]*" }

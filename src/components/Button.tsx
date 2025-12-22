@@ -15,49 +15,56 @@ const StyledButton = styled(
         <Button {...rest} />
     )
 )(({ theme, variantType, sizeType, disabled }) => {
+    const isDark = theme.palette.mode === 'dark';
+
     const variants = {
         primary: {
             backgroundColor: theme.palette.primary.main,
-            color: theme.palette.common.white,
+            color: theme.palette.getContrastText(theme.palette.primary.main),
             "&:hover": {
                 backgroundColor: theme.palette.primary.dark,
             },
         },
         secondary: {
             backgroundColor: theme.palette.secondary.main,
-            color: theme.palette.common.white,
+            color: theme.palette.getContrastText(theme.palette.secondary.main),
             "&:hover": {
                 backgroundColor: theme.palette.secondary.dark,
             },
         },
         danger: {
             backgroundColor: theme.palette.error.main,
-            color: theme.palette.common.white,
+            color: theme.palette.getContrastText(theme.palette.error.main),
             "&:hover": {
                 backgroundColor: theme.palette.error.dark,
             },
         },
         disabled: {
-            backgroundColor: theme.palette.grey[400],
-            color: theme.palette.common.black,
+            backgroundColor: isDark ? theme.palette.grey[800] : theme.palette.grey[300],
+            color: isDark ? theme.palette.grey[600] : theme.palette.grey[500],
             cursor: "not-allowed",
             "&:hover": {
-                backgroundColor: theme.palette.grey[400],
+                backgroundColor: isDark ? theme.palette.grey[800] : theme.palette.grey[300],
             },
         },
     };
 
     const fontSizes = {
-        small: theme.typography.body1.fontSize, // 12px
-        medium: theme.typography.h6.fontSize, // 16px
-        large: theme.typography.h5.fontSize, // 20px
+        small: theme.typography.body2.fontSize, 
+        medium: theme.typography.body1.fontSize, 
+        large: theme.typography.h6.fontSize, 
     };
 
     return {
         ...(disabled ? variants.disabled : variants[variantType || "primary"]),
         fontSize: fontSizes[sizeType || "medium"],
+        fontWeight: 600,
         textTransform: "none",
-        padding: theme.spacing(1, 2),
+        padding: theme.spacing(1, 3),
+        borderRadius: theme.shape.borderRadius,
+        transition: theme.transitions.create(['background-color', 'box-shadow', 'color'], {
+            duration: theme.transitions.duration.short,
+        }),
     };
 });
 
@@ -75,9 +82,19 @@ const CustomButton: FC<CustomButtonProps> = ({
             variantType={variantType}
             sizeType={sizeType}
             disabled={disabled}
+            disableElevation
             {...rest}
         >
-            {icon && <Box sx={{ mr: 1 }}>{icon}</Box>}
+            {icon && (
+                <Box sx={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    mr: 1,
+                    '& svg': { fontSize: '1.2em' } 
+                }}>
+                    {icon}
+                </Box>
+            )}
             {children}
         </StyledButton>
     );
