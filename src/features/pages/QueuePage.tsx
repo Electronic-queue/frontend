@@ -76,13 +76,15 @@ const serviceTime1 = "0";
 
 const QueuePage: FC = () => {
     const { t } = useTranslation();
-    const [acceptClient, { isLoading: isAccepting }] = useAcceptClientMutation();
+    const [acceptClient, { isLoading: isAccepting }] =
+        useAcceptClientMutation();
     const currentLanguage = i18n.language || "ru";
     const [callNext, { isLoading: isCallingNext }] = useCallNextMutation();
-    const [completeClient, { isLoading: isCompleting }] = useCompleteClientMutation();
+    const [completeClient, { isLoading: isCompleting }] =
+        useCompleteClientMutation();
     const [startWindow] = useStartWindowMutation();
     const [registerManager] = useRegisterManagerMutation();
-    
+
     const [snackbar, setSnackbar] = useState<{
         open: boolean;
         message: string;
@@ -91,7 +93,7 @@ const QueuePage: FC = () => {
 
     const isActionLoading = isAccepting || isCallingNext || isCompleting;
     const token = useSelector((state: RootState) => state.auth.token);
-    
+
     // Получаем ID из API, чтобы не хардкодить
     const { data: managerIdData } = useGetManagerIdQuery();
     const managerId = managerIdData ? Number(managerIdData) : 6;
@@ -110,10 +112,13 @@ const QueuePage: FC = () => {
 
     useEffect(() => {
         const setupSignalR = async () => {
-            connection.on("ManagerQueueSnapshot", (data: ManagerSnapshotData) => {
-               console.log("spanshot", data)
-                setSnapshot(data);
-            });
+            connection.on(
+                "ManagerQueueSnapshot",
+                (data: ManagerSnapshotData) => {
+                    console.log("spanshot", data);
+                    setSnapshot(data);
+                }
+            );
         };
         setupSignalR();
 
@@ -135,7 +140,10 @@ const QueuePage: FC = () => {
             let attempts = 0;
             while (!connectionId && attempts < 10 && isMounted) {
                 await new Promise((resolve) => setTimeout(resolve, 500));
-                if (connection.state === "Connected" && connection.connectionId) {
+                if (
+                    connection.state === "Connected" &&
+                    connection.connectionId
+                ) {
                     connectionId = connection.connectionId;
                 } else {
                     connectionId = await startSignalR();
@@ -144,23 +152,38 @@ const QueuePage: FC = () => {
             }
 
             if (connectionId && isMounted) {
+                console.log(
+                    "✅ Получен Connection ID для менеджера:",
+                    connectionId
+                );
                 try {
-                    await registerManager({ connectionId: connectionId }).unwrap();
+                    await registerManager({
+                        connectionId: connectionId,
+                    }).unwrap();
                     await startWindow({}).unwrap();
                     hasRegistered.current = true;
+                    console.log(
+                        "✅ Менеджер успешно зарегистрирован в SignalR с Connection ID:",
+                        connectionId
+                    );
                 } catch (err: any) {
                     console.error("🔥 Ошибка при вызове registerManager:", err);
+                    console.log("ошибка", err);
                     if (err?.status === 503) {
                         window.location.reload();
                     }
                 }
             } else {
-                console.warn("⚠️ Не удалось получить ID после нескольких попыток.");
+                console.warn(
+                    "⚠️ Не удалось получить ID после нескольких попыток."
+                );
             }
         };
 
         initAndRegister();
-        return () => { isMounted = false; };
+        return () => {
+            isMounted = false;
+        };
     }, [token, registerManager, startWindow]);
 
     const handleAcceptClient = async () => {
@@ -171,7 +194,7 @@ const QueuePage: FC = () => {
                 message: t("i18n_queue.clientAccepted"),
                 severity: "success",
             });
-        } catch (err) { }
+        } catch (err) {}
     };
 
     const handleRedirectClient = () => {
@@ -181,7 +204,7 @@ const QueuePage: FC = () => {
                 message: t("i18n_queue.clientRedirected"),
                 severity: "success",
             });
-        } catch (err) { }
+        } catch (err) {}
     };
 
     const handleCallNextClient = async () => {
@@ -216,7 +239,7 @@ const QueuePage: FC = () => {
 
     const handleСompleteClient = async () => {
         try {
-          await completeClient({ managerId }).unwrap();
+            await completeClient({ managerId }).unwrap();
             setSnackbar({
                 open: true,
                 message: t("i18n_queue.serviceCompleted"),
@@ -229,34 +252,40 @@ const QueuePage: FC = () => {
 
     const getServiceName = (item: ClientData, lang: string) => {
         switch (lang) {
-            case "en": return item.serviceNameEn;
-            case "kz": return item.serviceNameKk;
-            default: return item.serviceNameRu;
+            case "en":
+                return item.serviceNameEn;
+            case "kz":
+                return item.serviceNameKk;
+            default:
+                return item.serviceNameRu;
         }
     };
 
     const uniqueQueue = React.useMemo(() => {
         if (!snapshot?.queue) return [];
-        return snapshot.queue.filter((client, index, self) =>
-            index === self.findIndex((t) => (
-                t.ticketNumber === client.ticketNumber
-            ))
+        return snapshot.queue.filter(
+            (client, index, self) =>
+                index ===
+                self.findIndex((t) => t.ticketNumber === client.ticketNumber)
         );
     }, [snapshot]);
 
-    const displayClientObj = (computedStatus !== "idle" && snapshot?.activeClient && snapshot.activeClient.ticketNumber !== -1)
-        ? snapshot.activeClient
-        : uniqueQueue[0];
+    const displayClientObj =
+        computedStatus !== "idle" &&
+        snapshot?.activeClient &&
+        snapshot.activeClient.ticketNumber !== -1
+            ? snapshot.activeClient
+            : uniqueQueue[0];
 
     const formattedClientData = displayClientObj
         ? {
-            clientNumber: `${displayClientObj.ticketNumber}`,
-            lastName: displayClientObj.lastName || "-",
-            firstName: displayClientObj.firstName || "-",
-            patronymic: displayClientObj.surname || "-",
-            service: getServiceName(displayClientObj, currentLanguage),
-            iin: displayClientObj.iin || "-",
-        }
+              clientNumber: `${displayClientObj.ticketNumber}`,
+              lastName: displayClientObj.lastName || "-",
+              firstName: displayClientObj.firstName || "-",
+              patronymic: displayClientObj.surname || "-",
+              service: getServiceName(displayClientObj, currentLanguage),
+              iin: displayClientObj.iin || "-",
+          }
         : defaultClientData;
 
     return (
@@ -265,13 +294,13 @@ const QueuePage: FC = () => {
                 <Snackbar
                     open={snackbar.open}
                     autoHideDuration={3000}
-                    onClose={() =>
-                        setSnackbar({ ...snackbar, open: false })
-                    }
+                    onClose={() => setSnackbar({ ...snackbar, open: false })}
                 >
                     <Alert
                         severity={snackbar.severity}
-                        onClose={() => setSnackbar({ ...snackbar, open: false })}
+                        onClose={() =>
+                            setSnackbar({ ...snackbar, open: false })
+                        }
                         sx={{ fontSize: theme.typography.body1.fontSize }}
                     >
                         {snackbar.message}
@@ -281,15 +310,31 @@ const QueuePage: FC = () => {
 
             {/* Карточки статистики подняты выше */}
             <StatusCardWrapper>
-                <StatusCard variant="accepted" number={snapshot?.stats.serviced || 0} />
-                <StatusCard variant="not_accepted" number={snapshot?.stats.rejected || 0} />
-                <StatusCard variant="redirected" number={snapshot?.stats.redirected || 0} />
-                <StatusCard variant="in_anticipation" number={snapshot?.stats.inLine || 0} />
+                <StatusCard
+                    variant="accepted"
+                    number={snapshot?.stats.serviced || 0}
+                />
+                <StatusCard
+                    variant="not_accepted"
+                    number={snapshot?.stats.rejected || 0}
+                />
+                <StatusCard
+                    variant="redirected"
+                    number={snapshot?.stats.redirected || 0}
+                />
+                <StatusCard
+                    variant="in_anticipation"
+                    number={snapshot?.stats.inLine || 0}
+                />
             </StatusCardWrapper>
 
             <ClientCard
                 clientData={formattedClientData}
-                serviceTime={displayClientObj ? String(displayClientObj.averageExecutionTime) : serviceTime1}
+                serviceTime={
+                    displayClientObj
+                        ? String(displayClientObj.averageExecutionTime)
+                        : serviceTime1
+                }
                 onRedirect={handleRedirectClient}
                 onAccept={handleAcceptClient}
                 callNext={handleCallNextClient}
@@ -305,26 +350,42 @@ const QueuePage: FC = () => {
                     paddingBottom: theme.spacing(3),
                 }}
             >
-                {Array(4).fill(null).map((_, index) => {
-                    const item = uniqueQueue[index + 1];
-                    return item ? (
-                        <QueueCard
-                            key={item.clientNumber}
-                            clientNumber={item.ticketNumber}
-                            service={getServiceName(item, currentLanguage)}
-                            bookingTime={new Date(item.createdOn ?? "").toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                            expectedTime={item.expectedAcceptanceTime ? new Date(item.expectedAcceptanceTime).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "-"}
-                        />
-                    ) : (
-                        <QueueCard
-                            key={`mock-${index}`}
-                            clientNumber={0}
-                            service="-"
-                            bookingTime="-"
-                            expectedTime="-"
-                        />
-                    );
-                })}
+                {Array(4)
+                    .fill(null)
+                    .map((_, index) => {
+                        const item = uniqueQueue[index + 1];
+                        return item ? (
+                            <QueueCard
+                                key={item.clientNumber}
+                                clientNumber={item.ticketNumber}
+                                service={getServiceName(item, currentLanguage)}
+                                bookingTime={new Date(
+                                    item.createdOn ?? ""
+                                ).toLocaleTimeString([], {
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                })}
+                                expectedTime={
+                                    item.expectedAcceptanceTime
+                                        ? new Date(
+                                              item.expectedAcceptanceTime
+                                          ).toLocaleTimeString([], {
+                                              hour: "2-digit",
+                                              minute: "2-digit",
+                                          })
+                                        : "-"
+                                }
+                            />
+                        ) : (
+                            <QueueCard
+                                key={`mock-${index}`}
+                                clientNumber={0}
+                                service="-"
+                                bookingTime="-"
+                                expectedTime="-"
+                            />
+                        );
+                    })}
             </Box>
         </>
     );

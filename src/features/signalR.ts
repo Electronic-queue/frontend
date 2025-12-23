@@ -1,31 +1,8 @@
 import * as signalR from "@microsoft/signalr";
 
-import store, { RootState } from "src/store/store"; // И тип стейта
-
-// ✅ Переменная для хранения Connection ID
 let currentConnectionId: string | null | undefined = null;
 
-export const signalRBaseUrl = import.meta.env.VITE_SIGNALR_BASE_URL || "https://qsignalr-test.satbayev.university/";
-
-// 👇 Функция для безопасного получения токена (такая же логика, как в API)
-const getAccessToken = (): string => {
-    try {
-        const state = store.getState() as RootState;
-        const rawToken = state.auth?.token; // Проверьте путь state.auth.token
-
-        if (typeof rawToken === "string") {
-            return rawToken;
-        } 
-        if (typeof rawToken === "object" && rawToken !== null && "token" in rawToken) {
-            // @ts-ignore
-            return rawToken.token;
-        }
-        return "";
-    } catch (e) {
-        console.warn("Ошибка получения токена для SignalR:", e);
-        return "";
-    }
-};
+export const signalRBaseUrl = import.meta.env.VITE_SIGNALR_BASE_URL;
 
 const connection = new signalR.HubConnectionBuilder()
     .withUrl(signalRBaseUrl, {
@@ -33,8 +10,7 @@ const connection = new signalR.HubConnectionBuilder()
             signalR.HttpTransportType.WebSockets |
             signalR.HttpTransportType.ServerSentEvents |
             signalR.HttpTransportType.LongPolling,
-        // 👇 КРИТИЧЕСКИ ВАЖНОЕ ИСПРАВЛЕНИЕ:
-        accessTokenFactory: () => getAccessToken(), 
+
         withCredentials: false,
     })
     .withAutomaticReconnect()
@@ -49,29 +25,30 @@ export const startSignalR = async () => {
     try {
         // Если уже подключено - просто вернем ID
         if (connection.state === signalR.HubConnectionState.Connected) {
-             // Обновляем currentConnectionId на всякий случай
+            // Обновляем currentConnectionId на всякий случай
             currentConnectionId = connection.connectionId;
             return currentConnectionId;
         }
 
         // Если в процессе подключения - ждем или возвращаем null (зависит от логики, тут просто выходим)
         if (connection.state === signalR.HubConnectionState.Connecting) {
-             return null; 
+            return null;
         }
 
         await connection.start();
-        
+
         // ✅ Connection ID доступен после connection.start()
         currentConnectionId = connection.connectionId;
-        
-        
-        return currentConnectionId;
 
+        return currentConnectionId;
     } catch (error) {
-        console.error("❌ Ошибка при запуске SignalR. Повторная попытка через 5 сек.", error);
-        // Лучше не делать рекурсию с setTimeout внутри async функции без контроля, 
+        console.error(
+            "❌ Ошибка при запуске SignalR. Повторная попытка через 5 сек.",
+            error
+        );
+        // Лучше не делать рекурсию с setTimeout внутри async функции без контроля,
         // но оставим вашу логику, если она вам привычна.
-        // setTimeout(startSignalR, 5000); 
+        // setTimeout(startSignalR, 5000);
         return null;
     }
 };
@@ -83,7 +60,6 @@ connection.onclose(async (error) => {
 
 connection.onreconnected((connectionId) => {
     currentConnectionId = connectionId;
- 
 });
 
 export const getConnectionId = () => {

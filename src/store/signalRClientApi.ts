@@ -1,8 +1,8 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { RootState } from "src/store/store";
 
-export const signalRBaseUrl = "https://qsignalr-test.satbayev.university/";
-
+// ВРЕМЕННЫЙ ТЕСТ: Идем в обход прокси IIS
+export const signalRBaseUrl = "https://qclient.satbayev.university";
 export const signalRClientApi = createApi({
     reducerPath: "signalRClientApi",
     baseQuery: fetchBaseQuery({
@@ -18,7 +18,7 @@ export const signalRClientApi = createApi({
     endpoints: (builder) => ({
         registerClient: builder.mutation<any, { connectionId: string }>({
             query: (payload) => ({
-                url: "api/registry/client", 
+                url: "api/registry/client",
                 method: "POST",
                 body: payload,
             }),

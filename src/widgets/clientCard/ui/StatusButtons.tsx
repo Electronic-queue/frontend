@@ -46,30 +46,53 @@ const ButtonContent = styled(Box)({
     alignItems: "center",
     justifyContent: "center",
     gap: "8px",
-    width: "100%",
 });
 
 const currentLanguage = i18n.language || "ru";
 
 // --- Вспомогательные компоненты кнопок ---
 
-const IdleButton: FC<{ callNext: () => void; isLoading: boolean }> = ({ callNext, isLoading }) => {
+const IdleButton: FC<{ callNext: () => void; isLoading: boolean }> = ({
+    callNext,
+    isLoading,
+}) => {
     const { t } = useTranslation();
     return (
-        <CustomButton variantType="primary" sizeType="small" onClick={callNext} disabled={isLoading}>
+        <CustomButton
+            variantType="primary"
+            sizeType="small"
+            onClick={callNext}
+            disabled={isLoading}
+        >
             <ButtonContent>
-                {isLoading ? <CircularProgress size={20} color="inherit" /> : t("i18n_queue.callNext")}
+                {isLoading ? (
+                    <CircularProgress size={20} color="inherit" />
+                ) : (
+                    t("i18n_queue.callNext")
+                )}
             </ButtonContent>
         </CustomButton>
     );
 };
 
-const CalledButtons: FC<{ onAccept: () => void; isLoading: boolean }> = ({ onAccept, isLoading }) => {
+const CalledButtons: FC<{ onAccept: () => void; isLoading: boolean }> = ({
+    onAccept,
+    isLoading,
+}) => {
     const { t } = useTranslation();
     return (
-        <CustomButton variantType="primary" sizeType="small" onClick={onAccept} disabled={isLoading}>
+        <CustomButton
+            variantType="primary"
+            sizeType="small"
+            onClick={onAccept}
+            disabled={isLoading}
+        >
             <ButtonContent>
-                {isLoading ? <CircularProgress size={20} color="inherit" /> : t("i18n_queue.accept")}
+                {isLoading ? (
+                    <CircularProgress size={20} color="inherit" />
+                ) : (
+                    t("i18n_queue.accept")
+                )}
             </ButtonContent>
         </CustomButton>
     );
@@ -82,12 +105,13 @@ const AcceptedButtons: FC<{
     isLoading: boolean;
 }> = ({ onComplete, onOpenRedirect, isLoading }) => {
     const { t } = useTranslation();
-    const [redirectClient, { isLoading: isRedirecting }] = useRedirectClientMutation();
+    const [redirectClient, { isLoading: isRedirecting }] =
+        useRedirectClientMutation();
 
     const handleInitialRedirectClick = async () => {
         try {
             // Вызываем редирект (по токену)
-            redirectClient(); 
+            redirectClient();
             // Открываем модалку через родительский стейт
             onOpenRedirect();
         } catch (err) {
@@ -104,13 +128,26 @@ const AcceptedButtons: FC<{
                 disabled={isRedirecting}
             >
                 <ButtonContent>
-                    {isRedirecting ? <CircularProgress size={20} color="inherit" /> : t("i18n_queue.redirect")}
+                    {isRedirecting ? (
+                        <CircularProgress size={20} color="inherit" />
+                    ) : (
+                        t("i18n_queue.redirect")
+                    )}
                 </ButtonContent>
             </CustomButton>
 
-            <CustomButton variantType="primary" sizeType="small" onClick={onComplete} disabled={isLoading}>
+            <CustomButton
+                variantType="primary"
+                sizeType="small"
+                onClick={onComplete}
+                disabled={isLoading}
+            >
                 <ButtonContent>
-                    {isLoading ? <CircularProgress size={20} color="inherit" /> : t("i18n_queue.complete")}
+                    {isLoading ? (
+                        <CircularProgress size={20} color="inherit" />
+                    ) : (
+                        t("i18n_queue.complete")
+                    )}
                 </ButtonContent>
             </CustomButton>
         </Box>
@@ -126,10 +163,14 @@ const RedirectModal: FC<{
 }> = ({ open, onClose, onSuccess }) => {
     const { t } = useTranslation();
     const [searchValue, setSearchValue] = useState("");
-    const [selectedServiceId, setSelectedServiceId] = useState<string | null>(null);
+    const [selectedServiceId, setSelectedServiceId] = useState<string | null>(
+        null
+    );
 
-    const [getServicesForManager, { data, isLoading: isServicesLoading }] = useGetServicesForManagerMutation();
-    const [updateClientService, { isLoading: isUpdating }] = useUpdateClientServiceMutation();
+    const [getServicesForManager, { data, isLoading: isServicesLoading }] =
+        useGetServicesForManagerMutation();
+    const [updateClientService, { isLoading: isUpdating }] =
+        useUpdateClientServiceMutation();
 
     useEffect(() => {
         if (open) {
@@ -142,7 +183,9 @@ const RedirectModal: FC<{
     const handleFinalServiceSubmit = async () => {
         if (!selectedServiceId) return;
         try {
-            await updateClientService({ serviceId: selectedServiceId }).unwrap();
+            await updateClientService({
+                serviceId: selectedServiceId,
+            }).unwrap();
             onSuccess(selectedServiceId);
             onClose();
         } catch (err) {
@@ -152,13 +195,20 @@ const RedirectModal: FC<{
 
     const services = Array.isArray(data)
         ? data.map((s: any, idx: number) => ({
-            id: s.serviceId,
-            displayId: idx + 1,
-            name: currentLanguage === "kz" ? s.nameKk : currentLanguage === "en" ? s.nameEn : s.nameRu,
-        }))
+              id: s.serviceId,
+              displayId: idx + 1,
+              name:
+                  currentLanguage === "kz"
+                      ? s.nameKk
+                      : currentLanguage === "en"
+                        ? s.nameEn
+                        : s.nameRu,
+          }))
         : [];
 
-    const filtered = services.filter(s => s.name.toLowerCase().includes(searchValue.toLowerCase()));
+    const filtered = services.filter((s) =>
+        s.name.toLowerCase().includes(searchValue.toLowerCase())
+    );
 
     return (
         <ReusableModal
@@ -177,26 +227,40 @@ const RedirectModal: FC<{
                 />
 
                 {isServicesLoading ? (
-                    <Box display="flex" justifyContent="center" p={3}><CircularProgress /></Box>
+                    <Box display="flex" justifyContent="center" p={3}>
+                        <CircularProgress />
+                    </Box>
                 ) : (
                     <MainWrapper>
                         <ReusableTable
                             data={filtered}
                             columns={[
                                 { accessorKey: "displayId", header: "№" },
-                                { accessorKey: "name", header: t("i18n_queue.serviceName") },
+                                {
+                                    accessorKey: "name",
+                                    header: t("i18n_queue.serviceName"),
+                                },
                             ]}
                             pageSize={5}
                             onRowClick={(row) => setSelectedServiceId(row.id)}
                         />
                         <ButtonWrapperStyles>
-                            <CustomButton onClick={onClose}>{t("i18n_queue.cancel")}</CustomButton>
+                            <CustomButton onClick={onClose}>
+                                {t("i18n_queue.cancel")}
+                            </CustomButton>
                             <CustomButton
                                 onClick={handleFinalServiceSubmit}
                                 disabled={!selectedServiceId || isUpdating}
                             >
                                 <ButtonContent>
-                                    {isUpdating ? <CircularProgress size={20} color="inherit" /> : t("i18n_queue.redirectServiceAction")}
+                                    {isUpdating ? (
+                                        <CircularProgress
+                                            size={20}
+                                            color="inherit"
+                                        />
+                                    ) : (
+                                        t("i18n_queue.redirectServiceAction")
+                                    )}
                                 </ButtonContent>
                             </CustomButton>
                         </ButtonWrapperStyles>
@@ -218,14 +282,26 @@ const StatusButtons: FC<StatusButtonsProps> = (props) => {
                 {(() => {
                     switch (props.status) {
                         case "idle":
-                            return <IdleButton callNext={props.callNext} isLoading={props.isLoading} />;
+                            return (
+                                <IdleButton
+                                    callNext={props.callNext}
+                                    isLoading={props.isLoading}
+                                />
+                            );
                         case "called":
-                            return <CalledButtons onAccept={props.onAccept} isLoading={props.isLoading} />;
+                            return (
+                                <CalledButtons
+                                    onAccept={props.onAccept}
+                                    isLoading={props.isLoading}
+                                />
+                            );
                         case "accepted":
                             return (
                                 <AcceptedButtons
                                     onComplete={props.onComplete}
-                                    onOpenRedirect={() => setIsRedirectModalOpen(true)}
+                                    onOpenRedirect={() =>
+                                        setIsRedirectModalOpen(true)
+                                    }
                                     isLoading={props.isLoading}
                                 />
                             );

@@ -23,7 +23,7 @@ export const login = createAsyncThunk(
     ) => {
         try {
             const response = await axios.post(
-                "https://qmain-test.satbayev.university/api/Manager/login",
+                "https://qclient.satbayev.university/api/Manager/login",
                 { login, password },
                 {
                     params: { "api-version": "1" },

@@ -10,15 +10,13 @@ import CssBaseline from "@mui/material/CssBaseline";
 import theme from "./styles/theme.ts";
 import { ThemeContextProvider } from "./features/ThemeContext.tsx";
 
-
 createRoot(document.getElementById("root")!).render(
     <StrictMode>
         <Provider store={store}>
             <BrowserRouter>
-            <ThemeContextProvider>
+                <ThemeContextProvider>
                     <App />
-              </ThemeContextProvider>
-             
+                </ThemeContextProvider>
             </BrowserRouter>
         </Provider>
     </StrictMode>
