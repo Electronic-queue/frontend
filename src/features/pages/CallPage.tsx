@@ -26,7 +26,7 @@ import {
 } from "src/store/userAuthSlice";
 import { RootState } from "src/store/store";
 import { useRegisterClientMutation } from "src/store/signalRClientApi";
-import i18n from "src/i18n"; // Импорт i18n для определения языка
+import i18n from "src/i18n";
 
 const BackgroundContainer = styled(Box)(({ theme }) => ({
     display: "flex",
@@ -113,7 +113,7 @@ const CallPage = () => {
     const dispatch = useDispatch();
     const [expired, setExpired] = useState(false);
     const [isOpen, setIsOpen] = useState(false);
-    
+
     // --- Refs ---
     const hasRegistered = useRef(false);
     const hasAnnounced = useRef(false); // Ref для предотвращения повторной озвучки
@@ -134,7 +134,7 @@ const CallPage = () => {
         skip: !recordId,
     });
     const [registerClient] = useRegisterClientMutation();
-    
+
     const roomName = clientRecord?.nameRu;
     const windowNumber = clientRecord?.windowNumber ?? "-";
 
@@ -148,10 +148,10 @@ const CallPage = () => {
         let text = "";
         let voiceLang = "ru-RU";
 
-        if (lang === 'kz' || lang === 'kk') {
+        if (lang === "kz" || lang === "kk") {
             text = `Сізді ${windowNum} терезеге шақырады`;
             voiceLang = "kk-KZ";
-        } else if (lang === 'en') {
+        } else if (lang === "en") {
             text = `You are called to window ${windowNum}`;
             voiceLang = "en-US";
         } else {
@@ -161,8 +161,8 @@ const CallPage = () => {
 
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.lang = voiceLang;
-        utterance.rate = 1; 
-        
+        utterance.rate = 1;
+
         window.speechSynthesis.speak(utterance);
     };
     // ------------------------
@@ -172,7 +172,7 @@ const CallPage = () => {
     useEffect(() => {
         if (clientRecord) {
             setRecordData(clientRecord);
-            
+
             // Запускаем озвучку, когда данные загрузились и если еще не озвучивали
             if (clientRecord.windowNumber && !hasAnnounced.current) {
                 // Небольшая задержка, чтобы пользователь успел понять, что произошло
@@ -201,7 +201,7 @@ const CallPage = () => {
 
                 if (connectionId && isMounted) {
                     await registerClient({
-                        connectionId: connectionId
+                        connectionId: connectionId,
                     }).unwrap();
 
                     hasRegistered.current = true;
@@ -267,7 +267,14 @@ const CallPage = () => {
             connection.off("RecieveRedirectClient");
             window.speechSynthesis.cancel(); // Остановить звук при уходе
         };
-    }, [storedTicketNumber, navigate, recordId, registerClient, ticketNumber, dispatch]);
+    }, [
+        storedTicketNumber,
+        navigate,
+        recordId,
+        registerClient,
+        ticketNumber,
+        dispatch,
+    ]);
 
     const handleModalOpen = () => setIsOpen(true);
     const handleClose = () => setIsOpen(false);
@@ -314,15 +321,12 @@ const CallPage = () => {
     return (
         <BackgroundContainer>
             <Box sx={{ paddingBottom: theme.spacing(5) }}>
-                {theme.palette.mode === 'dark' ? <SULogoMDark /> : <SULogoM />}
+                {theme.palette.mode === "dark" ? <SULogoMDark /> : <SULogoM />}
             </Box>
             <FormContainer>
                 {!expired ? (
                     <>
-                        <Typography
-                            variant="h4"
-                            sx={{ marginBottom: 2 }}
-                        >
+                        <Typography variant="h4" sx={{ marginBottom: 2 }}>
                             {t("i18n_queue.approachWindow")} {windowNumber}
                         </Typography>
                         <Typography

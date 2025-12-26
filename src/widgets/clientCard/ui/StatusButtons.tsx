@@ -110,9 +110,7 @@ const AcceptedButtons: FC<{
 
     const handleInitialRedirectClick = async () => {
         try {
-            // Вызываем редирект (по токену)
-            redirectClient();
-            // Открываем модалку через родительский стейт
+            await redirectClient().unwrap();
             onOpenRedirect();
         } catch (err) {
             console.error(err);
@@ -154,8 +152,6 @@ const AcceptedButtons: FC<{
     );
 };
 
-// --- Компонент модалки (вынесен отдельно, чтобы не закрывался при смене статуса) ---
-
 const RedirectModal: FC<{
     open: boolean;
     onClose: () => void;
@@ -171,14 +167,6 @@ const RedirectModal: FC<{
         useGetServicesForManagerMutation();
     const [updateClientService, { isLoading: isUpdating }] =
         useUpdateClientServiceMutation();
-
-    useEffect(() => {
-        if (open) {
-            getServicesForManager();
-            setSearchValue("");
-            setSelectedServiceId(null);
-        }
-    }, [open, getServicesForManager]);
 
     const handleFinalServiceSubmit = async () => {
         if (!selectedServiceId) return;
@@ -210,10 +198,19 @@ const RedirectModal: FC<{
         s.name.toLowerCase().includes(searchValue.toLowerCase())
     );
 
+    useEffect(() => {
+        if (open) {
+            getServicesForManager();
+            setSearchValue("");
+            setSelectedServiceId(null);
+        }
+    }, [open, getServicesForManager]);
+
     return (
         <ReusableModal
             open={open}
-            onClose={onClose}
+            onClose={() => {}}
+            showCloseButton={false}
             title={t("i18n_queue.redirectService")}
             width={theme.spacing(99)}
         >
@@ -243,11 +240,10 @@ const RedirectModal: FC<{
                             ]}
                             pageSize={5}
                             onRowClick={(row) => setSelectedServiceId(row.id)}
+                            // ДОБАВЛЕНО: Передаем ID выбранной строки для подсветки
+                            selectedId={selectedServiceId}
                         />
                         <ButtonWrapperStyles>
-                            <CustomButton onClick={onClose}>
-                                {t("i18n_queue.cancel")}
-                            </CustomButton>
                             <CustomButton
                                 onClick={handleFinalServiceSubmit}
                                 disabled={!selectedServiceId || isUpdating}
@@ -311,7 +307,6 @@ const StatusButtons: FC<StatusButtonsProps> = (props) => {
                 })()}
             </Box>
 
-            {/* Модалка вынесена за пределы switch, поэтому она не исчезнет при смене статуса */}
             <RedirectModal
                 open={isRedirectModalOpen}
                 onClose={() => setIsRedirectModalOpen(false)}

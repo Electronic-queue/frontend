@@ -19,7 +19,7 @@ import { useHandleExistingSession } from "src/hooks/useHandleExistingSession";
 const validateIINChecksum = (iin: string): boolean => {
     if (!iin || iin.length !== 12) return false;
 
-    const digits = iin.split('').map(Number);
+    const digits = iin.split("").map(Number);
     const controlDigit = digits[11];
 
     let sum1 = 0;
@@ -65,9 +65,8 @@ interface FormValues {
 }
 
 const CheckSessionPage = () => {
-
     const theme = useTheme();
-    
+
     const { t } = useTranslation();
     const dispatch = useDispatch();
     const navigate = useNavigate();
@@ -76,53 +75,51 @@ const CheckSessionPage = () => {
 
     const { handleExistingSession } = useHandleExistingSession();
 
-    const {
-        control,
-        handleSubmit,
-    } = useForm<FormValues>({
-        mode: "onChange", 
+    const { control, handleSubmit } = useForm<FormValues>({
+        mode: "onChange",
         defaultValues: { iin: "" },
     });
 
-    const { required, pattern } = useValidationRules(); 
+    const { required, pattern } = useValidationRules();
 
     const onSubmit = async (data: FormValues) => {
         try {
             const response = await loginRecord({ iin: data.iin }).unwrap();
             if (response && response.record && response.token) {
                 handleExistingSession(response);
-                return; 
+                return;
             }
-            
-            await handleNewClient(data.iin);
 
+            await handleNewClient(data.iin);
         } catch (error: any) {
             if (error?.status === 404 || error?.status === 401) {
                 await handleNewClient(data.iin);
-            } 
-            else {
-                console.error("❌ Ошибка входа (не 404/401). Попробуем перейти на лендинг:", error);
+            } else {
+                console.error(
+                    "❌ Ошибка входа (не 404/401). Попробуем перейти на лендинг:",
+                    error
+                );
                 await handleNewClient(data.iin);
             }
         }
     };
-    
+
     const handleNewClient = (iin: string) => {
         dispatch(
-            setUserInfo({ 
-                iin, 
-                firstName: "", 
-                lastName: "", 
+            setUserInfo({
+                iin,
+                firstName: "",
+                lastName: "",
                 surname: "",
             })
         );
         navigate("/landing");
-    }
+    };
 
     return (
         <BackgroundContainer>
             <Box sx={{ paddingBottom: theme.spacing(2) }}>
-                 {theme.palette.mode === 'dark' ? <SULogoMDark /> : <SULogoM />}
+                {theme.palette.mode === "dark" ? <SULogoMDark /> : <SULogoM />}
             </Box>
 
             <FormContainer as="form" onSubmit={handleSubmit(onSubmit)}>
@@ -131,7 +128,7 @@ const CheckSessionPage = () => {
                     component="h1"
                     sx={{ marginBottom: 2, textAlign: "center" }}
                 >
-                    {t("i18n_register.authentication")} 
+                    {t("i18n_register.authentication")}
                 </Typography>
 
                 <Box
@@ -148,11 +145,11 @@ const CheckSessionPage = () => {
                             ...required,
                             pattern: {
                                 value: /^\d{12}$/,
-                                message: t("i18n_register.iinLengthError") 
+                                message: t("i18n_register.iinLengthError"),
                             },
-                            // validate: (value) => 
-                            //     validateIINChecksum(value) || t("i18n_register.iinInvalidChecksum") // "Некорректный ИИН"
-
+                            validate: (value) =>
+                                validateIINChecksum(value) ||
+                                t("i18n_register.iinInvalidChecksum"), // "Некорректный ИИН"
                         }}
                         labelKey="i18n_register.iin"
                         numericOnly={true}
@@ -167,25 +164,33 @@ const CheckSessionPage = () => {
                         fullWidth
                         disabled={isLoggingIn}
                     >
-                        {isLoggingIn ? "..." : t("i18n_register.check")} 
+                        {isLoggingIn ? "..." : t("i18n_register.check")}
                     </CustomButton>
                 </Box>
 
-                <Box sx={{
-                    display: "flex", 
-                    justifyContent: "center", 
-                    alignItems: "center", 
-                    textAlign: "center", 
-                    paddingTop: "20px"
-                }}>
-                    <Typography sx={{
-                        fontSize: "14px", 
-                        color: theme.palette.mode === 'dark' ? "#ffff": "#6B7280", 
-                        lineHeight: 1.4
-                    }}>
-                        Введите ИИН, чтобы записаться в электронную очередь или проверить статус активного талона.
+                <Box
+                    sx={{
+                        display: "flex",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        textAlign: "center",
+                        paddingTop: "20px",
+                    }}
+                >
+                    <Typography
+                        sx={{
+                            fontSize: "14px",
+                            color:
+                                theme.palette.mode === "dark"
+                                    ? "#ffff"
+                                    : "#6B7280",
+                            lineHeight: 1.4,
+                        }}
+                    >
+                        Введите ИИН, чтобы записаться в электронную очередь или
+                        проверить статус активного талона.
                     </Typography>
-                </Box> 
+                </Box>
             </FormContainer>
         </BackgroundContainer>
     );

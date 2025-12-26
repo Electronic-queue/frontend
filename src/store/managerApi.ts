@@ -100,40 +100,43 @@ export const managerApi = createApi({
                 },
             }),
         }),
-        observer: builder.mutation<any, { connectionId: string; queueTypeId: string }>({
-    query: (payload) => ({
-        url: "Observer/register",
-        method: "POST",
-        params: {
-            "api-version": "1",
-        },
-        // Данные передаем именно в body, а не деструктурируем в params
-        body: payload, 
-        // Явно указываем, что отправляем JSON
-        headers: {
-            "Content-Type": "application/json",
-        },
-    }),
-}),
-       redirectClient: builder.mutation<any, void>({
-    query: () => ({
-        url: "Manager/redirectclient",
-        method: "POST",
-        params: {
-            "api-version": "1",
-        },
-    }),
-}),
-updateClientService: builder.mutation<any, { serviceId: string }>({
-    query: (payload) => ({
-        url: "Manager/update-client-service",
-        method: "POST",
-        params: {
-            "api-version": "1",
-        },
-        body: payload, // Отправит { "serviceId": "..." }
-    }),
-}),
+        observer: builder.mutation<
+            any,
+            { connectionId: string; queueTypeId: string }
+        >({
+            query: (payload) => ({
+                url: "Observer/register",
+                method: "POST",
+                params: {
+                    "api-version": "1",
+                },
+                // Данные передаем именно в body, а не деструктурируем в params
+                body: payload,
+                // Явно указываем, что отправляем JSON
+                headers: {
+                    "Content-Type": "application/json",
+                },
+            }),
+        }),
+        redirectClient: builder.mutation<any, void>({
+            query: () => ({
+                url: "Manager/redirectclient",
+                method: "POST",
+                params: {
+                    "api-version": "1",
+                },
+            }),
+        }),
+        updateClientService: builder.mutation<any, { serviceId: string }>({
+            query: (payload) => ({
+                url: "Manager/update-client-service",
+                method: "POST",
+                params: {
+                    "api-version": "1",
+                },
+                body: payload,
+            }),
+        }),
         getServicesForManager: builder.mutation<any, void>({
             query: () => ({
                 url: "Service/get-services-for-manager",
@@ -192,12 +195,11 @@ updateClientService: builder.mutation<any, { serviceId: string }>({
             }),
         }),
 
-        startWindow: builder.mutation<any, { }>({
-            query: ({ }) => ({
+        startWindow: builder.mutation<any, {}>({
+            query: ({}) => ({
                 url: "Manager/startwindow",
                 method: "POST",
                 params: {
-                    
                     "api-version": "1",
                 },
             }),
