@@ -100,14 +100,41 @@ export const managerApi = createApi({
                 },
             }),
         }),
-        redirectClient: builder.mutation<any, { serviceId: number }>({
-            query: ({ serviceId }) => ({
+        observer: builder.mutation<
+            any,
+            { connectionId: string; queueTypeId: string }
+        >({
+            query: (payload) => ({
+                url: "Observer/register",
+                method: "POST",
+                params: {
+                    "api-version": "1",
+                },
+                // Данные передаем именно в body, а не деструктурируем в params
+                body: payload,
+                // Явно указываем, что отправляем JSON
+                headers: {
+                    "Content-Type": "application/json",
+                },
+            }),
+        }),
+        redirectClient: builder.mutation<any, void>({
+            query: () => ({
                 url: "Manager/redirectclient",
                 method: "POST",
                 params: {
-                    serviceId,
                     "api-version": "1",
                 },
+            }),
+        }),
+        updateClientService: builder.mutation<any, { serviceId: string }>({
+            query: (payload) => ({
+                url: "Manager/update-client-service",
+                method: "POST",
+                params: {
+                    "api-version": "1",
+                },
+                body: payload,
             }),
         }),
         getServicesForManager: builder.mutation<any, void>({
@@ -168,12 +195,11 @@ export const managerApi = createApi({
             }),
         }),
 
-        startWindow: builder.mutation<any, { managerId: number }>({
-            query: ({ managerId }) => ({
+        startWindow: builder.mutation<any, {}>({
+            query: ({}) => ({
                 url: "Manager/startwindow",
                 method: "POST",
                 params: {
-                    managerId,
                     "api-version": "1",
                 },
             }),
@@ -243,4 +269,6 @@ export const {
     useGetServicesForManagerMutation,
     useGetQueueTypeByTokenQuery,
     useGetQueueForClientsQuery,
+    useObserverMutation,
+    useUpdateClientServiceMutation,
 } = managerApi;

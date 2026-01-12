@@ -1,3 +1,4 @@
+// src/features/pages/ServiceSelection.tsx
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { setServiceId } from "src/store/userSlice";
@@ -6,12 +7,14 @@ import Paper from "@mui/material/Paper";
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
-import { styled } from "@mui/material/styles";
+// 1. Импортируем useTheme
+import { styled, useTheme } from "@mui/material/styles"; 
 import TextField from "@mui/material/TextField";
-import { SULogoM } from "src/assets";
+// 2. Импортируем оба логотипа
+import { SULogoM, SULogoMDark } from "src/assets"; 
 import { useTranslation } from "react-i18next";
 import ServiceList, { Service } from "src/widgets/serviceList/ui/ServiceList";
-import theme from "src/styles/theme";
+// УДАЛЕНО: import theme from "src/styles/theme";
 import SearchIcon from "@mui/icons-material/Search";
 import InputAdornment from "@mui/material/InputAdornment";
 import CustomButton from "src/components/Button";
@@ -42,6 +45,9 @@ const FormContainer = styled(Stack)(({ theme }) => ({
 }));
 
 const ServiceSelection = () => {
+    // 3. Активируем хук темы
+    const theme = useTheme();
+    
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const queueTypeId = useSelector(
@@ -91,6 +97,7 @@ const ServiceSelection = () => {
             getServiceList(queueTypeId);
         }
     }, [queueTypeId, getServiceList]);
+
     const handleSubmit = async () => {
         if (!selectedService) {
             alert("Услуга не выбрана");
@@ -103,12 +110,10 @@ const ServiceSelection = () => {
         }
 
         dispatch(setServiceId(selectedService.id as any));
-        // ID услуги "Лаборатория" (на основе предоставленных данных)
+        
         const LABORATORY_SERVICE_ID = "166fbb61-32ec-492a-e844-08de268f0d54";
-        // Сообщение об ошибке от бэкенда, которое нужно перехватить
         const BACKEND_TIMEOUT_MESSAGE =
             "время ожидания вышло за рамки рабочих часов";
-        // Кастомное сообщение, которое нужно показать
         const CUSTOM_LAB_MESSAGE =
             "Время приема завершено. Лаборатория работает с 8:00 до 11:00";
         try {
@@ -117,7 +122,7 @@ const ServiceSelection = () => {
                 serviceId: selectedService.id,
                 fcmToken: userFcmToken,
             }).unwrap();
-
+            
             if (response.token) {
                 localStorage.setItem("token", response.token);
                 dispatch(setToken(response.token));
@@ -130,25 +135,19 @@ const ServiceSelection = () => {
                 navigate("/wait");
             } else {
                 alert("Ошибка: не получен токен, попробуйте снова");
-            }
+            }   
         } catch (error: any) {
-            // 1. Получаем ID выбранной услуги
             const selectedServiceId = selectedService?.id;
-
-            // 2. Получаем сообщение об ошибке от бэкенда (если есть)
             const backendErrorDetail = error?.data?.detail;
 
             let message;
 
-            // 3. УСЛОВИЕ: Если это Лаборатория И сообщение от бэкенда совпадает с нужным
             if (
                 selectedServiceId === LABORATORY_SERVICE_ID &&
                 backendErrorDetail === BACKEND_TIMEOUT_MESSAGE
             ) {
-                // Показываем кастомное сообщение
                 message = CUSTOM_LAB_MESSAGE;
             } else {
-                // В противном случае, используем стандартную логику обработки ошибок
                 message =
                     backendErrorDetail ||
                     error?.error ||
@@ -158,6 +157,7 @@ const ServiceSelection = () => {
             alert(message);
         }
     };
+
     useEffect(() => {
         const savedService = localStorage.getItem("selectedService");
         if (savedService) {
@@ -168,7 +168,8 @@ const ServiceSelection = () => {
     return (
         <BackgroundContainer>
             <Box>
-                <SULogoM />
+                {/* 4. Смена логотипа */}
+                {theme.palette.mode === 'dark' ? <SULogoMDark /> : <SULogoM />}
             </Box>
             <FormContainer>
                 <Typography

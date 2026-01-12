@@ -34,6 +34,7 @@ const NotificationListener: FC = () => {
 };
 
 import MonitorPage from "./features/pages/MonitorPage";
+import CheckSessionPage from "./features/pages/CheckSessionPage";
 
 const App: FC = () => {
     const isMobile = useMediaQuery("(max-width: 768px)");
@@ -49,9 +50,9 @@ const App: FC = () => {
                     <Route
                         path="/monitor"
                         element={
-                            <ProtectedRoute>
+                           
                                 <MonitorPage />
-                            </ProtectedRoute>
+                         
                         }
                     />
                     <Route
@@ -76,7 +77,8 @@ const App: FC = () => {
 
 const MobileRoutes: FC = () => (
     <Routes>
-        <Route path="/" element={<Landing />} />
+        <Route path="/" element={<CheckSessionPage />} />
+        <Route path="/landing" element={<Landing />} />
         <Route path="/register" element={<ClientRegisterPage />} />
         <Route path="/selection" element={<ServiceSelection />} />
         <Route path="/wait" element={<WaitingPage />} />

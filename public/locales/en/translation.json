@@ -32,6 +32,7 @@
     },
     "i18n_register": {
         "title": "Registration",
+        "authentication":"Authentication",
         "iin": "Your IIN",
         "firstName": "Your first name",
         "lastName": "Your last name",
@@ -41,7 +42,9 @@
         "iinError": "IIN must consist of 12 digits",
         "maxLengthError": "Maximum length is {{length}} characters",
         "minLengthError": "Minimum length is {{length}} characters",
-        "iinLengthError": "IIN must consist of 12 digits"
+        "iinLengthError": "IIN must consist of 12 digits",
+        "check": "Login",
+        "iinInvalidChecksum": "Incorrect IIN"
     },
 
     "status": {
@@ -68,7 +71,7 @@
         "signUp": "Sign up",
         "number": "Your number №",
         "window": "Window",
-        "peopleAhead": "Your turn ",
+        "peopleAhead": "you're in line",
         "refuse": "Refuse",
         "cancel": "Cancel",
         "confirm": "Confirm",
@@ -94,6 +97,7 @@
         "details": "Details",
         "callNext": "Call next",
         "logOut": "Log out",
+        "logIn":"Log in",
         "beingServed": "Being served",
         "selectTime": "Select time (minutes)",
         "pauseWindow": "Pause window",
@@ -116,7 +120,9 @@
         "cancelError": "Error canceling the queue",
         "emptyQueue": "Queue is empty",
         "beingReject": "Your record has been canceled as the manager's work shift has ended.",
-        "goBack": "Go back"
+        "goBack": "Go back",
+        "hintWaitUpdate": "Your status will update automatically as soon as your turn comes. Please wait.",
+        "hintDoNotClose": "Please do not close this page"
     },
     "i18n_landing": {
         "officeRegistrar": "Office registration",

@@ -1,25 +1,33 @@
+// src/features/pages/Landing.tsx
 import { Typography } from "@mui/material";
 import Stack from "@mui/material/Stack";
-import { styled } from "@mui/material/styles";
+import { styled, useTheme } from "@mui/material/styles"; // Добавлен useTheme
 import Box from "@mui/material/Box";
 import { useTranslation } from "react-i18next";
-import { StudentsIcon, SULogoM } from "src/assets";
+import { StudentsIcon, SULogoM, SULogoMDark } from "src/assets"; // Добавлен SULogoMDark
 import { useDispatch } from "react-redux";
 import { setQueueTypeId } from "src/store/userAuthSlice";
-import theme from "src/styles/theme";
+// УДАЛЕНО: import theme from "src/styles/theme"; 
 import { useNavigate } from "react-router-dom";
 import { useGetQueueTypeQuery } from "src/store/managerApi";
 import CustomButton from "src/components/Button";
 import i18n from "src/i18n";
 
+// Исправляем фон страницы
 const BackgroundContainer = styled(Box)(({ theme }) => ({
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
     justifyContent: "center",
-    background: "linear-gradient(to left, #ADD8E6, white 50%)",
+    // ЛОГИКА: Если светлая тема -> градиент, если темная -> цвет фона по умолчанию
+    background: theme.palette.mode === 'light'
+        ? "linear-gradient(to left, #ADD8E6, white 50%)"
+        : theme.palette.background.default,
     paddingTop: theme.spacing(-5),
+    // Убедимся, что фон занимает всю высоту экрана
+    width: "100%"
 }));
+
 const FormContainer = styled(Stack)(({ theme }) => ({
     position: "relative",
     width: "95%",
@@ -32,6 +40,7 @@ const FormContainer = styled(Stack)(({ theme }) => ({
     zIndex: 1,
 }));
 
+// Исправляем "прозрачную" карточку
 const BlurBackground = styled(Box)(({ theme }) => ({
     position: "absolute",
     top: 0,
@@ -39,13 +48,20 @@ const BlurBackground = styled(Box)(({ theme }) => ({
     right: 0,
     bottom: 0,
     borderRadius: theme.spacing(2),
-    backgroundColor: "rgba(255, 255, 255, 0.1)",
-    border: "1px solid rgba(36, 34, 207, 0.18)",
+    // ЛОГИКА: Светлая тема -> белая прозрачность. Темная тема -> черная/темная прозрачность.
+    backgroundColor: theme.palette.mode === 'light'
+        ? "rgba(255, 255, 255, 0.1)"
+        : "rgba(30, 30, 30, 0.6)", // Затемняем карточку в ночном режиме
+    border: theme.palette.mode === 'light'
+        ? "1px solid rgba(36, 34, 207, 0.18)"
+        : "1px solid rgba(255, 255, 255, 0.1)", // Светлая граница для контраста в темноте
     backdropFilter: "blur(8px)",
     zIndex: 0,
 }));
 
 const Landing = () => {
+    // 1. Получаем тему через хук
+    const theme = useTheme();
     const { t } = useTranslation();
     const dispatch = useDispatch();
     const navigate = useNavigate();
@@ -55,6 +71,8 @@ const Landing = () => {
         isLoading: isQueueLoading,
         error: queueError,
     } = useGetQueueTypeQuery();
+    console.log("Queue Type Data:", queueTypeData);
+
 
     const handleSelectQueueType = (queueTypeId: string) => {
         dispatch(setQueueTypeId(queueTypeId));
@@ -84,7 +102,8 @@ const Landing = () => {
                         justifyContent: "center",
                     }}
                 >
-                    <SULogoM />
+                    {/* 2. Переключаем логотип в зависимости от темы */}
+                    {theme.palette.mode === 'dark' ? <SULogoMDark /> : <SULogoM />}
                 </Box>
 
                 <Box
@@ -96,7 +115,7 @@ const Landing = () => {
                     }}
                 >
                     {isQueueLoading && (
-                        <Typography variant="body1">
+                        <Typography variant="body1" sx={{ color: theme.palette.text.primary }}>
                             {t("loading")}...
                         </Typography>
                     )}
@@ -120,8 +139,8 @@ const Landing = () => {
                                 {currentLanguage === "ru"
                                     ? queueType.nameRu
                                     : currentLanguage === "en"
-                                      ? queueType.nameEn
-                                      : queueType.nameKk}
+                                        ? queueType.nameEn
+                                        : queueType.nameKk}
                             </CustomButton>
                         ))}
                 </Box>

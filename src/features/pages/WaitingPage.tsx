@@ -1,12 +1,13 @@
-import { useEffect, useReducer, useCallback, useState } from "react";
+// src/features/pages/WaitingPage.tsx
+import { useEffect, useReducer, useCallback, useState, useRef } from "react";
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
-import { styled } from "@mui/material/styles";
+import { styled, useTheme } from "@mui/material/styles";
 import { useTranslation } from "react-i18next";
-import { SULogoM } from "src/assets";
-import theme from "src/styles/theme";
+import { SULogoM, SULogoMDark } from "src/assets";
 import CustomButton from "src/components/Button";
 import ReusableModal from "src/components/ModalPage";
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined'; // Опционально: иконка для красоты
 
 import {
     useGetClientRecordByIdQuery,
@@ -25,6 +26,7 @@ import { useNavigate } from "react-router-dom";
 import Skeleton from "@mui/material/Skeleton";
 import { RootState } from "src/store/store";
 import i18n from "src/i18n";
+import { useRegisterClientMutation } from "src/store/signalRClientApi";
 
 const BackgroundContainer = styled(Box)(({ theme }) => ({
     display: "flex",
@@ -33,6 +35,7 @@ const BackgroundContainer = styled(Box)(({ theme }) => ({
     justifyContent: "center",
     backgroundColor: theme.palette.background.default,
     paddingTop: theme.spacing(5),
+    paddingBottom: theme.spacing(5), // Добавил отступ снизу, чтобы текст не прилипал к краю
 }));
 
 const FormContainer = styled(Box)(({ theme }) => ({
@@ -50,11 +53,23 @@ const InfoBlock = styled(Box)(({ theme }) => ({
     gap: theme.spacing(2),
 }));
 
+// --- НОВЫЙ СТИЛЬ ДЛЯ ПОДСКАЗКИ ---
+const HintContainer = styled(Box)(({ theme }) => ({
+    marginTop: theme.spacing(3),
+    maxWidth: theme.spacing(50),
+    width: "100%",
+    textAlign: "center",
+    padding: theme.spacing(0, 2),
+    opacity: 0.8, // Делаем текст чуть менее акцентным
+}));
+// ---------------------------------
+
 interface RefuseModalProps {
     open: boolean;
     onClose: () => void;
     onConfirm: () => void;
 }
+
 interface ClientRecord {
     recordId: number;
     windowNumber: number;
@@ -67,6 +82,7 @@ interface ClientRecord {
 }
 
 const RefuseModal = ({ open, onClose, onConfirm }: RefuseModalProps) => {
+    const theme = useTheme();
     const { t } = useTranslation();
     return (
         <ReusableModal
@@ -75,15 +91,8 @@ const RefuseModal = ({ open, onClose, onConfirm }: RefuseModalProps) => {
             width={340}
             showCloseButton={false}
         >
-            <Box
-                display="flex"
-                flexDirection="column"
-                gap={2}
-                alignItems="center"
-            >
-                <Typography variant="h4">
-                    {t("i18n_queue.refuseQueue")}
-                </Typography>
+            <Box display="flex" flexDirection="column" gap={2} alignItems="center">
+                <Typography variant="h4">{t("i18n_queue.refuseQueue")}</Typography>
                 <Box sx={{ display: "flex", gap: theme.spacing(2) }}>
                     <CustomButton variantType="primary" onClick={onConfirm}>
                         {t("i18n_queue.confirm")}
@@ -98,83 +107,41 @@ const RefuseModal = ({ open, onClose, onConfirm }: RefuseModalProps) => {
 };
 
 const WaitingPage = () => {
+    const theme = useTheme();
     const { t } = useTranslation();
     const navigate = useNavigate();
     const dispatch = useDispatch();
+
     const recordId = useSelector((state: RootState) => state.user.recordId);
-    const { data: ticketData, refetch: refetchTicketNumber } =
-        useGetTicketNumberByTokenQuery(undefined, {
-            refetchOnMountOrArgChange: true,
-        });
-    const wasRedirected = useSelector(
-        (state: RootState) => state.user.wasRedirected
-    );
+    const wasRedirected = useSelector((state: RootState) => state.user.wasRedirected);
     const cabinetNameRu = useSelector((state: RootState) => state.user.nameRu);
     const cabinetNameKk = useSelector((state: RootState) => state.user.nameKk);
     const cabinetNameEn = useSelector((state: RootState) => state.user.nameEn);
-    const ticketNumber = useSelector(
-        (state: RootState) => state.user.ticketNumber
-    );
+    const ticketNumber = useSelector((state: RootState) => state.user.ticketNumber);
 
-    useEffect(() => {
-        if (
-            ticketData?.ticketNumber &&
-            ticketData.ticketNumber !== ticketNumber
-        ) {
-            dispatch(setTicketNumber(ticketData.ticketNumber));
-        }
-    }, [ticketData, ticketNumber, dispatch]);
-    useEffect(() => {
-        if (recordId) {
-            refetchTicketNumber();
-        }
-    }, [recordId, refetchTicketNumber]);
-    const [recordData, setRecordData] = useState<ClientRecord | null>(null);
-
-    const {
-        data: tokenData,
-        isFetching: isFetchingRecordId,
-        refetch,
-    } = useGetRecordIdByTokenQuery(undefined, {
+    const { data: ticketData, refetch: refetchTicketNumber } = useGetTicketNumberByTokenQuery(undefined, {
         refetchOnMountOrArgChange: true,
     });
+
+    const { data: tokenData, isFetching: isFetchingRecordId, refetch } = useGetRecordIdByTokenQuery(undefined, {
+        refetchOnMountOrArgChange: true,
+    });
+
     const { data: clientRecord } = useGetClientRecordByIdQuery(recordId ?? 0, {
         skip: !recordId,
     });
-    const token = localStorage.getItem("token");
+    const [updateQueueItem, { isLoading: isUpdating }] = useUpdateQueueItemMutation();
+    const [registerClient] = useRegisterClientMutation();
 
-    useEffect(() => {
-        if (token) {
-            dispatch(setRecordId(null));
-            dispatch(setTicketNumber(null));
-            setRecordData(null);
-            refetch(); // повторно запросить новые данные
-        }
-    }, [token]);
-
-    useEffect(() => {}, [clientRecord]);
-    useEffect(() => {
-        if (recordId) {
-            refetch();
-        }
-    }, [recordId, refetch]);
-
-    useEffect(() => {}, [recordId]);
-    useEffect(() => {
-        if (clientRecord) {
-            setRecordData(clientRecord);
-        }
-    }, [clientRecord]);
-
-    useEffect(() => {
-        if (recordId) {
-            refetch();
-        }
-    }, [recordId, refetch]);
-
-    const [updateQueueItem, { isLoading: isUpdating }] =
-        useUpdateQueueItemMutation();
+    const [recordData, setRecordData] = useState<ClientRecord | null>(null);
     const [isOpen, toggleModal] = useReducer((open) => !open, false);
+    const hasRegistered = useRef(false);
+
+    useEffect(() => {
+        if (ticketData?.ticketNumber && ticketData.ticketNumber !== ticketNumber) {
+            dispatch(setTicketNumber(ticketData.ticketNumber));
+        }
+    }, [ticketData, ticketNumber, dispatch]);
 
     useEffect(() => {
         if (tokenData?.recordId && tokenData.recordId !== recordId) {
@@ -182,45 +149,105 @@ const WaitingPage = () => {
         }
     }, [tokenData, recordId, dispatch]);
 
+    const token = localStorage.getItem("token");
     useEffect(() => {
-        startSignalR();
+        if (token) {
+            refetch();
+            refetchTicketNumber();
+        }
+    }, [token]);
 
-        connection.on("ReceiveRecordCreated", (newRecord) => {
-            if (newRecord.ticketNumber === ticketNumber) {
-                if (newRecord.clientNumber === -1) {
-                    navigate("/call", { replace: true });
-                }
+    useEffect(() => {
+        if (clientRecord) {
+            setRecordData(clientRecord);
+        }
+    }, [clientRecord]);
+
+    useEffect(() => {
+        if (!recordId) return;
+
+        let isMounted = true;
+
+        const initSignalR = async () => {
+            if (hasRegistered.current) {
+                return;
             }
-        });
 
-        connection.on("RecieveUpdateRecord", (queueList) => {
-            const latestRecord = queueList.find(
-                (item: { ticketNumber: number }) =>
-                    item.ticketNumber === ticketNumber
-            );
-
-            if (latestRecord) {
-                setRecordData((prev) => ({
-                    ...prev,
-                    ...latestRecord,
-                }));
-
-                refetch();
-
-                if (latestRecord.clientNumber === -6) {
-                    navigate("/rejected", { replace: true });
+            try {
+                if (connection.state !== "Connected") {
+                    await startSignalR();
                 }
-                if (latestRecord.clientNumber === -1) {
-                    navigate("/call", { replace: true });
+
+                let attempts = 0;
+                while (!connection.connectionId && attempts < 10) {
+                    if (!isMounted) return;
+                    await new Promise((resolve) => setTimeout(resolve, 500));
+                    attempts++;
                 }
+
+                const finalConnectionId = connection.connectionId;
+
+                if (finalConnectionId && isMounted) {
+                    await registerClient({
+                        connectionId: finalConnectionId
+                    }).unwrap();
+
+                    hasRegistered.current = true;
+                } else {
+                    console.warn("⚠️ Тайм-аут: Connection ID так и не пришел или компонент размонтирован");
+                }
+
+            } catch (err) {
+                console.error("❌ Ошибка в процессе регистрации:", err);
+                hasRegistered.current = false;
             }
-        });
+        };
+
+        initSignalR();
+
+        const handleRecordCreated = (newRecord: any) => { };
+
+        const handleRecordCalled = () => {
+            navigate("/call", { replace: true });
+        };
+
+        const handleWindowPaused = (data: any) => {
+            console.log("Window paused", data);
+        }
+        const handleRecordServiceUdpated = (dataUpdated: any) => {
+            console.log("dataUpdated", dataUpdated);
+        navigate("/wait", { replace: true });
+        }
+
+        const handleQueueUpdate = (positionUpdate: Record<string, number>) => {
+            if (recordId && positionUpdate[recordId] !== undefined) {
+                const newClientNumber = positionUpdate[recordId];
+                setRecordData((prevData) => {
+                    const currentData = prevData || clientRecord;
+                    if (!currentData) return null;
+                    return {
+                        ...currentData,
+                        clientNumber: newClientNumber,
+                    };
+                });
+            }
+        };
+        connection.on("ReceiveRecordCreated", handleRecordCreated);
+        connection.on("RecordCalled", handleRecordCalled);
+        connection.on("QueuePositionUpdate", handleQueueUpdate);
+        connection.on("WindowPaused", handleWindowPaused);
+        connection.on("RecordServiceUdpated", handleRecordServiceUdpated);
+
 
         return () => {
-            connection.off("ReceiveRecordCreated");
-            connection.off("RecieveUpdateRecord");
+            isMounted = false;
+            hasRegistered.current = false;
+
+            connection.off("ReceiveRecordCreated", handleRecordCreated);
+            connection.off("RecordCalled", handleRecordCalled);
+            connection.off("QueuePositionUpdate", handleQueueUpdate);
         };
-    }, [ticketNumber, navigate]);
+    }, [recordId, ticketNumber, navigate, registerClient, refetch, clientRecord]);
 
     const handleConfirmRefuse = useCallback(async () => {
         if (!recordId) return;
@@ -229,15 +256,19 @@ const WaitingPage = () => {
         } catch (error) {
             console.error("Ошибка при обновлении очереди:", error);
         }
+
         localStorage.removeItem("token");
         localStorage.removeItem("recordId");
         localStorage.removeItem("ticketNumber");
+
         dispatch(setTicketNumber(null));
-        await refetch();
         dispatch(setToken(null));
         dispatch(setRecordId(null));
+
         connection.off("ReceiveRecordCreated");
         connection.off("RecieveUpdateRecord");
+
+
         navigate("/");
     }, [recordId, dispatch, navigate, updateQueueItem]);
 
@@ -252,9 +283,7 @@ const WaitingPage = () => {
     if (!recordId) {
         return (
             <BackgroundContainer>
-                <Typography variant="h6">
-                    {t("i18n_queue.noNotifications")}
-                </Typography>
+                <Typography variant="h6">{t("i18n_queue.noNotifications")}</Typography>
             </BackgroundContainer>
         );
     }
@@ -265,19 +294,19 @@ const WaitingPage = () => {
         (i18n.language === "kz"
             ? wasRedirected
                 ? cabinetNameKk
-                : activeRecord?.nameKk // Было recordData?.nameKk
+                : activeRecord?.nameKk
             : i18n.language === "en"
-              ? wasRedirected
-                  ? cabinetNameEn
-                  : activeRecord?.nameEn // Было recordData?.nameEn
-              : wasRedirected
-                ? cabinetNameRu
-                : activeRecord?.nameRu) || "—"; // Было recordData?.nameRu
+                ? wasRedirected
+                    ? cabinetNameEn
+                    : activeRecord?.nameEn
+                : wasRedirected
+                    ? cabinetNameRu
+                    : activeRecord?.nameRu) || "—";
 
     return (
         <BackgroundContainer>
             <Box sx={{ paddingBottom: theme.spacing(5) }}>
-                <SULogoM />
+                {theme.palette.mode === 'dark' ? <SULogoMDark /> : <SULogoM />}
             </Box>
             <FormContainer>
                 <Box
@@ -288,13 +317,11 @@ const WaitingPage = () => {
                     }}
                 >
                     <Typography variant="h4">
-                        {t("i18n_queue.number")}{" "}
-                        {ticketNumber ? `${ticketNumber}` : ""}
+                        {t("i18n_queue.number")} {ticketNumber ? `${ticketNumber}` : ""}
                     </Typography>
                 </Box>
 
                 <InfoBlock>
-                    {/* ИСПРАВЛЕНИЕ: Проверяем activeRecord вместо recordData */}
                     {activeRecord ? (
                         <>
                             <Typography variant="h6">
@@ -302,39 +329,26 @@ const WaitingPage = () => {
                             </Typography>
 
                             <Typography variant="h6">
-                                {t("i18n_queue.window")}:{" "}
-                                {/* ИСПРАВЛЕНИЕ: Берем из activeRecord */}
-                                {activeRecord.windowNumber ?? "—"}
+                                {t("i18n_queue.window")}: {activeRecord.windowNumber ?? "—"}
                             </Typography>
                             <Typography variant="h6">
-                                {t("i18n_queue.peopleAhead")}:{" "}
-                                {/* ИСПРАВЛЕНИЕ: Берем из activeRecord */}
-                                {activeRecord.clientNumber ?? "—"}
+                                {t("i18n_queue.peopleAhead")}: {activeRecord.clientNumber ?? "—"}
                             </Typography>
                             <Typography variant="h6">
                                 {t("i18n_queue.expectedTime")}:{" "}
-                                {/* ИСПРАВЛЕНИЕ: Берем из activeRecord */}
-                                {activeRecord.expectedAcceptanceTime ?? "—"}
+                                {activeRecord.expectedAcceptanceTime
+                                    ? new Date(activeRecord.expectedAcceptanceTime).toLocaleTimeString([], {
+                                        hour: "2-digit",
+                                        minute: "2-digit",
+                                    })
+                                    : "—"}
                             </Typography>
                         </>
                     ) : (
                         <>
-                            {/* Скелетоны остаются тут */}
-                            <Skeleton
-                                variant="rectangular"
-                                width="100%"
-                                height={30}
-                            />
-                            <Skeleton
-                                variant="rectangular"
-                                width="100%"
-                                height={30}
-                            />
-                            <Skeleton
-                                variant="rectangular"
-                                width="100%"
-                                height={30}
-                            />
+                            <Skeleton variant="rectangular" width="100%" height={30} />
+                            <Skeleton variant="rectangular" width="100%" height={30} />
+                            <Skeleton variant="rectangular" width="100%" height={30} />
                         </>
                     )}
                 </InfoBlock>
@@ -350,6 +364,16 @@ const WaitingPage = () => {
                     </CustomButton>
                 </Box>
             </FormContainer>
+
+            <HintContainer>
+                <Typography variant="h6" color="textSecondary" sx={{ fontWeight: 500, mb: 1 }}>
+                    {t("i18n_queue.hintDoNotClose") || "Пожалуйста, не закрывайте эту страницу"}
+                </Typography>
+                <Typography variant="h6" color="textSecondary">
+                    {t("i18n_queue.hintWaitUpdate") || "Ваш статус обновится автоматически, как только подойдет ваша очередь. Просто ожидайте."}
+                </Typography>
+            </HintContainer>  
+
             <RefuseModal
                 open={isOpen}
                 onClose={toggleModal}

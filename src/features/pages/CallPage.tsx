@@ -1,13 +1,13 @@
-import React, { useEffect, useState } from "react";
+// src/features/pages/CallPage.tsx
+import React, { useEffect, useRef, useState } from "react";
 import { Typography } from "@mui/material";
 import Stack from "@mui/material/Stack";
-import { styled } from "@mui/material/styles";
+import { styled, useTheme } from "@mui/material/styles";
 import Box from "@mui/material/Box";
 import { useTranslation } from "react-i18next";
-import { SULogoM } from "src/assets";
+import { SULogoM, SULogoMDark } from "src/assets";
 import CustomButton from "src/components/Button";
 import ReusableModal from "src/components/ModalPage";
-import theme from "src/styles/theme";
 import { useNavigate } from "react-router-dom";
 import connection, { startSignalR } from "src/features/signalR";
 import {
@@ -25,6 +25,8 @@ import {
     setWasRedirected,
 } from "src/store/userAuthSlice";
 import { RootState } from "src/store/store";
+import { useRegisterClientMutation } from "src/store/signalRClientApi";
+import i18n from "src/i18n";
 
 const BackgroundContainer = styled(Box)(({ theme }) => ({
     display: "flex",
@@ -42,7 +44,7 @@ const FormContainer = styled(Stack)(({ theme }) => ({
     width: "100%",
     maxWidth: theme.spacing(50),
     padding: theme.spacing(4),
-    backgroundColor: theme.palette.background.default,
+    backgroundColor: theme.palette.background.paper,
     borderRadius: theme.spacing(2),
     boxShadow: theme.shadows[2],
     textAlign: "center",
@@ -58,7 +60,7 @@ const TitleBox = styled(Box)(({ theme }) => ({
     justifyContent: "center",
 }));
 
-const RefuseModal = styled(Box)(({ theme }) => ({
+const RefuseModalBox = styled(Box)(({ theme }) => ({
     display: "flex",
     flexDirection: "column",
     gap: theme.spacing(2),
@@ -80,6 +82,7 @@ interface ClientRecord {
     expectedAcceptanceTime: string;
     ticketNumber: number;
 }
+
 const Timer: React.FC<TimerProps> = ({ onTimeout }) => {
     const [timeLeft, setTimeLeft] = useState(90);
 
@@ -95,7 +98,7 @@ const Timer: React.FC<TimerProps> = ({ onTimeout }) => {
     return (
         <FormContainer>
             <TitleBox>
-                <Typography variant="h1" sx={{ color: "red" }}>
+                <Typography variant="h1" sx={{ color: "error.main" }}>
                     {timeLeft}
                 </Typography>
             </TitleBox>
@@ -104,11 +107,17 @@ const Timer: React.FC<TimerProps> = ({ onTimeout }) => {
 };
 
 const CallPage = () => {
+    const theme = useTheme();
     const { t } = useTranslation();
     const navigate = useNavigate();
     const dispatch = useDispatch();
     const [expired, setExpired] = useState(false);
     const [isOpen, setIsOpen] = useState(false);
+
+    // --- Refs ---
+    const hasRegistered = useRef(false);
+    const hasAnnounced = useRef(false); // Ref для предотвращения повторной озвучки
+
     const [storedRecordId, setStoredRecordId] = useState<number | null>(() => {
         const savedRecordId = localStorage.getItem("recordId");
         return savedRecordId ? Number(savedRecordId) : null;
@@ -124,18 +133,91 @@ const CallPage = () => {
     const { data: clientRecord } = useGetClientRecordByIdQuery(recordId ?? 0, {
         skip: !recordId,
     });
-    console.log("recordData", recordData);
+    const [registerClient] = useRegisterClientMutation();
 
     const roomName = clientRecord?.nameRu;
     const windowNumber = clientRecord?.windowNumber ?? "-";
+
+    // --- ФУНКЦИЯ ОЗВУЧКИ ---
+    const speakCall = (windowNum: number | string) => {
+        if (!windowNum || windowNum === "-") return;
+
+        window.speechSynthesis.cancel(); // Сброс очереди
+
+        const lang = i18n.language;
+        let text = "";
+        let voiceLang = "ru-RU";
+
+        if (lang === "kz" || lang === "kk") {
+            text = `Сізді ${windowNum} терезеге шақырады`;
+            voiceLang = "kk-KZ";
+        } else if (lang === "en") {
+            text = `You are called to window ${windowNum}`;
+            voiceLang = "en-US";
+        } else {
+            text = `Вас вызывают к окну номер ${windowNum}`;
+            voiceLang = "ru-RU";
+        }
+
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = voiceLang;
+        utterance.rate = 1;
+
+        window.speechSynthesis.speak(utterance);
+    };
+    // ------------------------
+
     useEffect(() => {}, [storedRecordId]);
+
     useEffect(() => {
         if (clientRecord) {
             setRecordData(clientRecord);
+
+            // Запускаем озвучку, когда данные загрузились и если еще не озвучивали
+            if (clientRecord.windowNumber && !hasAnnounced.current) {
+                // Небольшая задержка, чтобы пользователь успел понять, что произошло
+                setTimeout(() => {
+                    speakCall(clientRecord.windowNumber);
+                }, 500);
+                hasAnnounced.current = true;
+            }
         }
     }, [clientRecord]);
+
     useEffect(() => {
-        startSignalR();
+        if (!recordId) return;
+
+        let isMounted = true;
+
+        const initSignalR = async () => {
+            if (hasRegistered.current) return;
+
+            try {
+                let connectionId = await startSignalR();
+
+                if (!connectionId && connection.state === "Connected") {
+                    connectionId = connection.connectionId;
+                }
+
+                if (connectionId && isMounted) {
+                    await registerClient({
+                        connectionId: connectionId,
+                    }).unwrap();
+
+                    hasRegistered.current = true;
+                }
+            } catch (err) {
+                console.error("❌ SignalR Registration Error:", err);
+            }
+        };
+
+        initSignalR();
+        connection.on("RecordAccepted", (RecordAcceptedData) => {
+            navigate("/progress", { replace: true });
+        });
+        connection.on("RecordRedirected", (RecordRedirectedData) => {
+            console.log("RecordRedirected", RecordRedirectedData);
+        });
         connection.on("ReceiveRecordCreated", (newRecord) => {
             if (
                 newRecord.ticketNumber === ticketNumber &&
@@ -145,17 +227,18 @@ const CallPage = () => {
             }
         });
         connection.on("RecieveUpdateRecord", (queueList) => {
-            const updatedItem = queueList.find(
-                (item: { ticketNumber: number | null }) =>
-                    item.ticketNumber === storedTicketNumber
-            );
-            if (updatedItem && updatedItem.clientNumber === -2) {
-                navigate("/progress");
-            }
-        });
-        connection.on("RecieveUpdateRecord", (recordAccept) => {
-            if (recordAccept.ticketNumber === storedTicketNumber) {
-                navigate("/progress");
+            if (Array.isArray(queueList)) {
+                const updatedItem = queueList.find(
+                    (item: { ticketNumber: number | null }) =>
+                        item.ticketNumber === storedTicketNumber
+                );
+                if (updatedItem && updatedItem.clientNumber === -2) {
+                    navigate("/progress");
+                }
+            } else {
+                if (queueList.ticketNumber === storedTicketNumber) {
+                    navigate("/progress");
+                }
             }
         });
 
@@ -182,8 +265,16 @@ const CallPage = () => {
             connection.off("RecieveUpdateRecord");
             connection.off("RecieveAcceptRecord");
             connection.off("RecieveRedirectClient");
+            window.speechSynthesis.cancel(); // Остановить звук при уходе
         };
-    }, [storedTicketNumber, navigate]);
+    }, [
+        storedTicketNumber,
+        navigate,
+        recordId,
+        registerClient,
+        ticketNumber,
+        dispatch,
+    ]);
 
     const handleModalOpen = () => setIsOpen(true);
     const handleClose = () => setIsOpen(false);
@@ -230,33 +321,31 @@ const CallPage = () => {
     return (
         <BackgroundContainer>
             <Box sx={{ paddingBottom: theme.spacing(5) }}>
-                <SULogoM />
+                {theme.palette.mode === "dark" ? <SULogoMDark /> : <SULogoM />}
             </Box>
             <FormContainer>
                 {!expired ? (
                     <>
-                        <Typography
-                            variant="h4"
-                            sx={{ marginBottom: 2, color: "black" }}
-                        >
+                        <Typography variant="h4" sx={{ marginBottom: 2 }}>
                             {t("i18n_queue.approachWindow")} {windowNumber}
                         </Typography>
                         <Typography
                             variant="h4"
                             sx={{
                                 marginBottom: 2,
-                                color: "black",
                                 marginTop: 2,
                             }}
                         >
                             {roomName}
                         </Typography>
+
                         <Timer
                             onTimeout={() => {
                                 setExpired(true);
                                 handleAvtomaticConfirmRefuse();
                             }}
                         />
+
                         <Box sx={{ paddingTop: theme.spacing(5) }}>
                             <CustomButton
                                 variantType="danger"
@@ -274,7 +363,7 @@ const CallPage = () => {
                             gap: theme.spacing(2),
                         }}
                     >
-                        <Typography variant="h5" sx={{ color: "white" }}>
+                        <Typography variant="h5">
                             {t("i18n_queue.timeoutMessage")}
                         </Typography>
                         <CustomButton
@@ -286,14 +375,15 @@ const CallPage = () => {
                         </CustomButton>
                     </Box>
                 )}
-            </FormContainer>{" "}
+            </FormContainer>
+
             <ReusableModal
                 open={isOpen}
                 onClose={handleClose}
                 width={340}
                 showCloseButton={false}
             >
-                <RefuseModal>
+                <RefuseModalBox>
                     <Box>
                         <Typography variant="h4">
                             {t("i18n_queue.refuseQueue")}
@@ -313,7 +403,7 @@ const CallPage = () => {
                             {t("i18n_queue.cancel")}
                         </CustomButton>
                     </Box>
-                </RefuseModal>
+                </RefuseModalBox>
             </ReusableModal>
         </BackgroundContainer>
     );

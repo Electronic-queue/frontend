@@ -2,10 +2,9 @@ import { useForm } from "react-hook-form";
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
-import { styled } from "@mui/material/styles";
+import { styled, useTheme } from "@mui/material/styles";
 import { useTranslation } from "react-i18next";
-import { SULogoM } from "src/assets";
-import theme from "src/styles/theme";
+import { SULogoM, SULogoMDark } from "src/assets";
 import CustomButton from "src/components/Button";
 import StyledTextField from "src/hooks/StyledTextField";
 import { useValidationRules } from "src/hooks/useValidationRules";
@@ -13,12 +12,17 @@ import { useDispatch, useSelector } from "react-redux";
 import { setUserInfo } from "src/store/userSlice";
 import { RootState } from "src/store/store";
 import { useNavigate } from "react-router-dom";
+import { startSignalR } from "../signalR";
+import { useRegisterClientMutation } from "src/store/signalRClientApi";
+import { useLoginRecordMutation } from "src/store/userApi";
+import { useHandleExistingSession } from "src/hooks/useHandleExistingSession";
 
 const BackgroundContainer = styled(Box)(({ theme }) => ({
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
     justifyContent: "center",
+    // minHeight: "100vh",
     backgroundColor: theme.palette.background.default,
     paddingTop: theme.spacing(5),
 }));
@@ -34,61 +38,81 @@ const FormContainer = styled(Stack)(({ theme }) => ({
 
 interface FormValues {
     iin: string;
-    firstName?: string;
-    lastName?: string;
-    surname?: string;
+    firstName: string;
+    lastName: string;
+    surname: string;
 }
 
 const ClientRegisterPage = () => {
+    const theme = useTheme();
     const { t } = useTranslation();
     const dispatch = useDispatch();
     const navigate = useNavigate();
+
+    // Получаем текущие данные из стора (включая ИИН, введенный ранее)
     const userInfo = useSelector((state: RootState) => state.user.userInfo);
-    const queueTypeId = useSelector(
-        (state: RootState) => state.user.queueTypeId
-    );
+
+    const [registerClient, { isLoading: isRegistering }] = useRegisterClientMutation();
+    const [loginRecord, { isLoading: isLoggingIn }] = useLoginRecordMutation();
+    const { handleExistingSession } = useHandleExistingSession();
 
     const {
         control,
         handleSubmit,
-        formState: { errors },
     } = useForm<FormValues>({
-        defaultValues: userInfo || {
-            iin: "",
-            firstName: "",
-            lastName: "",
-            surname: "",
+        // Важно: передаем userInfo в defaultValues, чтобы ИИН подтянулся в data при отправке
+        defaultValues: {
+            iin: userInfo?.iin || "",
+            firstName: userInfo?.firstName || "",
+            lastName: userInfo?.lastName || "",
+            surname: userInfo?.surname || "",
         },
     });
 
     const { required, pattern, maxLength } = useValidationRules();
 
-    const onSubmit = (data: FormValues) => {
-        const ONLY_IIN_TYPE = "7e734f7d-5639-4826-9a00-6b11938762aa";
-
-        const payload =
-            queueTypeId === ONLY_IIN_TYPE
-                ? { ...data, firstName: "", lastName: "", surname: "" }
-                : data;
-
+    const processNewUser = async (data: FormValues) => {
         dispatch(
             setUserInfo({
-                ...payload,
-                firstName: payload.firstName || "",
-                lastName: payload.lastName || "",
-                surname: payload.surname || "",
+                ...data,
+                firstName: data.firstName || "",
+                lastName: data.lastName || "",
+                surname: data.surname || "",
             })
         );
+
+        try {
+            const connectionId = await startSignalR();
+            if (connectionId) {
+                await registerClient({ connectionId }).unwrap();
+            }
+        } catch (err) {
+            console.error("❌ SignalR Error:", err);
+        }
+
         navigate("/selection");
     };
 
-    const ONLY_IIN_TYPE = "7e734f7d-5639-4826-9a00-6b11938762aa";
-    const showFullNameFields = queueTypeId !== ONLY_IIN_TYPE;
+    const onSubmit = async (data: FormValues) => {
+        try {
+            // Используем ИИН из данных формы (пришел из defaultValues)
+            const response = await loginRecord({ iin: data.iin }).unwrap();
+
+            if (response && response.record && response.token) {
+                handleExistingSession(response);
+            } else {
+                await processNewUser(data);
+            }
+        } catch (error: any) {
+            // Если сессии нет, регистрируем как нового
+            await processNewUser(data);
+        }
+    };
 
     return (
         <BackgroundContainer>
             <Box sx={{ paddingBottom: theme.spacing(2) }}>
-                <SULogoM />
+                {theme.palette.mode === 'dark' ? <SULogoMDark /> : <SULogoM />}
             </Box>
 
             <FormContainer as="form" onSubmit={handleSubmit(onSubmit)}>
@@ -107,74 +131,57 @@ const ClientRegisterPage = () => {
                         gap: theme.spacing(2),
                     }}
                 >
+                    {/* Поля ФИО теперь отображаются ВСЕГДА */}
                     <StyledTextField
-                        name="iin"
+                        name="lastName"
                         control={control}
                         rules={{
                             ...required,
                             ...pattern(
-                                /^\d{12}$/,
-                                t("i18n_register.iinLengthError")
+                                /^[a-zA-Zа-яА-ЯёЁәғқңөұүһіӘҒҚҢӨҰҮҺІ\s-]+$/,
+                                t("i18n_register.invalidNameError")
                             ),
+                            ...maxLength(40),
                         }}
-                        labelKey="i18n_register.iin"
-                        numericOnly={true}
+                        labelKey="i18n_register.lastName"
                     />
 
-                    {showFullNameFields && (
-                        <>
-                            <StyledTextField
-                                name="lastName"
-                                control={control}
-                                rules={{
-                                    ...required,
-                                    ...pattern(
-                                        /^[a-zA-Zа-яА-ЯёЁәғқңөұүһіӘҒҚҢӨҰҮҺІ\s-]+$/,
-                                        t("i18n_register.invalidNameError")
-                                    ),
-                                    ...maxLength(40),
-                                }}
-                                labelKey="i18n_register.lastName"
-                            />
+                    <StyledTextField
+                        name="firstName"
+                        control={control}
+                        rules={{
+                            ...required,
+                            ...pattern(
+                                /^[a-zA-Zа-яА-ЯёЁәғқңөұүһіӘҒҚҢӨҰҮҺІ\s-]+$/,
+                                t("i18n_register.invalidNameError")
+                            ),
+                            ...maxLength(40),
+                        }}
+                        labelKey="i18n_register.firstName"
+                    />
 
-                            <StyledTextField
-                                name="firstName"
-                                control={control}
-                                rules={{
-                                    ...required,
-                                    ...pattern(
-                                        /^[a-zA-Zа-яА-ЯёЁәғқңөұүһіӘҒҚҢӨҰҮҺІ\s-]+$/,
-                                        t("i18n_register.invalidNameError")
-                                    ),
-                                    ...maxLength(40),
-                                }}
-                                labelKey="i18n_register.firstName"
-                            />
-
-                            <StyledTextField
-                                name="surname"
-                                control={control}
-                                rules={{
-                                    ...pattern(
-                                        /^[a-zA-Zа-яА-ЯёЁәғқңөұүһіӘҒҚҢӨҰҮҺІ\s-]+$/,
-                                        t("i18n_register.invalidNameError")
-                                    ),
-                                    ...maxLength(40),
-                                }}
-                                labelKey="i18n_register.middleName"
-                            />
-                        </>
-                    )}
+                    <StyledTextField
+                        name="surname"
+                        control={control}
+                        rules={{
+                            ...pattern(
+                                /^[a-zA-Zа-яА-ЯёЁәғқңөұүһіӘҒҚҢӨҰҮҺІ\s-]+$/,
+                                t("i18n_register.invalidNameError")
+                            ),
+                            ...maxLength(40),
+                        }}
+                        labelKey="i18n_register.middleName"
+                    />
                 </Box>
 
                 <Box sx={{ paddingTop: theme.spacing(5) }}>
                     <CustomButton
                         variantType="primary"
                         type="submit"
-                        color="primary"
                         fullWidth
+                        disabled={isRegistering || isLoggingIn}
                     >
-                        {t("i18n_register.submit")}
+                        {(isRegistering || isLoggingIn) ? "..." : t("i18n_register.submit")}
                     </CustomButton>
                 </Box>
             </FormContainer>

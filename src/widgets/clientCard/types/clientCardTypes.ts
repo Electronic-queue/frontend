@@ -15,6 +15,7 @@ export interface ClientCardProps {
     onComplete: () => void;
     callNext: () => void;
     status: "idle" | "called" | "accepted" | "redirected";
+    isLoading: boolean;
 }
 
 export interface ServiceData {
