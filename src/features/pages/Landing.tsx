@@ -20,9 +20,9 @@ const BackgroundContainer = styled(Box)(({ theme }) => ({
     alignItems: "center",
     justifyContent: "center",
     // ЛОГИКА: Если светлая тема -> градиент, если темная -> цвет фона по умолчанию
-    background: theme.palette.mode === 'light' 
-        ? "linear-gradient(to left, #ADD8E6, white 50%)" 
-        : theme.palette.background.default, 
+    background: theme.palette.mode === 'light'
+        ? "linear-gradient(to left, #ADD8E6, white 50%)"
+        : theme.palette.background.default,
     paddingTop: theme.spacing(-5),
     // Убедимся, что фон занимает всю высоту экрана
     width: "100%"
@@ -71,9 +71,9 @@ const Landing = () => {
         isLoading: isQueueLoading,
         error: queueError,
     } = useGetQueueTypeQuery();
-    
+    console.log("Queue Type Data:", queueTypeData);
 
-    
+
     const handleSelectQueueType = (queueTypeId: string) => {
         dispatch(setQueueTypeId(queueTypeId));
         navigate("/register");
@@ -139,8 +139,8 @@ const Landing = () => {
                                 {currentLanguage === "ru"
                                     ? queueType.nameRu
                                     : currentLanguage === "en"
-                                    ? queueType.nameEn
-                                    : queueType.nameKk}
+                                        ? queueType.nameEn
+                                        : queueType.nameKk}
                             </CustomButton>
                         ))}
                 </Box>
