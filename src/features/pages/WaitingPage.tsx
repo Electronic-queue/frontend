@@ -130,6 +130,7 @@ const WaitingPage = () => {
     const { data: clientRecord } = useGetClientRecordByIdQuery(recordId ?? 0, {
         skip: !recordId,
     });
+    console.log("clientRecor!!!!!!!!!!!!d", clientRecord);
     const [updateQueueItem, { isLoading: isUpdating }] = useUpdateQueueItemMutation();
     const [registerClient] = useRegisterClientMutation();
 
@@ -216,7 +217,7 @@ const WaitingPage = () => {
         }
         const handleRecordServiceUdpated = (dataUpdated: any) => {
             console.log("dataUpdated", dataUpdated);
-        navigate("/wait", { replace: true });
+            navigate("/wait", { replace: true });
         }
 
         const handleQueueUpdate = (positionUpdate: Record<string, number>) => {
@@ -289,6 +290,11 @@ const WaitingPage = () => {
     }
 
     const activeRecord = recordData || clientRecord;
+
+
+    console.log("recordData", recordData);
+    console.log("clientRecord", clientRecord);
+    console.log("activeRecord", activeRecord);
 
     const displayedName =
         (i18n.language === "kz"
@@ -372,7 +378,7 @@ const WaitingPage = () => {
                 <Typography variant="h6" color="textSecondary">
                     {t("i18n_queue.hintWaitUpdate") || "Ваш статус обновится автоматически, как только подойдет ваша очередь. Просто ожидайте."}
                 </Typography>
-            </HintContainer>  
+            </HintContainer>
 
             <RefuseModal
                 open={isOpen}
