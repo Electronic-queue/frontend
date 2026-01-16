@@ -8,10 +8,10 @@ import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
 // 1. Импортируем useTheme
-import { styled, useTheme } from "@mui/material/styles"; 
+import { styled, useTheme } from "@mui/material/styles";
 import TextField from "@mui/material/TextField";
 // 2. Импортируем оба логотипа
-import { SULogoM, SULogoMDark } from "src/assets"; 
+import { SULogoM, SULogoMDark } from "src/assets";
 import { useTranslation } from "react-i18next";
 import ServiceList, { Service } from "src/widgets/serviceList/ui/ServiceList";
 // УДАЛЕНО: import theme from "src/styles/theme";
@@ -47,7 +47,7 @@ const FormContainer = styled(Stack)(({ theme }) => ({
 const ServiceSelection = () => {
     // 3. Активируем хук темы
     const theme = useTheme();
-    
+
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const queueTypeId = useSelector(
@@ -73,20 +73,20 @@ const ServiceSelection = () => {
 
     const services: Service[] = Array.isArray(data)
         ? data.map((service: any) => ({
-              id: service.serviceId,
-              name:
-                  currentLanguage === "kz"
-                      ? service.nameKk
-                      : currentLanguage === "en"
+            id: service.serviceId,
+            name:
+                currentLanguage === "kz"
+                    ? service.nameKk
+                    : currentLanguage === "en"
                         ? service.nameEn
                         : service.nameRu,
-              description:
-                  currentLanguage === "kz"
-                      ? service.descriptionKk
-                      : currentLanguage === "en"
+            description:
+                currentLanguage === "kz"
+                    ? service.descriptionKk
+                    : currentLanguage === "en"
                         ? service.descriptionEn
                         : service.descriptionRu,
-          }))
+        }))
         : [];
     const filteredServices = services.filter((service) =>
         service.name.toLowerCase().includes(search.toLowerCase())
@@ -110,7 +110,16 @@ const ServiceSelection = () => {
         }
 
         dispatch(setServiceId(selectedService.id as any));
-        
+        const BACKEND_OUT_OF_WORKING_HOURS =
+            "Ожидание за пределами рабочего времени.";
+        const NO_MANAGERS_REGEX =
+            /Менеджеры, которые занимаются услугой/;
+        const NO_MANAGERS_MESSAGE =
+            "В данный момент все менеджеры временно недоступны.\n\nПожалуйста, попробуйте записаться позже.";
+
+        const MANAGER_WORK_TIME_MESSAGE =
+            "Менеджеры еще не начали работу.\n\nГрафик работы: с 09:00 до 18:00.\nПожалуйста, попробуйте записаться позже.";
+
         const LABORATORY_SERVICE_ID = "166fbb61-32ec-492a-e844-08de268f0d54";
         const BACKEND_TIMEOUT_MESSAGE =
             "время ожидания вышло за рамки рабочих часов";
@@ -122,7 +131,7 @@ const ServiceSelection = () => {
                 serviceId: selectedService.id,
                 fcmToken: userFcmToken,
             }).unwrap();
-            
+
             if (response.token) {
                 localStorage.setItem("token", response.token);
                 dispatch(setToken(response.token));
@@ -135,27 +144,43 @@ const ServiceSelection = () => {
                 navigate("/wait");
             } else {
                 alert("Ошибка: не получен токен, попробуйте снова");
-            }   
+            }
         } catch (error: any) {
-            const selectedServiceId = selectedService?.id;
             const backendErrorDetail = error?.data?.detail;
+            console.log("backendErrorDetail:", backendErrorDetail);
 
-            let message;
+            let message = "Ошибка создания записи, попробуйте снова";
 
+            // 🧪 Лаборатория
             if (
-                selectedServiceId === LABORATORY_SERVICE_ID &&
+                selectedService?.id === LABORATORY_SERVICE_ID &&
                 backendErrorDetail === BACKEND_TIMEOUT_MESSAGE
             ) {
                 message = CUSTOM_LAB_MESSAGE;
-            } else {
-                message =
-                    backendErrorDetail ||
-                    error?.error ||
-                    "Ошибка создания записи, попробуйте снова";
+            }
+
+            // ⏰ ВНЕ РАБОЧЕГО ВРЕМЕНИ
+            else if (backendErrorDetail === BACKEND_OUT_OF_WORKING_HOURS) {
+                message = MANAGER_WORK_TIME_MESSAGE;
+            }
+
+            // ⏸️ ВСЕ МЕНЕДЖЕРЫ НА ПАУЗЕ / ОТСУТСТВУЮТ
+            else if (
+                backendErrorDetail &&
+                NO_MANAGERS_REGEX.test(backendErrorDetail)
+            ) {
+                message = NO_MANAGERS_MESSAGE;
+            }
+
+            // 🧯 ФОЛБЭК (ВСЕ ОСТАЛЬНОЕ)
+            else if (backendErrorDetail) {
+                message = backendErrorDetail;
             }
 
             alert(message);
         }
+
+
     };
 
     useEffect(() => {
