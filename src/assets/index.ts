@@ -3,11 +3,11 @@ export { ReactComponent as CheckMarkIcon } from "./check-mark-icon.svg";
 export { ReactComponent as ExclamationMarkIcon } from "./exclamation-mark-icon.svg";
 export { ReactComponent as LoadingIcon } from "./loading-icon.svg";
 export { ReactComponent as UserLogo } from "./user-logo-icon.svg";
-export { ReactComponent as SULogo } from "./su-logo.svg";
+export { ReactComponent as SULogo } from "./suLogo.svg";
 export { ReactComponent as SULogoM } from "./su-logo-m.svg";
 export { ReactComponent as SULogoMDark } from "./su-logo-m-dark.svg";
 export { ReactComponent as PhoneIcon } from "./phoneIcon.svg";
 export { ReactComponent as NotFoundPageIcon } from "./404.svg";
 export { ReactComponent as StudentsIcon } from "./StudentsIcon.svg";
 export { ReactComponent as SuLogo } from "./suLogo.svg";
-export { ReactComponent as SuLogoDark } from "./su_logo_dark.svg"
+export { ReactComponent as SuLogoDark } from "./su_logo_dark.svg";

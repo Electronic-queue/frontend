@@ -84,10 +84,21 @@ const MonitorContainer = styled(Box)(({ theme }) => ({
 
 const HeaderBox = styled(Box)(({ theme }) => ({
     display: "flex",
-    justifyContent: "center",
+    justifyContent: "space-around",
+    gap: theme.spacing(4),
     alignItems: "center",
     marginBottom: theme.spacing(2),
-    height: "80px",
+    height: "90px",
+}));
+
+const HeaderTypography = styled(Typography)(({ theme }) => ({
+    fontSize: "26px",
+    fontWeight: 200,
+    color: theme.palette.text.primary,
+    width: "780px",
+    textAlign: "center",
+    marginTop: theme.spacing(3),
+    marginBottom: theme.spacing(3),
 }));
 
 const TableTitle = styled(Typography)(({ theme }) => ({
@@ -110,14 +121,59 @@ const StyledTableCell = styled(TableCell)(({ theme }) => ({
 }));
 
 const StyledHeaderCell = styled(TableCell)(({ theme }) => ({
-    fontSize: "1.4rem",
+    fontSize: "20px",
     fontWeight: 700,
     backgroundColor: "#e0e0e0",
-    color: "#333",
+    color: "#979deb",
     padding: theme.spacing(1),
 }));
 
-// Вспомогательный компонент для под-таблицы
+
+
+const FooterTicker = styled(Box)(({ theme }) => ({
+    height: "30px", // Немного увеличил высоту для удобства
+    backgroundColor: "#1976d2",
+    color: "#fff",
+    display: "flex",
+    alignItems: "center",
+    overflow: "hidden",
+    position: "relative",
+    width: "100%",
+    marginTop: theme.spacing(2),
+}));
+
+
+
+
+
+const TickerWrapper = styled(Box)`
+  display: flex;
+  white-space: nowrap;
+  /* Анимация смещает контейнер влево на 50% (длина одного набора текста) */
+  animation: ticker-loop 20s linear infinite;
+
+  @keyframes ticker-loop {
+    0% {
+      transform: translateX(0);
+    }
+    100% {
+      transform: translateX(-50%);
+    }
+  }
+
+  &:hover {
+    animation-play-state: paused;
+  }
+`;
+
+const TickerContent = styled(Typography)`
+  font-size: 1.6rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  padding-right: 50px; /* Отступ между повторами текста */
+  display: inline-block;
+`;
+
 const SubTable = ({
     items,
     type,
@@ -141,10 +197,10 @@ const SubTable = ({
                         sx={
                             type === "called"
                                 ? {
-                                      animation: `pulse-green 2s infinite`,
-                                      backgroundColor:
-                                          "rgba(232, 245, 233, 0.5)",
-                                  }
+                                    animation: `pulse-green 2s infinite`,
+                                    backgroundColor:
+                                        "rgba(232, 245, 233, 0.5)",
+                                }
                                 : {}
                         }
                     >
@@ -355,8 +411,8 @@ const MonitorPage = () => {
                                         {i18n.language === "en"
                                             ? q.nameEn
                                             : i18n.language === "kz"
-                                              ? q.nameKk
-                                              : q.nameRu}
+                                                ? q.nameKk
+                                                : q.nameRu}
                                     </CustomButton>
                                 ))}
                         </Stack>
@@ -384,7 +440,10 @@ const MonitorPage = () => {
     return (
         <MonitorContainer>
             <HeaderBox>
+                <HeaderTypography>Қазақ ұлттық техникалық зерттеу университеті</HeaderTypography>
                 <SULogoCustom />
+                <HeaderTypography>Казахский национальный исследовательский технический университет</HeaderTypography>
+
             </HeaderBox>
 
             <Grid container spacing={3} sx={{ flex: 1, overflow: "hidden" }}>
@@ -398,6 +457,7 @@ const MonitorPage = () => {
                             overflow: "hidden",
                             display: "flex",
                             flexDirection: "column",
+                            marginTop: theme.spacing(3),
                         }}
                     >
                         <TableTitle sx={{ backgroundColor: "#1976d2" }}>
@@ -461,6 +521,7 @@ const MonitorPage = () => {
                             overflow: "hidden",
                             display: "flex",
                             flexDirection: "column",
+                            marginTop: theme.spacing(3),
                         }}
                     >
                         <TableTitle sx={{ backgroundColor: "#2e7d32" }}>
@@ -546,6 +607,21 @@ const MonitorPage = () => {
                     Reset
                 </CustomButton>
             </Box>
+            <FooterTicker>
+                <TickerWrapper>
+                    {/* Текст выводится дважды для создания бесшовного цикла */}
+                    <TickerContent>
+                        Очередь можно отслеживать через мобильный телефон •
+                        Кезекті ұялы телефон арқылы бақылауға болады •
+                        Scan QR code to track your queue •
+                    </TickerContent>
+                    <TickerContent>
+                        Очередь можно отслеживать через мобильный телефон •
+                        Кезекті ұялы телефон арқылы бақылауға болады •
+                        Scan QR code to track your queue •
+                    </TickerContent>
+                </TickerWrapper>
+            </FooterTicker>
         </MonitorContainer>
     );
 };
