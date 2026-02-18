@@ -10,12 +10,28 @@ export const managerApi = createApi({
         prepareHeaders: (headers, { getState }) => {
             const token = (getState() as RootState)?.auth?.token;
 
+            console.log(
+                "🔑 [prepareHeaders] Current token state:",
+                token
+                    ? "Exists (starts with " + token.substring(0, 10) + "...)"
+                    : "Empty"
+            );
+
             if (token) {
-                headers.set("Authorization", `Bearer ${token}`);
+                const authHeader = `Bearer ${token}`;
+                headers.set("Authorization", authHeader);
+                // Проверим, не закрались ли лишние пробелы или спецсимволы
+                console.log(
+                    "📡 [prepareHeaders] Auth header set:",
+                    authHeader.substring(0, 20) + "..."
+                );
+            } else {
+                console.warn("⚠️ [prepareHeaders] No token found in state!");
             }
             return headers;
         },
     }),
+
     endpoints: (builder) => ({
         getRecordListByManager: builder.query<ManagerRecord[], void>({
             query: () => ({

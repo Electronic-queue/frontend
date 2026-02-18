@@ -112,10 +112,12 @@ const QueuePage: FC = () => {
 
     useEffect(() => {
         const setupSignalR = async () => {
+            console.log("🛠 1. Установка слушателя ManagerQueueSnapshot");
             connection.on(
                 "ManagerQueueSnapshot",
                 (data: ManagerSnapshotData) => {
                     console.log("spanshot", data);
+                    console.log(" socket: snapshot получено ✅", data);
                     setSnapshot(data);
                 }
             );
@@ -130,15 +132,20 @@ const QueuePage: FC = () => {
     const hasRegistered = useRef(false);
 
     useEffect(() => {
-        if (!token) return;
+        if (!token) {
+            console.error("❌ [QueuePage] No token available, skipping SignalR init");
+            return;
+        }
 
         let isMounted = true;
 
         const initAndRegister = async () => {
             if (hasRegistered.current) return;
+            console.log("🔄 [QueuePage] Starting SignalR connection...");
             let connectionId = await startSignalR();
             let attempts = 0;
             while (!connectionId && attempts < 10 && isMounted) {
+                console.log(`⏳ [QueuePage] Waiting for connectionId... Attempt ${attempts + 1}`);
                 await new Promise((resolve) => setTimeout(resolve, 500));
                 if (
                     connection.state === "Connected" &&
@@ -152,6 +159,7 @@ const QueuePage: FC = () => {
             }
 
             if (connectionId && isMounted) {
+                console.log("✅ [QueuePage] Connection ID obtained:", connectionId);
                 console.log(
                     "✅ Получен Connection ID для менеджера:",
                     connectionId
@@ -194,7 +202,7 @@ const QueuePage: FC = () => {
                 message: t("i18n_queue.clientAccepted"),
                 severity: "success",
             });
-        } catch (err) {}
+        } catch (err) { }
     };
 
     const handleRedirectClient = () => {
@@ -204,7 +212,7 @@ const QueuePage: FC = () => {
                 message: t("i18n_queue.clientRedirected"),
                 severity: "success",
             });
-        } catch (err) {}
+        } catch (err) { }
     };
 
     const handleCallNextClient = async () => {
@@ -272,20 +280,20 @@ const QueuePage: FC = () => {
 
     const displayClientObj =
         computedStatus !== "idle" &&
-        snapshot?.activeClient &&
-        snapshot.activeClient.ticketNumber !== -1
+            snapshot?.activeClient &&
+            snapshot.activeClient.ticketNumber !== -1
             ? snapshot.activeClient
             : uniqueQueue[0];
 
     const formattedClientData = displayClientObj
         ? {
-              clientNumber: `${displayClientObj.ticketNumber}`,
-              lastName: displayClientObj.lastName || "-",
-              firstName: displayClientObj.firstName || "-",
-              patronymic: displayClientObj.surname || "-",
-              service: getServiceName(displayClientObj, currentLanguage),
-              iin: displayClientObj.iin || "-",
-          }
+            clientNumber: `${displayClientObj.ticketNumber}`,
+            lastName: displayClientObj.lastName || "-",
+            firstName: displayClientObj.firstName || "-",
+            patronymic: displayClientObj.surname || "-",
+            service: getServiceName(displayClientObj, currentLanguage),
+            iin: displayClientObj.iin || "-",
+        }
         : defaultClientData;
 
     return (
@@ -368,11 +376,11 @@ const QueuePage: FC = () => {
                                 expectedTime={
                                     item.expectedAcceptanceTime
                                         ? new Date(
-                                              item.expectedAcceptanceTime
-                                          ).toLocaleTimeString([], {
-                                              hour: "2-digit",
-                                              minute: "2-digit",
-                                          })
+                                            item.expectedAcceptanceTime
+                                        ).toLocaleTimeString([], {
+                                            hour: "2-digit",
+                                            minute: "2-digit",
+                                        })
                                         : "-"
                                 }
                             />

@@ -1,6 +1,18 @@
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import axios from "axios";
 
+// Описание структуры из твоего скриншота
+interface LoginResponse {
+    window: any;
+    token: {
+        token: string; // Сама строка JWT
+        userName: string;
+        fullName: string;
+        queueTypeID: string;
+        isAdmin: boolean | null;
+    };
+}
+
 interface AuthState {
     token: string | null;
     isAuthenticated: boolean;
@@ -22,14 +34,12 @@ export const login = createAsyncThunk(
         thunkAPI
     ) => {
         try {
-            const response = await axios.post(
+            const response = await axios.post<LoginResponse>(
                 "https://qclient.satbayev.university/api/Manager/login",
                 { login, password },
                 {
                     params: { "api-version": "1" },
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
+                    headers: { "Content-Type": "application/json" },
                 }
             );
             return response.data;
@@ -49,6 +59,7 @@ const authSlice = createSlice({
             state.token = null;
             state.isAuthenticated = false;
             localStorage.removeItem("token");
+            localStorage.removeItem("windowInfo");
         },
     },
     extraReducers: (builder) => {
@@ -59,14 +70,24 @@ const authSlice = createSlice({
             })
             .addCase(
                 login.fulfilled,
-                (state, action: PayloadAction<string>) => {
+                (state, action: PayloadAction<LoginResponse>) => {
                     state.loading = false;
-                    state.token = action.payload;
+
+                    // КЛЮЧЕВОЕ ИСПРАВЛЕНИЕ: достаем именно строку токена
+                    const pureToken = action.payload.token.token;
+
+                    state.token = pureToken;
                     state.isAuthenticated = true;
-                    localStorage.setItem("token", action.payload);
+
+                    // Сохраняем в браузер только строку токена
+                    localStorage.setItem("token", pureToken);
+                    // Информацию об окне (Cs2, 2024 и т.д.) сохраняем отдельно
+                    localStorage.setItem(
+                        "windowInfo",
+                        JSON.stringify(action.payload.window)
+                    );
                 }
             )
-
             .addCase(login.rejected, (state, action: PayloadAction<any>) => {
                 state.loading = false;
                 state.error = action.payload;

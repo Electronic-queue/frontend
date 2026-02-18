@@ -113,7 +113,7 @@ const LoginPage: FC = () => {
     const navigate = useNavigate();
 
     const [registerManager, { isLoading: isRegistering }] = useRegisterManagerMutation();
-    
+
     const { control, handleSubmit } = useForm({
         defaultValues: {
             username: "",
@@ -133,7 +133,7 @@ const LoginPage: FC = () => {
     );
 
     const onSubmit = async (data: { username: string; password: string }) => {
-       try {
+        try {
             const resultAction = await dispatch(
                 login({
                     login: data.username,
@@ -141,37 +141,21 @@ const LoginPage: FC = () => {
                 })
             );
 
-         
-
             if (login.fulfilled.match(resultAction)) {
-                // 1. Извлекаем данные из новой структуры
-                const payload = resultAction.payload;
-                const token = payload?.token;
-                const windowInfo = payload?.window;
+                // Нам больше НЕ НУЖНО писать здесь localStorage.setItem
+                // Это уже сделал authSlice.ts в блоке extraReducers
+                console.log("✅ Вход выполнен успешно");
 
-                if (token) {
-                   
-                    
-                    // 2. ОБЯЗАТЕЛЬНО сохраняем в localStorage, чтобы он не пропал при F5
-                    localStorage.setItem("token", token);
-                    
-                    // Если нужно, сохраняем информацию об окне
-                    if (windowInfo) {
-                        localStorage.setItem("windowInfo", JSON.stringify(windowInfo));
-                    }
-                    
-                    // Навигация сработает автоматически через useEffect, который следит за isAuthenticated
-                } else {
-                    console.error("❌ В ответе сервера нет поля 'token'!", payload);
-                }
+                // Навигация сработает сама через useEffect, следящий за isAuthenticated
             }
         } catch (error) {
             console.error("Ошибка при входе:", error);
         }
     };
+
     useEffect(() => {
-            startSignalR();
-        }, []);
+        startSignalR();
+    }, []);
     useEffect(() => {
         if (isAuthenticated) {
             navigate("/manager/queue");
@@ -216,9 +200,9 @@ const LoginPage: FC = () => {
             setResetStatusMessage("success");
             setIsDisabled(true);
             if (connectionId) {
-                
+
                 await registerManager({ connectionId }).unwrap();
-             
+
 
             } else {
                 console.warn("⚠️ SignalR: Не удалось получить ID, но продолжаем...");
@@ -376,63 +360,63 @@ const LoginPage: FC = () => {
                                     ? t("i18n_login.loading")
                                     : isDisabled &&
                                         resetStatusMessage === "success"
-                                      ? `${t("i18n_login.resendEmail")}`
-                                      : t("i18n_login.sendResetPasswordEmail")}
+                                        ? `${t("i18n_login.resendEmail")}`
+                                        : t("i18n_login.sendResetPasswordEmail")}
                             </CustomButton>
 
                             {(resetStatusMessage === "success" ||
                                 resetErrorMessage) && (
-                                <Box
-                                    sx={{
-                                        display: "flex",
-                                        flexDirection: "column",
-                                        textAlign: "center",
-                                    }}
-                                >
-                                    {resetStatusMessage === "success" && (
-                                        <>
-                                            <Typography
-                                                sx={{
-                                                    color: theme.palette
-                                                        .grey[600],
-                                                    fontSize:
-                                                        theme.typography.body1
-                                                            .fontSize,
-                                                }}
-                                            >
-                                                {t("i18n_login.successEmail")}
-                                                <br />
-                                                {t("i18n_login.retry")}
-                                                {" " + remainingTime}
-                                            </Typography>
-                                            <Typography
-                                                sx={{
-                                                    color: theme.palette
-                                                        .grey[600],
-                                                    fontSize:
-                                                        theme.typography.body1
-                                                            .fontSize,
-                                                }}
-                                            >
-                                                {t("i18n_login.notFoundEmail")}
-                                            </Typography>
-                                        </>
-                                    )}
+                                    <Box
+                                        sx={{
+                                            display: "flex",
+                                            flexDirection: "column",
+                                            textAlign: "center",
+                                        }}
+                                    >
+                                        {resetStatusMessage === "success" && (
+                                            <>
+                                                <Typography
+                                                    sx={{
+                                                        color: theme.palette
+                                                            .grey[600],
+                                                        fontSize:
+                                                            theme.typography.body1
+                                                                .fontSize,
+                                                    }}
+                                                >
+                                                    {t("i18n_login.successEmail")}
+                                                    <br />
+                                                    {t("i18n_login.retry")}
+                                                    {" " + remainingTime}
+                                                </Typography>
+                                                <Typography
+                                                    sx={{
+                                                        color: theme.palette
+                                                            .grey[600],
+                                                        fontSize:
+                                                            theme.typography.body1
+                                                                .fontSize,
+                                                    }}
+                                                >
+                                                    {t("i18n_login.notFoundEmail")}
+                                                </Typography>
+                                            </>
+                                        )}
 
-                                    {resetErrorMessage && (
-                                        <Typography
-                                            sx={{
-                                                color: theme.palette.error.main,
-                                                fontSize:
-                                                    theme.typography.body1
-                                                        .fontSize,
-                                            }}
-                                        >
-                                            {resetErrorMessage}
-                                        </Typography>
-                                    )}
-                                </Box>
-                            )}
+                                        {resetErrorMessage && (
+                                            <Typography
+                                                sx={{
+                                                    color: theme.palette.error.main,
+                                                    fontSize:
+                                                        theme.typography.body1
+                                                            .fontSize,
+                                                }}
+                                            >
+                                                {resetErrorMessage}
+                                            </Typography>
+                                        )}
+                                    </Box>
+                                )}
                         </ModalInnerWrapper>
                     </form>
                 </ModalPageWrapper>
