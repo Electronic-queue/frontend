@@ -110,6 +110,9 @@ const ServiceSelection = () => {
         }
 
         dispatch(setServiceId(selectedService.id as any));
+        const BACKEND_LIMIT_REACHED = "Лимит по услуге достигнут.";
+        const LIMIT_EXCEEDED_MESSAGE =
+            "Запись на сегодня завершена.\n\nК сожалению, свободные места на выбранную услугу закончились. Пожалуйста, попробуйте записаться завтра.";
         const BACKEND_OUT_OF_WORKING_HOURS =
             "Ожидание за пределами рабочего времени.";
         const NO_MANAGERS_REGEX =
@@ -151,19 +154,21 @@ const ServiceSelection = () => {
 
             let message = "Ошибка создания записи, попробуйте снова";
 
+            // 1. Проверка лимита (Добавляем это первым или после лаборатории)
+            if (backendErrorDetail === BACKEND_LIMIT_REACHED) {
+                message = LIMIT_EXCEEDED_MESSAGE;
+            }
             // 🧪 Лаборатория
-            if (
+            else if (
                 selectedService?.id === LABORATORY_SERVICE_ID &&
                 backendErrorDetail === BACKEND_TIMEOUT_MESSAGE
             ) {
                 message = CUSTOM_LAB_MESSAGE;
             }
-
             // ⏰ ВНЕ РАБОЧЕГО ВРЕМЕНИ
             else if (backendErrorDetail === BACKEND_OUT_OF_WORKING_HOURS) {
                 message = MANAGER_WORK_TIME_MESSAGE;
             }
-
             // ⏸️ ВСЕ МЕНЕДЖЕРЫ НА ПАУЗЕ / ОТСУТСТВУЮТ
             else if (
                 backendErrorDetail &&
@@ -171,8 +176,7 @@ const ServiceSelection = () => {
             ) {
                 message = NO_MANAGERS_MESSAGE;
             }
-
-            // 🧯 ФОЛБЭК (ВСЕ ОСТАЛЬНОЕ)
+            // 🧯 ФОЛБЭК
             else if (backendErrorDetail) {
                 message = backendErrorDetail;
             }
