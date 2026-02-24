@@ -81,7 +81,7 @@ const authSlice = createSlice({
 
                     // Сохраняем в браузер только строку токена
                     localStorage.setItem("token", pureToken);
-                    // Информацию об окне (Cs2, 2024 и т.д.) сохраняем отдельно
+                    // Информацию об окне (Cs2, 2024 и т.д.) сохраняем отдельн
                     localStorage.setItem(
                         "windowInfo",
                         JSON.stringify(action.payload.window)
