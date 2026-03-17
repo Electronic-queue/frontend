@@ -1,11 +1,11 @@
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import axios from "axios";
 
-// Описание структуры из твоего скриншота
+
 interface LoginResponse {
     window: any;
     token: {
-        token: string; // Сама строка JWT
+        token: string; 
         userName: string;
         fullName: string;
         queueTypeID: string;
@@ -73,16 +73,16 @@ const authSlice = createSlice({
                 (state, action: PayloadAction<LoginResponse>) => {
                     state.loading = false;
 
-                    // КЛЮЧЕВОЕ ИСПРАВЛЕНИЕ: достаем именно строку токена
+                    
                     const pureToken = action.payload.token.token;
 
                     state.token = pureToken;
                     state.isAuthenticated = true;
 
-                    // Сохраняем в браузер только строку токена
+                 
                     localStorage.setItem("token", pureToken);
-                    // Информацию об окне (Cs2, 2024 и т.д.) сохраняем отдельн
-                    localStorage.setItem(
+                    
+                    localStorage.setItem( 
                         "windowInfo",
                         JSON.stringify(action.payload.window)
                     );

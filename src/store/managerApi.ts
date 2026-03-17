@@ -20,7 +20,7 @@ export const managerApi = createApi({
             if (token) {
                 const authHeader = `Bearer ${token}`;
                 headers.set("Authorization", authHeader);
-                // Проверим, не закрались ли лишние пробелы или спецсимволы
+                
                 console.log(
                     "📡 [prepareHeaders] Auth header set:",
                     authHeader.substring(0, 20) + "..."
