@@ -8,28 +8,20 @@ export const signalRManagerApi = createApi({
         baseUrl: signalRBaseUrl,
         prepareHeaders: (headers, { getState }) => {
             const state = getState() as RootState;
-            // Получаем то, что лежит в сторе
-            const rawToken = state.auth?.token;
 
-            let tokenToUse = "";
+            // Берем токен из Redux или из localStorage (на случай F5)
+            const token = state.auth?.token || localStorage.getItem("token");
 
-            // Проверка: если это строка — используем как есть
-            if (typeof rawToken === "string") {
-                tokenToUse = rawToken;
-            }
-            // Проверка: если это объект (как у тебя в логах), достаем поле token
-            else if (
-                typeof rawToken === "object" &&
-                rawToken !== null &&
-                "token" in rawToken
-            ) {
-                // @ts-ignore - игнорируем TS, так как мы чиним рантайм баг
-                tokenToUse = rawToken.token;
+            if (token && typeof token === "string") {
+                // Обязательно проверяем, не попала ли туда строка "null" или "undefined"
+                if (token !== "null" && token !== "undefined") {
+                    headers.set("Authorization", `Bearer ${token}`);
+                    // console.log("✅ Token added to headers");
+                }
+            } else {
+                console.warn("⚠️ No token found for registerManager request");
             }
 
-            if (tokenToUse) {
-                headers.set("Authorization", `Bearer ${tokenToUse}`);
-            }
             return headers;
         },
     }),
