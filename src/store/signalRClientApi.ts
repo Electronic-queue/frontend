@@ -2,7 +2,7 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { RootState } from "src/store/store";
 
 // ВРЕМЕННЫЙ ТЕСТ: Идем в обход прокси IIS
-export const signalRBaseUrl = "https://qclient.satbayev.university";
+export const signalRBaseUrl = "https://qmain-test.satbayev.university";
 export const signalRClientApi = createApi({
     reducerPath: "signalRClientApi",
     baseQuery: fetchBaseQuery({

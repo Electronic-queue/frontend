@@ -1,7 +1,7 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { RootState } from "src/store/store";
 
-export const signalRBaseUrl = "https://qclient.satbayev.university";
+export const signalRBaseUrl = "https://qmain-test.satbayev.university";
 export const signalRManagerApi = createApi({
     reducerPath: "signalRManagerApi",
     baseQuery: fetchBaseQuery({
