@@ -18,10 +18,8 @@ export const useNotificationSetup = () => {
             window.matchMedia("(display-mode: standalone)").matches;
 
         if (isIos && !isStandalone) {
-            alert(
-                "Чтобы получать уведомления, добавьте сайт на главный экран. Нажмите 'Поделиться' в Safari и выберите 'На экран Домой'."
-            );
-            return;
+           
+            
         }
 
         const registerServiceWorkerAndRequestPermission = async () => {

@@ -85,7 +85,7 @@ const InProgress = () => {
         connection.on("RecordServiceUdpated", 
             (updatedService)=> {
             console.log("RecordServiceUdpated", updatedService);
-            navigate("/wait", { replace: true });
+            window.location.href = "/wait";
         })
         return () => {
             isMounted = false;
