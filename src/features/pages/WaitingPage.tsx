@@ -127,9 +127,11 @@ const WaitingPage = () => {
         refetchOnMountOrArgChange: true,
     });
 
-    const { data: clientRecord } = useGetClientRecordByIdQuery(recordId ?? 0, {
+   const { data: clientRecord, refetch: refetchClient } =
+    useGetClientRecordByIdQuery(recordId ?? 0, {
         skip: !recordId,
     });
+    
     console.log("clientRecor!!!!!!!!!!!!d", clientRecord);
     const [updateQueueItem, { isLoading: isUpdating }] = useUpdateQueueItemMutation();
     const [registerClient] = useRegisterClientMutation();
@@ -215,10 +217,24 @@ const WaitingPage = () => {
         const handleWindowPaused = (data: any) => {
             console.log("Window paused", data);
         }
-        const handleRecordServiceUdpated = (dataUpdated: any) => {
-            console.log("dataUpdated", dataUpdated);
-            navigate("/wait", { replace: true });
-        }
+       const handleRecordServiceUdpated = async (dataUpdated: any) => {
+    console.log("dataUpdated", dataUpdated);
+
+    // если пришли данные → сразу обновляем UI
+    if (dataUpdated) {
+        setRecordData(dataUpdated);
+    }
+    
+
+    // 🔥 форсим обновление с сервера
+    await refetch();
+    refetchTicketNumber();
+
+    // если не на wait → перейти
+    if (window.location.pathname !== "/wait") {
+        navigate("/wait", { replace: true });
+    }
+};
 
         const handleQueueUpdate = (positionUpdate: Record<string, number>) => {
             if (recordId && positionUpdate[recordId] !== undefined) {
