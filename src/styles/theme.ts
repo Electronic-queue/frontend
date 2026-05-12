@@ -1,7 +1,7 @@
 import { createTheme, PaletteMode } from "@mui/material";
 import { PaletteOptions, Shadows } from "@mui/material/styles";
 
-// 1. Расширение типов (как было)
+
 declare module "@mui/material/styles" {
     interface Palette {
         gray: { main: string };
@@ -23,7 +23,7 @@ declare module "@mui/material/styles" {
     }
 }
 
-// 2. Массив теней с явным типом Shadows (Исправление ошибки TS)
+
 const shadows: Shadows = [
     "none",
     "2px 4px 10px rgba(0, 0, 0, 0.25)",
@@ -52,12 +52,11 @@ const shadows: Shadows = [
     "none",
 ];
 
-// 3. Функция цветов (Light/Dark)
 export const getDesignTokens = (mode: PaletteMode): PaletteOptions => ({
     mode,
     ...(mode === "light"
         ? {
-              // Light Mode
+         
               primary: { main: "#3A6CB4" },
               secondary: { main: "#2E90FA" },
               background: { default: "#FFFFFF", paper: "#FFFFFF" },
@@ -71,7 +70,7 @@ export const getDesignTokens = (mode: PaletteMode): PaletteOptions => ({
               indigoBlue: { main: "#3f51b5" },
           }
         : {
-              // Dark Mode
+         
               primary: { main: "#3A6CB4" },
               secondary: { main: "#ce93d8" },
               background: { default: "#1e1e1e ", paper: "#121212" },
@@ -86,7 +85,7 @@ export const getDesignTokens = (mode: PaletteMode): PaletteOptions => ({
           }),
 });
 
-// 4. Общие настройки
+
 export const commonSettings = {
     shape: { borderRadius: 8 },
     shadows: shadows, 
@@ -103,7 +102,7 @@ export const commonSettings = {
     },
 };
 
-// 5. Default export для совместимости (чтобы не ломались старые импорты)
+
 const defaultTheme = createTheme({
     ...commonSettings,
     palette: getDesignTokens("light"),
