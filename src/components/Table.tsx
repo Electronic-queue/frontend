@@ -22,6 +22,7 @@ interface ReusableTableProps<TData> {
     columns: ColumnDef<TData>[];
     pageSize?: number;
     onRowClick?: (row: TData) => void;
+    selectedId?: string | number | null;
 }
 
 const StyledTableContainer = styled(TableContainer)(({ theme }) => ({
@@ -36,6 +37,7 @@ const StyledHeaderCell = styled(TableCell)(({ theme }) => ({
     fontSize: theme.typography.h6.fontSize,
     textAlign: "center",
 }));
+
 const StyledBodyCell = styled(TableCell)(({ theme }) => ({
     textAlign: "center",
     fontSize: theme.typography.h6.fontSize,
@@ -46,6 +48,7 @@ const ReusableTable: FC<ReusableTableProps<any>> = ({
     columns,
     pageSize = 10,
     onRowClick,
+    selectedId,
 }) => {
     const [page, setPage] = React.useState(0);
     const [rowsPerPage, setRowsPerPage] = React.useState(pageSize);
@@ -92,28 +95,59 @@ const ReusableTable: FC<ReusableTableProps<any>> = ({
                         </TableRow>
                     ))}
                 </TableHead>
+
                 <TableBody>
-                    {tableInstance.getRowModel().rows.map((row) => (
-                        <TableRow
-                            key={row.id}
-                            hover
-                            onClick={() => onRowClick?.(row.original)}
-                            style={{
-                                cursor: onRowClick ? "pointer" : "default",
-                            }}
-                        >
-                            {row.getVisibleCells().map((cell) => (
-                                <StyledBodyCell key={cell.id}>
-                                    {flexRender(
-                                        cell.column.columnDef.cell,
-                                        cell.getContext()
-                                    )}
-                                </StyledBodyCell>
-                            ))}
-                        </TableRow>
-                    ))}
+                    {tableInstance.getRowModel().rows.map((row) => {
+                        const isSelected =
+                            selectedId !== undefined &&
+                            selectedId !== null &&
+                            String((row.original as any).id) ===
+                                String(selectedId);
+
+                        return (
+                            <TableRow
+                                key={row.id}
+                                hover
+                                selected={isSelected}
+                                onClick={() => onRowClick?.(row.original)}
+                                sx={{
+                                    cursor: onRowClick ? "pointer" : "default",
+                                    transition: "all 0.2s ease",
+
+                                    "&:hover": {
+                                        backgroundColor: "#F5F8FF",
+                                    },
+
+                                    "&.Mui-selected": {
+                                        backgroundColor: "#E8F1FF !important",
+                                        boxShadow:
+                                            "inset 4px 0 0 #3F6DB5",
+                                    },
+
+                                    "&.Mui-selected:hover": {
+                                        backgroundColor: "#DCE8FF !important",
+                                    },
+
+                                    "&.Mui-selected td": {
+                                        color: "#2F5FA8",
+                                        fontWeight: 700,
+                                    },
+                                }}
+                            >
+                                {row.getVisibleCells().map((cell) => (
+                                    <StyledBodyCell key={cell.id}>
+                                        {flexRender(
+                                            cell.column.columnDef.cell,
+                                            cell.getContext()
+                                        )}
+                                    </StyledBodyCell>
+                                ))}
+                            </TableRow>
+                        );
+                    })}
                 </TableBody>
             </MuiTable>
+
             <Box
                 sx={{
                     display: "flex",

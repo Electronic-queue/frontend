@@ -16,8 +16,6 @@ import {
 import { CircularProgress } from "@mui/material";
 import i18n from "src/i18n";
 
-// --- Интерфейсы ---
-
 interface StatusButtonsProps {
     status: string;
     callNext: () => void;
@@ -26,8 +24,6 @@ interface StatusButtonsProps {
     onRedirect: (serviceIdRedirect: string) => void;
     isLoading: boolean;
 }
-
-// --- Стили ---
 
 const MainWrapper = styled(Box)(({ theme }) => ({
     display: "flex",
@@ -50,13 +46,12 @@ const ButtonContent = styled(Box)({
 
 const currentLanguage = i18n.language || "ru";
 
-// --- Вспомогательные компоненты кнопок ---
-
 const IdleButton: FC<{ callNext: () => void; isLoading: boolean }> = ({
     callNext,
     isLoading,
 }) => {
     const { t } = useTranslation();
+
     return (
         <CustomButton
             variantType="primary"
@@ -80,6 +75,7 @@ const CalledButtons: FC<{ onAccept: () => void; isLoading: boolean }> = ({
     isLoading,
 }) => {
     const { t } = useTranslation();
+
     return (
         <CustomButton
             variantType="primary"
@@ -98,40 +94,22 @@ const CalledButtons: FC<{ onAccept: () => void; isLoading: boolean }> = ({
     );
 };
 
-// Компонент кнопок для статуса "Принят" (Accepted)
 const AcceptedButtons: FC<{
     onComplete: () => void;
     onOpenRedirect: () => void;
     isLoading: boolean;
 }> = ({ onComplete, onOpenRedirect, isLoading }) => {
     const { t } = useTranslation();
-    const [redirectClient, { isLoading: isRedirecting }] =
-        useRedirectClientMutation();
-
-    const handleInitialRedirectClick = async () => {
-        try {
-            await redirectClient().unwrap();
-            onOpenRedirect();
-        } catch (err) {
-            console.error(err);
-        }
-    };
 
     return (
         <Box sx={{ display: "flex", gap: theme.spacing(2) }}>
             <CustomButton
                 variantType="primary"
                 sizeType="small"
-                onClick={handleInitialRedirectClick}
-                disabled={isRedirecting}
+                onClick={onOpenRedirect}
+                disabled={isLoading}
             >
-                <ButtonContent>
-                    {isRedirecting ? (
-                        <CircularProgress size={20} color="inherit" />
-                    ) : (
-                        t("i18n_queue.redirect")
-                    )}
-                </ButtonContent>
+                <ButtonContent>{t("i18n_queue.redirect")}</ButtonContent>
             </CustomButton>
 
             <CustomButton
@@ -158,6 +136,7 @@ const RedirectModal: FC<{
     onSuccess: (id: string) => void;
 }> = ({ open, onClose, onSuccess }) => {
     const { t } = useTranslation();
+
     const [searchValue, setSearchValue] = useState("");
     const [selectedServiceId, setSelectedServiceId] = useState<string | null>(
         null
@@ -165,19 +144,29 @@ const RedirectModal: FC<{
 
     const [getServicesForManager, { data, isLoading: isServicesLoading }] =
         useGetServicesForManagerMutation();
+
     const [updateClientService, { isLoading: isUpdating }] =
         useUpdateClientServiceMutation();
 
+    const [redirectClient, { isLoading: isRedirecting }] =
+        useRedirectClientMutation();
+
+    const isSubmitLoading = isUpdating || isRedirecting;
+
     const handleFinalServiceSubmit = async () => {
         if (!selectedServiceId) return;
+
         try {
+            await redirectClient().unwrap();
+
             await updateClientService({
                 serviceId: selectedServiceId,
             }).unwrap();
+
             onSuccess(selectedServiceId);
             onClose();
         } catch (err) {
-            console.error("Ошибка при обновлении услуги:", err);
+            console.error("Ошибка при перенаправлении клиента:", err);
         }
     };
 
@@ -209,7 +198,7 @@ const RedirectModal: FC<{
     return (
         <ReusableModal
             open={open}
-            onClose={() => {}}
+            onClose={onClose}
             showCloseButton={false}
             title={t("i18n_queue.redirectService")}
             width={theme.spacing(99)}
@@ -240,16 +229,16 @@ const RedirectModal: FC<{
                             ]}
                             pageSize={5}
                             onRowClick={(row) => setSelectedServiceId(row.id)}
-                            // ДОБАВЛЕНО: Передаем ID выбранной строки для подсветки
                             selectedId={selectedServiceId}
                         />
+
                         <ButtonWrapperStyles>
                             <CustomButton
                                 onClick={handleFinalServiceSubmit}
-                                disabled={!selectedServiceId || isUpdating}
+                                disabled={!selectedServiceId || isSubmitLoading}
                             >
                                 <ButtonContent>
-                                    {isUpdating ? (
+                                    {isSubmitLoading ? (
                                         <CircularProgress
                                             size={20}
                                             color="inherit"
@@ -267,8 +256,6 @@ const RedirectModal: FC<{
     );
 };
 
-// --- Основной компонент экспорта ---
-
 const StatusButtons: FC<StatusButtonsProps> = (props) => {
     const [isRedirectModalOpen, setIsRedirectModalOpen] = useState(false);
 
@@ -284,6 +271,7 @@ const StatusButtons: FC<StatusButtonsProps> = (props) => {
                                     isLoading={props.isLoading}
                                 />
                             );
+
                         case "called":
                             return (
                                 <CalledButtons
@@ -291,6 +279,7 @@ const StatusButtons: FC<StatusButtonsProps> = (props) => {
                                     isLoading={props.isLoading}
                                 />
                             );
+
                         case "accepted":
                             return (
                                 <AcceptedButtons
@@ -301,6 +290,7 @@ const StatusButtons: FC<StatusButtonsProps> = (props) => {
                                     isLoading={props.isLoading}
                                 />
                             );
+
                         default:
                             return null;
                     }
