@@ -84,7 +84,7 @@ interface ClientRecord {
 }
 
 const Timer: React.FC<TimerProps> = ({ onTimeout }) => {
-    const [timeLeft, setTimeLeft] = useState(90);
+    const [timeLeft, setTimeLeft] = useState(150);
 
     useEffect(() => {
         if (timeLeft === 0) {

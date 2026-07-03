@@ -1,6 +1,7 @@
 import { FC, useState, useEffect, useRef } from "react";
 import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
+import Button from "@mui/material/Button";
 import { styled } from "@mui/material/styles";
 import { useTranslation } from "react-i18next";
 import StatusCard from "../../widgets/statusCard/ui/StatusCard";
@@ -59,7 +60,7 @@ const StatusCardWrapper = styled(Stack)(({ theme }) => ({
     flexDirection: "row",
     gap: theme.spacing(3),
     justifyContent: "center",
-    marginTop: theme.spacing(3), // чуть подняли, т.к. убрали кнопки сверху
+    marginTop: theme.spacing(3),
     marginBottom: theme.spacing(6),
 }));
 
@@ -76,14 +77,26 @@ const serviceTime1 = "0";
 
 const QueuePage: FC = () => {
     const { t } = useTranslation();
+
     const [acceptClient, { isLoading: isAccepting }] =
         useAcceptClientMutation();
-    const currentLanguage = i18n.language || "ru";
     const [callNext, { isLoading: isCallingNext }] = useCallNextMutation();
     const [completeClient, { isLoading: isCompleting }] =
         useCompleteClientMutation();
     const [startWindow] = useStartWindowMutation();
     const [registerManager] = useRegisterManagerMutation();
+
+    const currentLanguage = i18n.language || "ru";
+    const token = useSelector((state: RootState) => state.auth.token);
+
+    const previousQueueRef = useRef<number[]>([]);
+    const isFirstSnapshotRef = useRef(true);
+    const hasRegistered = useRef(false);
+
+    const notificationAudioRef = useRef<HTMLAudioElement | null>(null);
+    const isAudioUnlockedRef = useRef(false);
+
+    const [snapshot, setSnapshot] = useState<ManagerSnapshotData | null>(null);
 
     const [snackbar, setSnackbar] = useState<{
         open: boolean;
@@ -92,13 +105,71 @@ const QueuePage: FC = () => {
     }>({ open: false, message: "", severity: "success" });
 
     const isActionLoading = isAccepting || isCallingNext || isCompleting;
-    const token = useSelector((state: RootState) => state.auth.token);
 
-    // Получаем ID из API, чтобы не хардкодить
     const { data: managerIdData } = useGetManagerIdQuery();
     const managerId = managerIdData ? Number(managerIdData) : 6;
 
-    const [snapshot, setSnapshot] = useState<ManagerSnapshotData | null>(null);
+    const playNewRequestNotification = React.useCallback(async () => {
+        try {
+            if (notificationAudioRef.current) {
+                notificationAudioRef.current.currentTime = 0;
+                await notificationAudioRef.current.play();
+                console.log("✅ Звук новой заявки проиграл");
+            }
+        } catch (err) {
+            console.error("❌ Звук новой заявки не проиграл", err);
+        }
+
+        if ("Notification" in window && Notification.permission === "granted") {
+            new Notification("Новая заявка", {
+                body: "В очередь поступила новая заявка",
+                icon: "/suLogo.svg",
+            });
+        }
+
+        setSnackbar({
+            open: true,
+            message: "Поступила новая заявка",
+            severity: "info",
+        });
+    }, []);
+
+    useEffect(() => {
+        notificationAudioRef.current = new Audio("/sounds/new-req.wav");
+        notificationAudioRef.current.volume = 1;
+
+        if ("Notification" in window && Notification.permission === "default") {
+            Notification.requestPermission();
+        }
+
+        const unlockAudio = async () => {
+            if (!notificationAudioRef.current || isAudioUnlockedRef.current) {
+                return;
+            }
+
+            try {
+                notificationAudioRef.current.muted = true;
+                await notificationAudioRef.current.play();
+
+                notificationAudioRef.current.pause();
+                notificationAudioRef.current.currentTime = 0;
+                notificationAudioRef.current.muted = false;
+
+                isAudioUnlockedRef.current = true;
+                console.log("✅ Звук разблокирован");
+            } catch (err) {
+                console.error("❌ Не удалось разблокировать звук", err);
+            }
+        };
+
+        window.addEventListener("click", unlockAudio);
+        window.addEventListener("keydown", unlockAudio);
+
+        return () => {
+            window.removeEventListener("click", unlockAudio);
+            window.removeEventListener("keydown", unlockAudio);
+        };
+    }, []);
 
     const getComputedStatus = (): StatusType => {
         const active = snapshot?.activeClient;
@@ -111,29 +182,41 @@ const QueuePage: FC = () => {
     const computedStatus = getComputedStatus();
 
     useEffect(() => {
-        const setupSignalR = async () => {
-            console.log("🛠 1. Установка слушателя ManagerQueueSnapshot");
-            connection.on(
-                "ManagerQueueSnapshot",
-                (data: ManagerSnapshotData) => {
-                    console.log("spanshot", data);
-                    console.log(" socket: snapshot получено ✅", data);
-                    setSnapshot(data);
+        console.log("🛠 1. Установка слушателя ManagerQueueSnapshot");
+
+        connection.on(
+            "ManagerQueueSnapshot",
+            async (data: ManagerSnapshotData) => {
+                console.log("socket: snapshot получено ✅", data);
+
+                const previous = previousQueueRef.current;
+                const current = data.queue.map((x) => x.ticketNumber);
+
+                const hasNewRequest = current.some(
+                    (ticket) => !previous.includes(ticket)
+                );
+
+                if (!isFirstSnapshotRef.current && hasNewRequest) {
+                    await playNewRequestNotification();
                 }
-            );
-        };
-        setupSignalR();
+
+                isFirstSnapshotRef.current = false;
+                previousQueueRef.current = current;
+
+                setSnapshot(data);
+            }
+        );
 
         return () => {
             connection.off("ManagerQueueSnapshot");
         };
-    }, []);
-
-    const hasRegistered = useRef(false);
+    }, [playNewRequestNotification]);
 
     useEffect(() => {
         if (!token) {
-            console.error("❌ [QueuePage] No token available, skipping SignalR init");
+            console.error(
+                "❌ [QueuePage] No token available, skipping SignalR init"
+            );
             return;
         }
 
@@ -141,12 +224,21 @@ const QueuePage: FC = () => {
 
         const initAndRegister = async () => {
             if (hasRegistered.current) return;
+
             console.log("🔄 [QueuePage] Starting SignalR connection...");
+
             let connectionId = await startSignalR();
             let attempts = 0;
+
             while (!connectionId && attempts < 10 && isMounted) {
-                console.log(`⏳ [QueuePage] Waiting for connectionId... Attempt ${attempts + 1}`);
+                console.log(
+                    `⏳ [QueuePage] Waiting for connectionId... Attempt ${
+                        attempts + 1
+                    }`
+                );
+
                 await new Promise((resolve) => setTimeout(resolve, 500));
+
                 if (
                     connection.state === "Connected" &&
                     connection.connectionId
@@ -155,40 +247,40 @@ const QueuePage: FC = () => {
                 } else {
                     connectionId = await startSignalR();
                 }
+
                 attempts++;
             }
 
             if (connectionId && isMounted) {
                 console.log("✅ [QueuePage] Connection ID obtained:", connectionId);
-                console.log(
-                    "✅ Получен Connection ID для менеджера:",
-                    connectionId
-                );
+
                 try {
                     await registerManager({
                         connectionId: connectionId,
                     }).unwrap();
+
                     await startWindow({}).unwrap();
+
                     hasRegistered.current = true;
+
                     console.log(
                         "✅ Менеджер успешно зарегистрирован в SignalR с Connection ID:",
                         connectionId
                     );
                 } catch (err: any) {
                     console.error("🔥 Ошибка при вызове registerManager:", err);
-                    console.log("ошибка", err);
+
                     if (err?.status === 503) {
                         window.location.reload();
                     }
                 }
             } else {
-                console.warn(
-                    "⚠️ Не удалось получить ID после нескольких попыток."
-                );
+                console.warn("⚠️ Не удалось получить ID после нескольких попыток.");
             }
         };
 
         initAndRegister();
+
         return () => {
             isMounted = false;
         };
@@ -202,7 +294,7 @@ const QueuePage: FC = () => {
                 message: t("i18n_queue.clientAccepted"),
                 severity: "success",
             });
-        } catch (err) { }
+        } catch (err) {}
     };
 
     const handleRedirectClient = () => {
@@ -212,7 +304,7 @@ const QueuePage: FC = () => {
                 message: t("i18n_queue.clientRedirected"),
                 severity: "success",
             });
-        } catch (err) { }
+        } catch (err) {}
     };
 
     const handleCallNextClient = async () => {
@@ -237,6 +329,7 @@ const QueuePage: FC = () => {
                 window.location.reload();
                 return;
             }
+
             setSnackbar({
                 open: true,
                 message: "Ошибка вызова клиента",
@@ -269,8 +362,57 @@ const QueuePage: FC = () => {
         }
     };
 
+    const handleRefreshQueue = async () => {
+        try {
+            const token = localStorage.getItem("token");
+
+            if (!token) {
+                console.error("❌ Токен не найден в localStorage");
+                return;
+            }
+
+            const response = await fetch(
+                "http://qmain.satbayev.university/api/Manager/RefreshQueueManagerDB?api-version=v1",
+                {
+                    method: "POST",
+                    headers: {
+                        accept: "application/json",
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
+
+            if (!response.ok) {
+                throw new Error(`Ошибка запроса: ${response.status}`);
+            }
+
+            console.log("✅ RefreshQueueManagerDB успешно вызван");
+
+            setSnackbar({
+                open: true,
+                message: "Очередь обновлена",
+                severity: "success",
+            });
+
+            // Небольшая задержка, чтобы успел показаться Snackbar
+            setTimeout(() => {
+                window.location.reload();
+            }, 400);
+
+        } catch (err) {
+            console.error("❌ Ошибка RefreshQueueManagerDB:", err);
+
+            setSnackbar({
+                open: true,
+                message: "Ошибка обновления очереди",
+                severity: "error",
+            });
+        }
+    };
+
     const uniqueQueue = React.useMemo(() => {
         if (!snapshot?.queue) return [];
+
         return snapshot.queue.filter(
             (client, index, self) =>
                 index ===
@@ -280,20 +422,20 @@ const QueuePage: FC = () => {
 
     const displayClientObj =
         computedStatus !== "idle" &&
-            snapshot?.activeClient &&
-            snapshot.activeClient.ticketNumber !== -1
+        snapshot?.activeClient &&
+        snapshot.activeClient.ticketNumber !== -1
             ? snapshot.activeClient
             : uniqueQueue[0];
 
     const formattedClientData = displayClientObj
         ? {
-            clientNumber: `${displayClientObj.ticketNumber}`,
-            lastName: displayClientObj.lastName || "-",
-            firstName: displayClientObj.firstName || "-",
-            patronymic: displayClientObj.surname || "-",
-            service: getServiceName(displayClientObj, currentLanguage),
-            iin: displayClientObj.iin || "-",
-        }
+              clientNumber: `${displayClientObj.ticketNumber}`,
+              lastName: displayClientObj.lastName || "-",
+              firstName: displayClientObj.firstName || "-",
+              patronymic: displayClientObj.surname || "-",
+              service: getServiceName(displayClientObj, currentLanguage),
+              iin: displayClientObj.iin || "-",
+          }
         : defaultClientData;
 
     return (
@@ -316,7 +458,131 @@ const QueuePage: FC = () => {
                 </Snackbar>
             </Box>
 
-            {/* Карточки статистики подняты выше */}
+            <Box
+                sx={{
+                    display: "flex",
+                    justifyContent: "flex-end",
+                    alignItems: "center",
+                    width: '100%',
+                    maxWidth: 1128,
+                    gap: 2,
+                    mb: 3,
+                }}
+            >
+                <Button
+                    onClick={() => window.open(`${window.location.origin}/monitor`, "_blank")}
+                    startIcon={
+                        <svg
+                            width="22"
+                            height="22"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                        >
+                            <path
+                                d="M4 5.5C4 4.67 4.67 4 5.5 4H18.5C19.33 4 20 4.67 20 5.5V14.5C20 15.33 19.33 16 18.5 16H5.5C4.67 16 4 15.33 4 14.5V5.5Z"
+                                stroke="#2F65B8"
+                                strokeWidth="2"
+                            />
+                            <path
+                                d="M9 20H15"
+                                stroke="#2F65B8"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                            />
+                            <path
+                                d="M12 16V20"
+                                stroke="#2F65B8"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                            />
+                        </svg>
+                    }
+                    sx={{
+                        height: 56,
+                        px: 3,
+                        borderRadius: "14px",
+                        backgroundColor: "#fff",
+                        color: "#1F2937",
+                        textTransform: "none",
+                        fontWeight: 700,
+                        fontSize: 15,
+                        boxShadow: "0 4px 16px rgba(0,0,0,0.08)",
+                        border: "1px solid #EEF0F4",
+                        "&:hover": {
+                            backgroundColor: "#F9FAFB",
+                            boxShadow: "0 6px 20px rgba(0,0,0,0.12)",
+                        },
+                    }}
+                >
+                    Монитор
+                </Button>
+
+                <Box
+                    sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 1.5,
+                    }}
+                >
+                    <Button
+                        variant="contained"
+                        onClick={handleRefreshQueue}
+                        startIcon={
+                            <svg
+                                width="22"
+                                height="22"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                            >
+                                <path
+                                    d="M20 12C20 16.42 16.42 20 12 20C8.72 20 5.9 18.03 4.67 15.21"
+                                    stroke="white"
+                                    strokeWidth="2"
+                                    strokeLinecap="round"
+                                />
+                                <path
+                                    d="M4 12C4 7.58 7.58 4 12 4C15.28 4 18.1 5.97 19.33 8.79"
+                                    stroke="white"
+                                    strokeWidth="2"
+                                    strokeLinecap="round"
+                                />
+                                <path
+                                    d="M20 5V9H16"
+                                    stroke="white"
+                                    strokeWidth="2"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                />
+                                <path
+                                    d="M4 19V15H8"
+                                    stroke="white"
+                                    strokeWidth="2"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                />
+                            </svg>
+                        }
+                        sx={{
+                            height: 56,
+                            px: 3,
+                            borderRadius: "14px",
+                            backgroundColor: "#2F65B8",
+                            color: "#fff",
+                            textTransform: "none",
+                            fontWeight: 700,
+                            fontSize: 16,
+                            boxShadow: "0 6px 18px rgba(47,101,184,.28)",
+                            "&:hover": {
+                                backgroundColor: "#2859A4",
+                                boxShadow: "0 8px 22px rgba(47,101,184,.35)",
+                            },
+                        }}
+                    >
+                        Обновить
+                    </Button>
+                </Box>
+            </Box>
+
             <StatusCardWrapper>
                 <StatusCard
                     variant="accepted"
@@ -362,6 +628,7 @@ const QueuePage: FC = () => {
                     .fill(null)
                     .map((_, index) => {
                         const item = uniqueQueue[index + 1];
+
                         return item ? (
                             <QueueCard
                                 key={item.clientNumber}
@@ -376,11 +643,11 @@ const QueuePage: FC = () => {
                                 expectedTime={
                                     item.expectedAcceptanceTime
                                         ? new Date(
-                                            item.expectedAcceptanceTime
-                                        ).toLocaleTimeString([], {
-                                            hour: "2-digit",
-                                            minute: "2-digit",
-                                        })
+                                              item.expectedAcceptanceTime
+                                          ).toLocaleTimeString([], {
+                                              hour: "2-digit",
+                                              minute: "2-digit",
+                                          })
                                         : "-"
                                 }
                             />

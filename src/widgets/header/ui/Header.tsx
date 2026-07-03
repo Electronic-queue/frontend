@@ -94,6 +94,19 @@ const ButtonWrapper = styled(Box)(({ theme }) => ({
     justifyContent: "center",
 }));
 
+type WindowInfo = {
+    managerName: string;
+    managerWindowNumber: number;
+    managerWindowCabinetRu: string;
+    managerQueueType?: {
+        nameRu?: string;
+    };
+};
+
+const windowInfo: WindowInfo | null = JSON.parse(
+    localStorage.getItem("windowInfo") || "null"
+);
+
 const Header: FC = () => {
     const media = useContext(MediaContext);
     const isMobile = media?.isMobile;
@@ -269,6 +282,58 @@ const Header: FC = () => {
                         </IconButton>
                         
                         <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
+                            {windowInfo && (
+                                <Box
+                                    sx={{
+                                        display: "flex",
+                                        flexDirection: "column",
+                                        alignItems: "flex-end",
+                                        mr: 1.5,
+                                        px: 1.8,
+                                        py: 1,
+                                        borderRadius: "14px",
+                                        backgroundColor:
+                                            theme.palette.mode === "dark"
+                                                ? "rgba(255,255,255,0.06)"
+                                                : "rgba(58,108,180,0.08)",
+                                        border: `1px solid ${theme.palette.divider}`,
+                                        minWidth: 170,
+                                    }}
+                                >
+                                    <Typography
+                                        sx={{
+                                            fontSize: 15,
+                                            fontWeight: 700,
+                                            color: theme.palette.text.primary,
+                                            lineHeight: 1.2,
+                                        }}
+                                    >
+                                        {windowInfo.managerName}
+                                    </Typography>
+
+                                    <Typography
+                                        sx={{
+                                            fontSize: 13,
+                                            color: theme.palette.text.secondary,
+                                            lineHeight: 1.4,
+                                        }}
+                                    >
+                                        Кабинет {windowInfo.managerWindowCabinetRu} · Окно №{windowInfo.managerWindowNumber}
+                                    </Typography>
+
+                                    <Typography
+                                        sx={{
+                                            mt: 0.4,
+                                            fontSize: 12,
+                                            fontWeight: 600,
+                                            color: theme.palette.indigoBlue.main,
+                                            lineHeight: 1.2,
+                                        }}
+                                    >
+                                        {windowInfo.managerQueueType?.nameRu}
+                                    </Typography>
+                                </Box>
+                            )}
                             <IconButton onClick={handleMenuOpen}>
                                 <UserLogo />
                             </IconButton>
