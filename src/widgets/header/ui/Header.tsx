@@ -103,9 +103,7 @@ type WindowInfo = {
     };
 };
 
-const windowInfo: WindowInfo | null = JSON.parse(
-    localStorage.getItem("windowInfo") || "null"
-);
+
 
 const Header: FC = () => {
     const media = useContext(MediaContext);
@@ -130,6 +128,15 @@ const Header: FC = () => {
     const [notificationsManager, setNotificationsManager] = useState<string[]>([]);
     const [openSnackbar, setOpenSnackbar] = useState(false);
     const [snackbarMessage, setSnackbarMessage] = useState("");
+    const [windowInfo, setWindowInfo] = useState<WindowInfo | null>(() => {
+        if (!isAuthenticated) return null;
+
+        try {
+            return JSON.parse(localStorage.getItem("windowInfo") || "null");
+        } catch {
+            return null;
+        }
+    });
     
     // Получаем ID менеджера
     const { data: managerIdData } = useGetManagerIdQuery() as {
@@ -192,6 +199,20 @@ const Header: FC = () => {
         };
     }, [managerIdData]);
 
+    useEffect(() => {
+        if (!isAuthenticated) {
+            setWindowInfo(null);
+            localStorage.removeItem("windowInfo");
+            return;
+        }
+
+        try {
+            setWindowInfo(JSON.parse(localStorage.getItem("windowInfo") || "null"));
+        } catch {
+            setWindowInfo(null);
+        }
+    }, [isAuthenticated]);
+
     const handleNotificationClick = () => {
         if (notifications.length > 0) {
             const message = notifications[0] || t("i18n_queue.notificationsIsEmpty");
@@ -228,6 +249,9 @@ const Header: FC = () => {
 
     const handleLogout = () => {
         localStorage.removeItem("token");
+        localStorage.removeItem("windowInfo");
+
+        setWindowInfo(null);
         dispatch(logout());
         setAnchorEl(null);
         navigate("/login");
@@ -282,7 +306,7 @@ const Header: FC = () => {
                         </IconButton>
                         
                         <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
-                            {windowInfo && (
+                            {isAuthenticated && windowInfo && (
                                 <Box
                                     sx={{
                                         display: "flex",
@@ -318,7 +342,8 @@ const Header: FC = () => {
                                             lineHeight: 1.4,
                                         }}
                                     >
-                                        {windowInfo.managerWindowCabinetRu} · Окно №{windowInfo.managerWindowNumber}
+                                        {windowInfo.managerWindowCabinetRu} · Окно №
+                                        {windowInfo.managerWindowNumber}
                                     </Typography>
 
                                     <Typography
