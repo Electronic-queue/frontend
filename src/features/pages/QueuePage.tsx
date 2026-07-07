@@ -14,6 +14,7 @@ import {
     useCompleteClientMutation,
     useStartWindowMutation,
     useGetManagerIdQuery,
+    useRefreshQueueManagerDBMutation,
 } from "src/store/managerApi";
 import { Alert, Snackbar } from "@mui/material";
 import connection, { startSignalR } from "src/features/signalR";
@@ -108,6 +109,7 @@ const QueuePage: FC = () => {
 
     const { data: managerIdData } = useGetManagerIdQuery();
     const managerId = managerIdData ? Number(managerIdData) : 6;
+    const [refreshQueueManagerDB] = useRefreshQueueManagerDBMutation();
 
     const playNewRequestNotification = React.useCallback(async () => {
         try {
@@ -364,27 +366,7 @@ const QueuePage: FC = () => {
 
     const handleRefreshQueue = async () => {
         try {
-            const token = localStorage.getItem("token");
-
-            if (!token) {
-                console.error("❌ Токен не найден в localStorage");
-                return;
-            }
-
-            const response = await fetch(
-                "http://qmain.satbayev.university/api/Manager/RefreshQueueManagerDB?api-version=v1",
-                {
-                    method: "POST",
-                    headers: {
-                        accept: "application/json",
-                        Authorization: `Bearer ${token}`,
-                    },
-                }
-            );
-
-            if (!response.ok) {
-                throw new Error(`Ошибка запроса: ${response.status}`);
-            }
+            await refreshQueueManagerDB().unwrap();
 
             console.log("✅ RefreshQueueManagerDB успешно вызван");
 
@@ -394,11 +376,9 @@ const QueuePage: FC = () => {
                 severity: "success",
             });
 
-            // Небольшая задержка, чтобы успел показаться Snackbar
             setTimeout(() => {
                 window.location.reload();
             }, 400);
-
         } catch (err) {
             console.error("❌ Ошибка RefreshQueueManagerDB:", err);
 

@@ -318,7 +318,7 @@ const Header: FC = () => {
                                             lineHeight: 1.4,
                                         }}
                                     >
-                                        Кабинет {windowInfo.managerWindowCabinetRu} · Окно №{windowInfo.managerWindowNumber}
+                                        {windowInfo.managerWindowCabinetRu} · Окно №{windowInfo.managerWindowNumber}
                                     </Typography>
 
                                     <Typography

@@ -249,6 +249,19 @@ export const managerApi = createApi({
             }),
         }),
 
+        refreshQueueManagerDB: builder.mutation<any, void>({
+            query: () => ({
+                url: "Manager/RefreshQueueManagerDB",
+                method: "POST",
+                params: {
+                    "api-version": "1",
+                },
+                headers: {
+                    accept: "application/json",
+                },
+            }),
+        }),
+
         createReview: builder.mutation<
             any,
             { recordId: number; rating: number; content: string }
@@ -287,4 +300,5 @@ export const {
     useGetQueueForClientsQuery,
     useObserverMutation,
     useUpdateClientServiceMutation,
+    useRefreshQueueManagerDBMutation,
 } = managerApi;
