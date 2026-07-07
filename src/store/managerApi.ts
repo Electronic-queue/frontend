@@ -134,13 +134,23 @@ export const managerApi = createApi({
                 },
             }),
         }),
-        redirectClient: builder.mutation<any, void>({
-            query: () => ({
+        // redirectClient: builder.mutation<any, void>({
+        //     query: () => ({
+        //         url: "Manager/redirectclient",
+        //         method: "POST",
+        //         params: {
+        //             "api-version": "1",
+        //         },
+        //     }),
+        // }),
+        redirectClient: builder.mutation<any, { serviceId: string }>({
+            query: (payload) => ({
                 url: "Manager/redirectclient",
                 method: "POST",
                 params: {
                     "api-version": "1",
                 },
+                body: payload,
             }),
         }),
         updateClientService: builder.mutation<any, { serviceId: string }>({

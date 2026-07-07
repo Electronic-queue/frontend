@@ -157,7 +157,9 @@ const RedirectModal: FC<{
         if (!selectedServiceId) return;
 
         try {
-            await redirectClient().unwrap();
+            await redirectClient({
+                serviceId: selectedServiceId,
+            }).unwrap();
 
             await updateClientService({
                 serviceId: selectedServiceId,
