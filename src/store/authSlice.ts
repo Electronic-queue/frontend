@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import axios from "axios";
-
+const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
 
 interface LoginResponse {
     window: any;
@@ -35,7 +35,7 @@ export const login = createAsyncThunk(
     ) => {
         try {
             const response = await axios.post<LoginResponse>(
-                "https://qclient.satbayev.university/api/Manager/login",
+                `${apiBaseUrl}/Manager/login`,
                 { login, password },
                 {
                     params: { "api-version": "1" },

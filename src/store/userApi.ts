@@ -69,11 +69,14 @@ export const userApi = createApi({
                 params: { "api-version": "1" },
             }),
         }),
-        loginRecord: builder.mutation<any, { iin: string }>({
+       loginRecord: builder.mutation<any, { iin: string }>({
             query: ({ iin }) => ({
-                url: "https://qclient.satbayev.university/api/Record/login",
+                url: "Record/login",
                 method: "POST",
-                body: { iin: iin },
+                params: {
+                    "api-version": "1",
+                },
+                body: { iin },
             }),
         }),
     }),
