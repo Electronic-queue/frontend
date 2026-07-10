@@ -137,6 +137,35 @@ const QueuePage: FC = () => {
     }, []);
 
     useEffect(() => {
+        const fetchManagerRecords = async () => {
+            try {
+                const response = await fetch(
+                    `${import.meta.env.VITE_API_BASE_URL}/Manager/recordAllListByManager?api-version=v1`,
+                    {
+                        headers: {
+                            Authorization: `Bearer ${token}`,
+                        },
+                    }
+                );
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+
+                const data = await response.json();
+
+                console.log("recordAllListByManager:", data);
+            } catch (error) {
+                console.error("Ошибка получения recordAllListByManager:", error);
+            }
+        };
+
+        if (token) {
+            fetchManagerRecords();
+        }
+    }, [token]);
+
+    useEffect(() => {
         notificationAudioRef.current = new Audio("/sounds/new-req.wav");
         notificationAudioRef.current.volume = 1;
 

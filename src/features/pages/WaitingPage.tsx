@@ -141,6 +141,37 @@ const WaitingPage = () => {
     const hasRegistered = useRef(false);
 
     useEffect(() => {
+        const fetchLastRecord = async () => {
+            try {
+                const savedUserInfo = localStorage.getItem("requestUserInfo");
+
+                if (!savedUserInfo) return;
+
+                const userInfo = JSON.parse(savedUserInfo);
+                const iin = String(userInfo?.iin ?? "").replace(/\s+/g, "");
+
+                if (!iin) return;
+
+                const response = await fetch(
+                    `${import.meta.env.VITE_MANAGER_API_BASE_URL}/Manager/recordLastByStudent?INN=${iin}&api-version=v1`
+                );
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+
+                const data = await response.json();
+
+                console.log("recordLastByStudent:", data);
+            } catch (error) {
+                console.error("Ошибка получения recordLastByStudent:", error);
+            }
+        };
+
+        fetchLastRecord();
+    }, []);
+
+    useEffect(() => {
         if (ticketData?.ticketNumber && ticketData.ticketNumber !== ticketNumber) {
             dispatch(setTicketNumber(ticketData.ticketNumber));
         }
@@ -277,6 +308,8 @@ const WaitingPage = () => {
         localStorage.removeItem("token");
         localStorage.removeItem("recordId");
         localStorage.removeItem("ticketNumber");
+        localStorage.removeItem("requestUserInfo");
+        // localStorage.removeItem("sdu-quest-progress")
 
         dispatch(setTicketNumber(null));
         dispatch(setToken(null));

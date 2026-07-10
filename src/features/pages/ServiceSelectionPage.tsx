@@ -109,6 +109,19 @@ const ServiceSelection = () => {
             return;
         }
 
+        const normalizedUserInfo = {
+            ...userInfo,
+            iin: userInfo.iin?.replace(/\s+/g, "") ?? "",
+            firstName: userInfo.firstName?.trim() ?? "",
+            lastName: userInfo.lastName?.trim() ?? "",
+            surname: userInfo.surname?.trim() ?? "",
+        };
+
+        localStorage.setItem(
+            "requestUserInfo",
+            JSON.stringify(normalizedUserInfo)
+        );
+
         dispatch(setServiceId(selectedService.id as any));
         const BACKEND_LIMIT_REACHED = "Лимит по услуге достигнут.";
         const LIMIT_EXCEEDED_MESSAGE =
