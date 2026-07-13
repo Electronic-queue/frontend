@@ -5,6 +5,7 @@ export interface ClientData {
     patronymic?: string;
     service: string;
     iin: string;
+    createdOn?: string;
 }
 
 export interface ClientCardProps {

@@ -49,7 +49,7 @@ const CardContainer = styled(Box)(({ theme }) => ({
     display: "flex",
     alignItems: "center",
     justifyContent: "space-between",
-    padding: theme.spacing(3),
+    padding: theme.spacing(5),
     backgroundColor: theme.palette.background.paper,
     borderRadius: theme.shape.borderRadius,
     boxShadow: "2px 4px 10px rgba(0, 0, 0, 0.25)",

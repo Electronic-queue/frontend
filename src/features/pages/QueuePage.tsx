@@ -20,9 +20,11 @@ import { Alert, Snackbar } from "@mui/material";
 import connection, { startSignalR } from "src/features/signalR";
 import i18n from "src/i18n";
 import { useRegisterManagerMutation } from "src/store/signalRManagerApi";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "src/store/store";
 import React from "react";
+import { useNavigate } from "react-router-dom";
+import { logout } from "src/store/authSlice";
 
 type StatusType = "idle" | "called" | "accepted" | "redirected";
 
@@ -31,7 +33,7 @@ type ClientData = {
     ticketNumber: number;
     lastName: string | null;
     firstName: string | null;
-    surname: string | null;
+    surName: string | null;
     serviceNameRu: string;
     serviceNameKk: string;
     serviceNameEn: string;
@@ -78,6 +80,8 @@ const serviceTime1 = "0";
 
 const QueuePage: FC = () => {
     const { t } = useTranslation();
+    const navigate = useNavigate();
+    const dispatch = useDispatch();
 
     const [acceptClient, { isLoading: isAccepting }] =
         useAcceptClientMutation();
@@ -98,6 +102,7 @@ const QueuePage: FC = () => {
     const isAudioUnlockedRef = useRef(false);
 
     const [snapshot, setSnapshot] = useState<ManagerSnapshotData | null>(null);
+    const [isInitialDataLoaded, setIsInitialDataLoaded] = useState(false);
 
     const [snackbar, setSnackbar] = useState<{
         open: boolean;
@@ -112,17 +117,32 @@ const QueuePage: FC = () => {
     const [refreshQueueManagerDB] = useRefreshQueueManagerDBMutation();
 
     const playNewRequestNotification = React.useCallback(async () => {
-        try {
-            if (notificationAudioRef.current) {
+        if (
+            notificationAudioRef.current &&
+            isAudioUnlockedRef.current
+        ) {
+            try {
                 notificationAudioRef.current.currentTime = 0;
+
                 await notificationAudioRef.current.play();
+
                 console.log("✅ Звук новой заявки проиграл");
+            } catch (error) {
+                console.error(
+                    "❌ Звук новой заявки не проиграл:",
+                    error
+                );
             }
-        } catch (err) {
-            console.error("❌ Звук новой заявки не проиграл", err);
+        } else {
+            console.warn(
+                "⚠️ Звук ещё не разблокирован. Пользователь должен один раз кликнуть по странице."
+            );
         }
 
-        if ("Notification" in window && Notification.permission === "granted") {
+        if (
+            "Notification" in window &&
+            Notification.permission === "granted"
+        ) {
             new Notification("Новая заявка", {
                 body: "В очередь поступила новая заявка",
                 icon: "/suLogo.svg",
@@ -136,118 +156,236 @@ const QueuePage: FC = () => {
         });
     }, []);
 
-    useEffect(() => {
-        const fetchManagerRecords = async () => {
-            try {
-                const response = await fetch(
-                    `${import.meta.env.VITE_API_BASE_URL}/Manager/recordAllListByManager?api-version=v1`,
-                    {
-                        headers: {
-                            Authorization: `Bearer ${token}`,
-                        },
-                    }
-                );
+    const handleLogout = React.useCallback(() => {
+        localStorage.removeItem("token");
+        localStorage.removeItem("windowInfo");
 
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}`);
+        dispatch(logout());
+        navigate("/login", { replace: true });
+    }, [dispatch, navigate])
+
+    const fetchManagerRecords = React.useCallback(async () => {
+        if (!token) return;
+
+        try {
+            const response = await fetch(
+                `${import.meta.env.VITE_API_BASE_URL}/Manager/recordAllListByManager?api-version=v1`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
+
+            if (response.status === 401) {
+                handleLogout();
+                return;
+            }
+
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+
+            const records: ClientData[] = await response.json();
+
+            // Оставляем только заявки со статусом "В очереди"
+            const currentQueueRecords = records.filter((item) =>
+                [1, 3, 4, 6].includes(item.statusId ?? 0)
+            );
+
+            // Сортируем: сначала самая ранняя заявка
+            const sortedRecords = [...currentQueueRecords].sort((a, b) => {
+                const aTime = a.createdOn
+                    ? new Date(a.createdOn).getTime()
+                    : Number.MAX_SAFE_INTEGER;
+
+                const bTime = b.createdOn
+                    ? new Date(b.createdOn).getTime()
+                    : Number.MAX_SAFE_INTEGER;
+
+                if (aTime !== bTime) {
+                    return aTime - bTime;
                 }
 
-                const data = await response.json();
+                return a.ticketNumber - b.ticketNumber;
+            });
 
-                console.log("recordAllListByManager:", data);
-            } catch (error) {
-                console.error("Ошибка получения recordAllListByManager:", error);
-            }
-        };
+            console.log(
+                "✅ Текущая очередь обновлена через GET:",
+                sortedRecords
+            );
 
-        if (token) {
-            fetchManagerRecords();
+            setSnapshot({
+                managerId: "",
+                activeClient: null,
+                queue: sortedRecords,
+                stats: {
+                    inLine: sortedRecords.length,
+                    redirected: records.filter(
+                        (item) => item.statusId === 6
+                    ).length,
+                    rejected: records.filter(
+                        (item) => item.statusId === 7
+                    ).length,
+                    serviced: records.filter(
+                        (item) => item.statusId === 5
+                    ).length,
+                },
+            });
+
+            previousQueueRef.current = sortedRecords.map(
+                (item) => item.ticketNumber
+            );
+
+            setIsInitialDataLoaded(true);
+        } catch (error) {
+            console.error(
+                "❌ Ошибка получения recordAllListByManager:",
+                error
+            );
+
+            setIsInitialDataLoaded(true);
         }
-    }, [token]);
+    }, [token, handleLogout]);
+
+    useEffect(() => {
+        fetchManagerRecords();
+    }, [fetchManagerRecords]);
 
     useEffect(() => {
         notificationAudioRef.current = new Audio("/sounds/new-req.wav");
         notificationAudioRef.current.volume = 1;
+        notificationAudioRef.current.preload = "auto";
 
         if ("Notification" in window && Notification.permission === "default") {
             Notification.requestPermission();
         }
 
         const unlockAudio = async () => {
-            if (!notificationAudioRef.current || isAudioUnlockedRef.current) {
+            if (
+                !notificationAudioRef.current ||
+                isAudioUnlockedRef.current
+            ) {
                 return;
             }
 
             try {
-                notificationAudioRef.current.muted = true;
-                await notificationAudioRef.current.play();
+                const audio = notificationAudioRef.current;
 
-                notificationAudioRef.current.pause();
-                notificationAudioRef.current.currentTime = 0;
-                notificationAudioRef.current.muted = false;
+                audio.currentTime = 0;
+                audio.volume = 0;
+
+                await audio.play();
+
+                audio.pause();
+                audio.currentTime = 0;
+                audio.volume = 1;
 
                 isAudioUnlockedRef.current = true;
+
                 console.log("✅ Звук разблокирован");
-            } catch (err) {
-                console.error("❌ Не удалось разблокировать звук", err);
+            } catch (error) {
+                console.error(
+                    "❌ Не удалось разблокировать звук:",
+                    error
+                );
             }
         };
 
-        window.addEventListener("click", unlockAudio);
-        window.addEventListener("keydown", unlockAudio);
+        window.addEventListener("pointerdown", unlockAudio, {
+            once: true,
+        });
+
+        window.addEventListener("keydown", unlockAudio, {
+            once: true,
+        });
 
         return () => {
-            window.removeEventListener("click", unlockAudio);
+            window.removeEventListener("pointerdown", unlockAudio);
             window.removeEventListener("keydown", unlockAudio);
         };
     }, []);
 
     const getComputedStatus = (): StatusType => {
-        const active = snapshot?.activeClient;
-        if (!active) return "idle";
-        if (active.statusId === 3) return "called";
-        if (active.statusId === 4) return "accepted";
-        return "idle";
+        const currentClient =
+            snapshot?.activeClient &&
+            snapshot.activeClient.ticketNumber !== -1
+                ? snapshot.activeClient
+                : snapshot?.queue?.[0];
+
+        if (!currentClient) {
+            return "idle";
+        }
+
+        switch (currentClient.statusId) {
+            case 3:
+                return "called";
+
+            case 4:
+                return "accepted";
+
+            case 6:
+                return "redirected";
+
+            case 1:
+            default:
+                return "idle";
+        }
     };
 
     const computedStatus = getComputedStatus();
 
+
     useEffect(() => {
-        console.log("🛠 1. Установка слушателя ManagerQueueSnapshot");
+        console.log("🛠 Установка слушателя ManagerQueueSnapshot");
+
+        const handleManagerQueueSnapshot = async (
+            data: ManagerSnapshotData
+        ) => {
+            const knownTicketNumbers = previousQueueRef.current;
+
+            const newClients = (data.queue ?? []).filter(
+                (item) =>
+                    !knownTicketNumbers.includes(item.ticketNumber)
+            );
+
+            if (newClients.length === 0) {
+                return;
+            }
+
+            console.log(
+                "🆕 SignalR сообщил о новой заявке:",
+                newClients
+            );
+
+            previousQueueRef.current = Array.from(
+                new Set([
+                    ...knownTicketNumbers,
+                    ...data.queue.map((item) => item.ticketNumber),
+                ])
+            );
+
+            await playNewRequestNotification();
+
+            // Получаем настоящие данные только через GET
+            await fetchManagerRecords();
+        };
 
         connection.on(
             "ManagerQueueSnapshot",
-            async (data: ManagerSnapshotData) => {
-                console.log("socket: snapshot получено ✅", data);
-
-                const previous = previousQueueRef.current;
-                const current = data.queue.map((x) => x.ticketNumber);
-
-                const hasNewRequest = current.some(
-                    (ticket) => !previous.includes(ticket)
-                );
-
-                if (!isFirstSnapshotRef.current && hasNewRequest) {
-                    await playNewRequestNotification();
-                }
-
-                isFirstSnapshotRef.current = false;
-                previousQueueRef.current = current;
-
-                setSnapshot(data);
-            }
+            handleManagerQueueSnapshot
         );
 
         return () => {
-            connection.off("ManagerQueueSnapshot");
+            connection.off(
+                "ManagerQueueSnapshot",
+                handleManagerQueueSnapshot
+            );
         };
-    }, [playNewRequestNotification]);
+    }, [playNewRequestNotification, fetchManagerRecords]);
 
     useEffect(() => {
-        if (!token) {
-            console.error(
-                "❌ [QueuePage] No token available, skipping SignalR init"
-            );
+        if (!token || !isInitialDataLoaded) {
             return;
         }
 
@@ -283,11 +421,14 @@ const QueuePage: FC = () => {
             }
 
             if (connectionId && isMounted) {
-                console.log("✅ [QueuePage] Connection ID obtained:", connectionId);
+                console.log(
+                    "✅ [QueuePage] Connection ID obtained:",
+                    connectionId
+                );
 
                 try {
                     await registerManager({
-                        connectionId: connectionId,
+                        connectionId,
                     }).unwrap();
 
                     await startWindow({}).unwrap();
@@ -299,14 +440,25 @@ const QueuePage: FC = () => {
                         connectionId
                     );
                 } catch (err: any) {
-                    console.error("🔥 Ошибка при вызове registerManager:", err);
+                    console.error(
+                        "🔥 Ошибка при вызове registerManager:",
+                        err
+                    );
+
+                     if (err?.status === 401 || err?.status === 403) {
+                        handleLogout();
+                        return;
+                    }
 
                     if (err?.status === 503) {
                         window.location.reload();
+                        return;
                     }
                 }
             } else {
-                console.warn("⚠️ Не удалось получить ID после нескольких попыток.");
+                console.warn(
+                    "⚠️ Не удалось получить ID после нескольких попыток."
+                );
             }
         };
 
@@ -315,27 +467,58 @@ const QueuePage: FC = () => {
         return () => {
             isMounted = false;
         };
-    }, [token, registerManager, startWindow]);
+    }, [
+        token,
+        isInitialDataLoaded,
+        registerManager,
+        startWindow,
+    ]);
 
     const handleAcceptClient = async () => {
         try {
             await acceptClient({}).unwrap();
+
+            // Получаем новый statusId через GET
+            await fetchManagerRecords();
+
             setSnackbar({
                 open: true,
                 message: t("i18n_queue.clientAccepted"),
                 severity: "success",
             });
-        } catch (err) {}
-    };
+        } catch (err: any) {
+            if (err?.status === 401 || err?.status === 403) {
+                handleLogout();
+                return;
+            }
 
-    const handleRedirectClient = () => {
-        try {
+            console.error("Ошибка принятия клиента:", err);
+
             setSnackbar({
                 open: true,
-                message: t("i18n_queue.clientRedirected"),
-                severity: "success",
+                message: "Ошибка принятия клиента",
+                severity: "error",
             });
-        } catch (err) {}
+        }
+    };
+
+    const handleRedirectClient = async (
+        serviceIdRedirect: string
+    ) => {
+        console.log(
+            "Клиент перенаправлен на услугу:",
+            serviceIdRedirect
+        );
+
+        // API перенаправления уже вызывается внутри RedirectModal.
+        // Здесь только загружаем актуальные записи.
+        await fetchManagerRecords();
+
+        setSnackbar({
+            open: true,
+            message: t("i18n_queue.clientRedirected"),
+            severity: "success",
+        });
     };
 
     const handleCallNextClient = async () => {
@@ -350,16 +533,27 @@ const QueuePage: FC = () => {
 
         try {
             await callNext({}).unwrap();
+
+            // После изменения статуса заново получаем записи через GET
+            await fetchManagerRecords();
+
             setSnackbar({
                 open: true,
                 message: t("i18n_queue.startQueue"),
                 severity: "success",
             });
         } catch (err: any) {
+            if (err?.status === 401 || err?.status === 403) {
+                handleLogout();
+                return;
+            }
+
             if (err?.status === 503) {
                 window.location.reload();
                 return;
             }
+
+            console.error("Ошибка вызова клиента:", err);
 
             setSnackbar({
                 open: true,
@@ -372,13 +566,28 @@ const QueuePage: FC = () => {
     const handleСompleteClient = async () => {
         try {
             await completeClient({ managerId }).unwrap();
+
+            // Убираем обслуженного клиента и показываем следующего
+            await fetchManagerRecords();
+
             setSnackbar({
                 open: true,
                 message: t("i18n_queue.serviceCompleted"),
                 severity: "success",
             });
-        } catch (err) {
-            console.error("Error completing client:", err);
+        } catch (err: any) {
+            if (err?.status === 401 || err?.status === 403) {
+                handleLogout();
+                return;
+            }
+
+            console.error("Ошибка завершения обслуживания:", err);
+
+            setSnackbar({
+                open: true,
+                message: "Ошибка завершения обслуживания",
+                severity: "error",
+            });
         }
     };
 
@@ -422,11 +631,40 @@ const QueuePage: FC = () => {
     const uniqueQueue = React.useMemo(() => {
         if (!snapshot?.queue) return [];
 
-        return snapshot.queue.filter(
+        const uniqueItems = snapshot.queue.filter(
             (client, index, self) =>
                 index ===
-                self.findIndex((t) => t.ticketNumber === client.ticketNumber)
+                self.findIndex(
+                    (item) => item.ticketNumber === client.ticketNumber
+                )
         );
+
+        return [...uniqueItems].sort((a, b) => {
+            const aTime = a.createdOn
+                ? new Date(a.createdOn).getTime()
+                : NaN;
+
+            const bTime = b.createdOn
+                ? new Date(b.createdOn).getTime()
+                : NaN;
+
+            const aHasValidDate = Number.isFinite(aTime);
+            const bHasValidDate = Number.isFinite(bTime);
+
+            if (aHasValidDate && bHasValidDate && aTime !== bTime) {
+                return aTime - bTime;
+            }
+
+            if (aHasValidDate && !bHasValidDate) {
+                return -1;
+            }
+
+            if (!aHasValidDate && bHasValidDate) {
+                return 1;
+            }
+
+            return a.ticketNumber - b.ticketNumber;
+        });
     }, [snapshot]);
 
     const displayClientObj =
@@ -438,14 +676,21 @@ const QueuePage: FC = () => {
 
     const formattedClientData = displayClientObj
         ? {
-              clientNumber: `${displayClientObj.ticketNumber}`,
-              lastName: displayClientObj.lastName || "-",
-              firstName: displayClientObj.firstName || "-",
-              patronymic: displayClientObj.surname || "-",
-              service: getServiceName(displayClientObj, currentLanguage),
-              iin: displayClientObj.iin || "-",
-          }
-        : defaultClientData;
+            clientNumber: `${displayClientObj.ticketNumber}`,
+            lastName: displayClientObj.lastName?.trim() || "-",
+            firstName: displayClientObj.firstName?.trim() || "-",
+            patronymic: displayClientObj.surName?.trim() || "-",
+            service: getServiceName(
+                displayClientObj,
+                currentLanguage
+            ),
+            iin: displayClientObj.iin?.trim() || "-",
+            createdOn: displayClientObj.createdOn,
+        }
+        : {
+            ...defaultClientData,
+            createdOn: undefined,
+        };
 
     return (
         <>
