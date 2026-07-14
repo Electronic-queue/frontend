@@ -127,5 +127,168 @@
     "i18n_landing": {
         "officeRegistrar": "Office registration",
         "admissionsOffice": "Admissions office"
+    },
+    "activeRequest": {
+        "status": {
+            "waiting": {
+                "title": "You are in the queue",
+                "subtitle": "Please wait to be called",
+                "badge": "Waiting",
+                "message": "Keep an eye on the window number. The information is updated automatically."
+            },
+            "calling": {
+                "title": "You are being called",
+                "subtitle": "Please proceed to the specified window",
+                "badge": "Proceed to the window",
+                "message": "Please proceed to your window. The manager is waiting for you."
+            },
+            "serving": {
+                "title": "Service in progress",
+                "subtitle": "Your request is currently being processed",
+                "badge": "In service",
+                "message": "Your request is being processed. Please wait until the manager finishes."
+            },
+            "active": {
+                "title": "Active request",
+                "subtitle": "Information about your queue",
+                "badge": "Active",
+                "message": "The information is updated automatically."
+            }
+        },
+        "ticket": {
+            "label": "Your ticket"
+        },
+        "fields": {
+            "iin": "IIN",
+            "service": "Service",
+            "window": "Window",
+            "manager": "Manager",
+            "expectedAcceptanceTime": "Expected time",
+            "averageExecutionTime": "Average time",
+            "recordNumber": "Request number",
+            "createdOn": "Created"
+        },
+        "values": {
+            "waitForCall": "Please wait to be called",
+            "serviceNotSpecified": "Service name is not specified",
+            "windowNotAssigned": "Not assigned yet",
+            "managerNotAssigned": "Not assigned yet",
+            "notSpecified": "Not specified",
+            "minutes": "{{count}} min."
+        },
+        "actions": {
+            "cancelQueue": "Leave the queue",
+            "checkAnotherIin": "Check another IIN"
+        },
+        "cancelDialog": {
+            "title": "Leave the queue?",
+            "description": "Are you sure you want to cancel ticket No. {{ticketNumber}}? The request will be closed after cancellation.",
+            "no": "No",
+            "confirm": "Yes, leave"
+        }
+    },
+    "departmentServiceForm": {
+        "step": "Step 2 of 2",
+        "title": "Select a service",
+        "description": "First select a department, then select the required service.",
+        "fields": {
+            "department": "Department",
+            "service": "Service"
+        },
+        "states": {
+            "loadingDepartments": "Loading departments...",
+            "departmentsNotFound": "No departments found",
+            "selectDepartmentFirst": "Select a department first",
+            "loadingServices": "Loading services...",
+            "servicesNotFound": "No services found"
+        },
+        "averageTime": "Average time: {{count}} min.",
+        "actions": {
+            "createRequest": "Create request",
+            "back": "Back"
+        }
+    },
+    "iinCheckForm": {
+        "title": "Request verification",
+        "description": "Enter your IIN to check whether you have an active request.",
+        "fields": {
+            "iin": "IIN",
+            "placeholder": "Enter 12 digits",
+            "counter": "{{current}}/{{max}}"
+        },
+        "actions": {
+            "check": "Check"
+        }
+    },
+     "personalDataForm": {
+        "step": "Step 1 of 2",
+        "title": "Personal information",
+        "description": "No active request was found. Enter the user's details.",
+        "fields": {
+            "lastName": "Last name",
+            "firstName": "First name",
+            "surname": "Middle name"
+        },
+        "actions": {
+            "continue": "Continue",
+            "changeIin": "Change IIN"
+        }
+    },
+    "serviceReviewForm": {
+        "title": "Service completed",
+        "description": "Rate the quality of the service you received",
+        "fields": {
+            "service": "Service",
+            "rating": "Your rating",
+            "comment": "Comment",
+            "commentPlaceholder": "Tell us about the quality of the service",
+            "commentCounter": "{{current}}/{{max}}"
+        },
+        "values": {
+            "serviceNotSpecified": "Service name is not specified"
+        },
+        "ticketNumber": "Ticket No. {{ticketNumber}}",
+        "recordNumber": "Request #{{recordId}}",
+        "ratings": {
+            "1": "Very poor",
+            "2": "Poor",
+            "3": "Average",
+            "4": "Good",
+            "5": "Excellent"
+        },
+        "actions": {
+            "submit": "Submit rating",
+            "skip": "Skip"
+        }
+    },
+    "successRegistrationCard": {
+        "title": "Request created",
+        "description": "You have successfully registered in the electronic queue.",
+        "ticketLabel": "Your ticket",
+        "recordNumber": "Request number: #{{recordId}}",
+        "actions": {
+            "createAnother": "New registration"
+        }
+    },
+    "newRegisterPage": {
+        "createdAnimation": {
+            "title": "Request created",
+            "description": "Loading your ticket information"
+        },
+        "errors": {
+            "invalidIin": "Enter a valid 12-digit IIN",
+            "checkIin": "Failed to verify the IIN",
+            "loadDepartments": "Failed to load departments",
+            "loadServices": "Failed to load services",
+            "selectService": "Select a service",
+            "fillRequiredFields": "Enter your last name and first name",
+            "ticketNotLoaded": "The request was created, but the ticket information has not loaded yet. Please refresh the page.",
+            "createRequest": "Failed to create the request",
+            "activeRequestNotFound": "Active request not found",
+            "cancelTokenMissing": "The request cancellation token is missing",
+            "cancelRequest": "Failed to leave the queue",
+            "reviewRequestNotFound": "Failed to identify the request",
+            "submitReview": "Failed to submit the rating"
+        }
     }
 }

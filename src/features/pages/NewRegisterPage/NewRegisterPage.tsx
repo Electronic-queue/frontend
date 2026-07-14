@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { Box, Container, Paper, Typography } from "@mui/material";
+import { useTranslation } from "react-i18next";
 
 import {
     cancelActiveRequest,
@@ -43,24 +44,7 @@ const initialStudentForm: StudentFormData = {
 type RequestDisplayMode = "active" | "review" | "hidden";
 
 interface ApplyRequestOptions {
-    /**
-     * Если заявка завершена, отклонена или перенаправлена,
-     * разрешаем ли открыть форму новой регистрации.
-     */
     openFormWhenUnavailable: boolean;
-
-    /**
-     * Нужно ли показывать форму отзыва при statusId === 5.
-     *
-     * true:
-     * - status 5 появился через polling;
-     * - ИИН восстановлен из localStorage.
-     *
-     * false:
-     * - пользователь вручную ввёл ИИН;
-     * - старое обслуживание уже завершено;
-     * - можно создать новую заявку.
-     */
     showReviewForCompleted: boolean;
 }
 
@@ -95,6 +79,7 @@ const wait = (milliseconds: number) =>
     });
 
 const CreatedRequestAnimation = () => {
+    const { t } = useTranslation();
     return (
         <Box
             sx={{
@@ -186,9 +171,10 @@ const CreatedRequestAnimation = () => {
                     fontWeight: 850,
                     color: "#111827",
                     lineHeight: 1.25,
+                    fontFamily: '"Roboto", "Arial", sans-serif',
                 }}
             >
-                Заявка создана
+                {t("newRegisterPage.createdAnimation.title")}
             </Typography>
 
             <Typography
@@ -200,7 +186,7 @@ const CreatedRequestAnimation = () => {
                     color: "#64748b",
                 }}
             >
-                Загружаем информацию о вашем талоне
+                {t("newRegisterPage.createdAnimation.description")}
             </Typography>
 
             <Box
@@ -243,6 +229,7 @@ const CreatedRequestAnimation = () => {
 };
 
 export const NewRegisterPage = () => {
+    const { t } = useTranslation();
     const [step, setStep] = useState<RegisterStep>("check-iin");
 
     const [iin, setIin] = useState("");
@@ -251,8 +238,8 @@ export const NewRegisterPage = () => {
         useState<StudentFormData>(initialStudentForm);
 
     /**
-     * Token хранится внутри activeRequest только в React state.
-     * В localStorage token не записывается.
+     * Token находится внутри activeRequest.
+     * В localStorage токен не сохраняется.
      */
     const [activeRequest, setActiveRequest] = useState<ActiveRequest | null>(
         null
@@ -293,14 +280,117 @@ export const NewRegisterPage = () => {
     const [reviewError, setReviewError] = useState("");
 
     /**
-     * Защита от повторного автоматического запроса
+     * Защита от повторной стартовой проверки
      * в React StrictMode.
      */
     const hasAutoCheckedRef = useRef(false);
 
+    /**
+     * Звук изменения статуса.
+     */
+    const notificationAudioRef = useRef<HTMLAudioElement | null>(null);
+
+    /**
+     * Последний известный статус.
+     * Нужен, чтобы звук играл только при изменении.
+     */
+    const previousStatusIdRef = useRef<number | null>(null);
+
     const activeRecordId = activeRequest?.recordId ?? null;
 
+    /**
+     * Инициализация аудиофайла.
+     */
+    useEffect(() => {
+        const audio = new Audio("/sounds/new-req.wav");
+
+        audio.volume = 1;
+        audio.preload = "auto";
+
+        notificationAudioRef.current = audio;
+
+        return () => {
+            audio.pause();
+            audio.src = "";
+
+            notificationAudioRef.current = null;
+        };
+    }, []);
+
+    /**
+     * Разблокировка аудио после первого действия пользователя.
+     *
+     * Некоторые браузеры не дают проигрывать звук,
+     * пока пользователь не нажал или не коснулся страницы.
+     */
+    useEffect(() => {
+        const unlockAudio = async () => {
+            const audio = notificationAudioRef.current;
+
+            if (!audio) {
+                return;
+            }
+
+            try {
+                audio.volume = 0;
+                await audio.play();
+
+                audio.pause();
+                audio.currentTime = 0;
+                audio.volume = 1;
+            } catch (error) {
+                console.warn("Не удалось заранее разблокировать звук:", error);
+            }
+
+            window.removeEventListener("pointerdown", unlockAudio);
+
+            window.removeEventListener("keydown", unlockAudio);
+
+            window.removeEventListener("touchstart", unlockAudio);
+        };
+
+        window.addEventListener("pointerdown", unlockAudio, {
+            once: true,
+        });
+
+        window.addEventListener("keydown", unlockAudio, {
+            once: true,
+        });
+
+        window.addEventListener("touchstart", unlockAudio, {
+            once: true,
+        });
+
+        return () => {
+            window.removeEventListener("pointerdown", unlockAudio);
+
+            window.removeEventListener("keydown", unlockAudio);
+
+            window.removeEventListener("touchstart", unlockAudio);
+        };
+    }, []);
+
+    const playStatusNotification = useCallback(async () => {
+        const audio = notificationAudioRef.current;
+
+        if (!audio) {
+            return;
+        }
+
+        try {
+            audio.pause();
+            audio.currentTime = 0;
+            audio.volume = 1;
+
+            await audio.play();
+        } catch (error) {
+            console.warn("Браузер заблокировал звук уведомления:", error);
+        }
+    }, []);
+
     const clearRegistrationData = useCallback(() => {
+        previousStatusIdRef.current = null;
+
         setStep("check-iin");
         setIin("");
 
@@ -335,12 +425,10 @@ export const NewRegisterPage = () => {
         clearRegistrationData();
     }, [clearRegistrationData]);
 
-    /**
-     * Используется, когда заявка пропала либо получила
-     * статус 6 или 7 во время polling.
-     */
     const hideUnavailableRequest = useCallback(() => {
         localStorage.removeItem(IIN_STORAGE_KEY);
+
+        previousStatusIdRef.current = null;
 
         setActiveRequest(null);
         setReviewRequest(null);
@@ -365,8 +453,30 @@ export const NewRegisterPage = () => {
     }, []);
 
     /**
-     * Распределяет ответ API по нужному экрану.
+     * Запоминает статус без звука.
+     *
+     * Используется при первом показе заявки.
      */
+    const rememberInitialStatus = useCallback((statusId: number) => {
+        previousStatusIdRef.current = statusId;
+    }, []);
+
+    /**
+     * Проверяет изменение статуса и включает звук.
+     */
+    const notifyIfStatusChanged = useCallback(
+        (newStatusId: number) => {
+            const previousStatusId = previousStatusIdRef.current;
+
+            if (previousStatusId !== null && previousStatusId !== newStatusId) {
+                void playStatusNotification();
+            }
+
+            previousStatusIdRef.current = newStatusId;
+        },
+        [playStatusNotification]
+    );
+
     const applyRequestResponse = useCallback(
         (data: ActiveRequest, options: ApplyRequestOptions) => {
             const { openFormWhenUnavailable, showReviewForCompleted } = options;
@@ -374,9 +484,11 @@ export const NewRegisterPage = () => {
             const displayMode = getRequestDisplayMode(data.statusId);
 
             /**
-             * Статусы 1, 3, 4:
-             * показываем активную заявку.
+             * Первое отображение статуса.
+             * Здесь звук не запускаем.
              */
+            rememberInitialStatus(data.statusId);
+
             if (displayMode === "active") {
                 setReviewRequest(null);
                 setReviewError("");
@@ -387,20 +499,9 @@ export const NewRegisterPage = () => {
                 return;
             }
 
-            /**
-             * Статус 5:
-             * обслуживание завершено.
-             */
             if (displayMode === "review") {
                 setActiveRequest(null);
 
-                /**
-                 * Если status 5 появился:
-                 * - во время polling;
-                 * - при восстановлении ИИН из localStorage;
-                 *
-                 * тогда показываем форму отзыва.
-                 */
                 if (showReviewForCompleted) {
                     setReviewRequest(data);
                     setReviewError("");
@@ -410,13 +511,12 @@ export const NewRegisterPage = () => {
                 }
 
                 /**
-                 * Если пользователь вручную ввёл ИИН,
-                 * значит он уже мог отправить/пропустить отзыв.
-                 *
-                 * Старое обслуживание завершено,
-                 * разрешаем создать новую заявку.
+                 * При ручной проверке старый статус 5
+                 * разрешает создать новую заявку.
                  */
                 localStorage.removeItem(IIN_STORAGE_KEY);
+
+                previousStatusIdRef.current = null;
 
                 setReviewRequest(null);
                 setReviewError("");
@@ -426,32 +526,25 @@ export const NewRegisterPage = () => {
             }
 
             /**
-             * Статусы 6 и 7:
-             * перенаправлен или отклонён.
+             * Статусы 6 и 7.
              */
             localStorage.removeItem(IIN_STORAGE_KEY);
+
+            previousStatusIdRef.current = null;
 
             setActiveRequest(null);
             setReviewRequest(null);
             setReviewError("");
 
             if (openFormWhenUnavailable) {
-                /**
-                 * Ручная проверка:
-                 * разрешаем создать новую заявку.
-                 */
                 setStep("personal-data");
                 return;
             }
 
-            /**
-             * Автоматическая проверка:
-             * просто возвращаем начальный экран.
-             */
             setIin("");
             setStep("check-iin");
         },
-        []
+        [rememberInitialStatus]
     );
 
     const checkIin = useCallback(
@@ -470,7 +563,7 @@ export const NewRegisterPage = () => {
             } = options ?? {};
 
             if (!/^\d{12}$/.test(checkedIin)) {
-                setIinError("Введите корректный ИИН из 12 цифр");
+                setIinError(t("newRegisterPage.errors.invalidIin"));
                 return;
             }
 
@@ -484,10 +577,8 @@ export const NewRegisterPage = () => {
                 setActiveRequest(null);
                 setReviewRequest(null);
 
-                /**
-                 * При ручном нажатии «Проверить»
-                 * сохраняем ИИН.
-                 */
+                previousStatusIdRef.current = null;
+
                 if (saveToStorage) {
                     localStorage.setItem(IIN_STORAGE_KEY, checkedIin);
                 }
@@ -505,10 +596,9 @@ export const NewRegisterPage = () => {
                     return;
                 }
 
-                /**
-                 * API не вернул заявку.
-                 */
                 localStorage.removeItem(IIN_STORAGE_KEY);
+
+                previousStatusIdRef.current = null;
 
                 if (openFormWhenEmpty) {
                     setStep("personal-data");
@@ -523,19 +613,15 @@ export const NewRegisterPage = () => {
                 setIinError(
                     error instanceof Error
                         ? error.message
-                        : "Не удалось проверить ИИН"
+                        : t("newRegisterPage.errors.checkIin")
                 );
             } finally {
                 setIsCheckingIin(false);
             }
         },
-        [applyRequestResponse]
+        [applyRequestResponse, t]
     );
 
-    /**
-     * После создания заявки backend может вернуть её
-     * не сразу, поэтому делаем несколько попыток.
-     */
     const loadCreatedRequest = useCallback(
         async (checkedIin: string): Promise<ActiveRequest | null> => {
             for (
@@ -560,10 +646,7 @@ export const NewRegisterPage = () => {
     );
 
     /**
-     * Проверка сохранённого ИИН при загрузке страницы.
-     *
-     * Если сохранённая заявка получила status 5,
-     * показываем форму отзыва.
+     * Проверка сохранённого ИИН при загрузке.
      */
     useEffect(() => {
         if (hasAutoCheckedRef.current) {
@@ -580,6 +663,7 @@ export const NewRegisterPage = () => {
 
         if (!/^\d{12}$/.test(savedIin)) {
             localStorage.removeItem(IIN_STORAGE_KEY);
+
             return;
         }
 
@@ -588,21 +672,12 @@ export const NewRegisterPage = () => {
         void checkIin(savedIin, {
             saveToStorage: false,
             openFormWhenEmpty: false,
-
-            /**
-             * Сохранённый ИИН означает, что пользователь
-             * ещё не отправил или не пропустил отзыв.
-             */
             showReviewForCompleted: true,
         });
     }, [checkIin]);
 
     /**
-     * Оптимизированный polling активной заявки.
-     *
-     * Работает для статусов 1, 3, 4.
-     * Если статус меняется на 5 — показывается отзыв.
-     * Если статус меняется на 6/7 — заявка скрывается.
+     * Polling активной заявки.
      */
     useEffect(() => {
         if (!activeRecordId || !iin) {
@@ -657,6 +732,7 @@ export const NewRegisterPage = () => {
                 if (!data) {
                     isStopped = true;
                     clearPollingTimeout();
+
                     hideUnavailableRequest();
 
                     return;
@@ -664,11 +740,13 @@ export const NewRegisterPage = () => {
 
                 const displayMode = getRequestDisplayMode(data.statusId);
 
+                /**
+                 * Проверяем изменение статуса.
+                 * Именно здесь будет проигрываться звук.
+                 */
+                notifyIfStatusChanged(data.statusId);
+
                 if (displayMode === "active") {
-                    /**
-                     * Обновляем статус, окно, менеджера,
-                     * ожидаемое время и свежий token.
-                     */
                     setActiveRequest(data);
                     return;
                 }
@@ -677,10 +755,6 @@ export const NewRegisterPage = () => {
                 clearPollingTimeout();
 
                 if (displayMode === "review") {
-                    /**
-                     * Статус изменился на 5 во время polling.
-                     * Показываем отзыв.
-                     */
                     setActiveRequest(null);
                     setReviewRequest(data);
                     setReviewError("");
@@ -690,13 +764,13 @@ export const NewRegisterPage = () => {
                 }
 
                 /**
-                 * Статусы 6 или 7.
+                 * Статусы 6 и 7.
                  */
                 hideUnavailableRequest();
             } catch (error) {
                 /**
-                 * При временной ошибке сети
-                 * текущую карточку не скрываем.
+                 * При временной ошибке карточку
+                 * не скрываем.
                  */
                 console.error("Ошибка обновления заявки:", error);
             } finally {
@@ -720,7 +794,7 @@ export const NewRegisterPage = () => {
 
             /**
              * После возвращения во вкладку
-             * сразу обновляем заявку.
+             * сразу выполняем запрос.
              */
             clearPollingTimeout();
 
@@ -745,10 +819,12 @@ export const NewRegisterPage = () => {
                 handleVisibilityChange
             );
         };
-    }, [activeRecordId, iin, hideUnavailableRequest]);
+    }, [activeRecordId, iin, hideUnavailableRequest, notifyIfStatusChanged]);
 
     const handleIinChange = (value: string) => {
         const onlyNumbers = value.replace(/\D/g, "").slice(0, 12);
+
+        previousStatusIdRef.current = null;
 
         setIin(onlyNumbers);
 
@@ -763,10 +839,8 @@ export const NewRegisterPage = () => {
     /**
      * Ручная проверка ИИН.
      *
-     * Важно:
-     * если API вернул старую заявку со statusId 5,
-     * форму отзыва НЕ показываем.
-     * Сразу разрешаем создать новую заявку.
+     * Старый statusId 5 позволяет
+     * создать новую заявку.
      */
     const handleCheckIin = async () => {
         await checkIin(iin, {
@@ -805,7 +879,7 @@ export const NewRegisterPage = () => {
             setRegistrationError(
                 error instanceof Error
                     ? error.message
-                    : "Не удалось получить подразделения"
+                    : t("newRegisterPage.errors.loadDepartments")
             );
         } finally {
             setIsQueueTypesLoading(false);
@@ -835,7 +909,7 @@ export const NewRegisterPage = () => {
             setRegistrationError(
                 error instanceof Error
                     ? error.message
-                    : "Не удалось получить услуги"
+                    : t("newRegisterPage.errors.loadServices")
             );
         } finally {
             setIsServicesLoading(false);
@@ -844,12 +918,16 @@ export const NewRegisterPage = () => {
 
     const handleCreateRecord = async () => {
         if (!selectedServiceId) {
-            setRegistrationError("Выберите услугу");
+            setRegistrationError(t("newRegisterPage.errors.selectService"));
+
             return;
         }
 
         if (!studentForm.lastName.trim() || !studentForm.firstName.trim()) {
-            setRegistrationError("Заполните фамилию и имя");
+            setRegistrationError(
+                t("newRegisterPage.errors.fillRequiredFields")
+            );
+
             return;
         }
 
@@ -867,9 +945,6 @@ export const NewRegisterPage = () => {
                 createdBy: null,
             });
 
-            /**
-             * После создания сохраняем только ИИН.
-             */
             localStorage.setItem(IIN_STORAGE_KEY, iin);
 
             setShowCreatedAnimation(true);
@@ -879,19 +954,13 @@ export const NewRegisterPage = () => {
             const createdRequest = await loadCreatedRequest(iin);
 
             if (!createdRequest) {
-                throw new Error(
-                    "Заявка создана, но информация о талоне пока не загружена. Обновите страницу."
-                );
+                throw new Error(t("newRegisterPage.errors.ticketNotLoaded"));
             }
 
             console.log("Созданная заявка:", createdRequest);
 
             setShowCreatedAnimation(false);
 
-            /**
-             * После создания заявки статус 5 маловероятен,
-             * но если backend вернёт его — покажем отзыв.
-             */
             applyRequestResponse(createdRequest, {
                 openFormWhenUnavailable: false,
                 showReviewForCompleted: true,
@@ -904,7 +973,7 @@ export const NewRegisterPage = () => {
             setRegistrationError(
                 error instanceof Error
                     ? error.message
-                    : "Не удалось создать заявку"
+                    : t("newRegisterPage.errors.createRequest")
             );
         } finally {
             setIsCreating(false);
@@ -913,12 +982,14 @@ export const NewRegisterPage = () => {
 
     const handleCancelRequest = async () => {
         if (!activeRequest) {
-            setCancelError("Активная заявка не найдена");
+            setCancelError(t("newRegisterPage.errors.activeRequestNotFound"));
+
             return;
         }
 
         if (!activeRequest.token) {
-            setCancelError("Отсутствует токен отмены заявки");
+            setCancelError(t("newRegisterPage.errors.cancelTokenMissing"));
+
             return;
         }
 
@@ -940,13 +1011,9 @@ export const NewRegisterPage = () => {
             setCancelError(
                 error instanceof Error
                     ? error.message
-                    : "Не удалось отказаться от очереди"
+                    : t("newRegisterPage.errors.cancelRequest")
             );
 
-            /**
-             * Модальное окно подтверждения
-             * не закроется при ошибке.
-             */
             throw error;
         } finally {
             setIsCancelling(false);
@@ -955,7 +1022,8 @@ export const NewRegisterPage = () => {
 
     const handleSubmitReview = async (rating: number, comment: string) => {
         if (!reviewRequest) {
-            setReviewError("Не удалось определить заявку");
+            setReviewError(t("newRegisterPage.errors.reviewRequestNotFound"));
+
             return;
         }
 
@@ -975,13 +1043,6 @@ export const NewRegisterPage = () => {
                 content: comment,
             });
 
-            /**
-             * После отправки отзыва удаляем ИИН.
-             *
-             * Если пользователь затем вручную введёт этот ИИН,
-             * statusId 5 откроет форму новой регистрации,
-             * а не форму повторного отзыва.
-             */
             localStorage.removeItem(IIN_STORAGE_KEY);
 
             clearRegistrationData();
@@ -991,7 +1052,7 @@ export const NewRegisterPage = () => {
             setReviewError(
                 error instanceof Error
                     ? error.message
-                    : "Не удалось отправить оценку"
+                    : t("newRegisterPage.errors.submitReview")
             );
         } finally {
             setIsReviewSubmitting(false);
@@ -999,17 +1060,17 @@ export const NewRegisterPage = () => {
     };
 
     const handleSkipReview = () => {
-        /**
-         * Пропуск отзыва равен завершению сценария.
-         */
         localStorage.removeItem(IIN_STORAGE_KEY);
 
         setReviewError("");
+
         clearRegistrationData();
     };
 
     const handleBackToIin = () => {
         localStorage.removeItem(IIN_STORAGE_KEY);
+
+        previousStatusIdRef.current = null;
 
         setStudentForm(initialStudentForm);
 
@@ -1051,11 +1112,11 @@ export const NewRegisterPage = () => {
                     elevation={0}
                     sx={{
                         p: 0,
+                        overflow: "hidden",
                         borderRadius: "28px",
                         border: "1px solid #e6ebf2",
                         backgroundColor: "#ffffff",
                         boxShadow: "0 18px 50px rgba(15, 23, 42, 0.08)",
-                        overflow: "hidden",
                     }}
                 >
                     {showCreatedAnimation && (

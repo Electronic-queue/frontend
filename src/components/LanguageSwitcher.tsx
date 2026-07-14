@@ -7,8 +7,9 @@ import React from "react";
 
 const languages = [
     { code: "en", label: "EN" },
-    { code: "ru", label: "RU" },
     { code: "kz", label: "KZ" },
+    { code: "ru", label: "RU" },
+    
 ];
 
 const SwitcherBox = styled(Stack)(({ theme }) => ({

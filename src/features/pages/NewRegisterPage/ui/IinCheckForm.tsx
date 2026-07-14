@@ -5,6 +5,8 @@ import {
     TextField,
     Typography,
 } from "@mui/material";
+import { useTranslation } from "react-i18next";
+
 import { inputStyles, primaryButtonStyles } from "./commonStyles";
 
 interface IinCheckFormProps {
@@ -22,6 +24,8 @@ export const IinCheckForm = ({
     onIinChange,
     onCheck,
 }: IinCheckFormProps) => {
+    const { t } = useTranslation();
+
     return (
         <Box>
             <Typography
@@ -29,10 +33,11 @@ export const IinCheckForm = ({
                     fontSize: 24,
                     fontWeight: 800,
                     color: "#111827",
+                    fontFamily: '"Arial", "Roboto", sans-serif',
                     mb: 0.7,
                 }}
             >
-                Проверка заявки
+                {t("iinCheckForm.title")}
             </Typography>
 
             <Typography
@@ -43,17 +48,23 @@ export const IinCheckForm = ({
                     color: "#6b7280",
                 }}
             >
-                Введите ИИН, чтобы проверить наличие активной заявки.
+                {t("iinCheckForm.description")}
             </Typography>
 
             <TextField
                 fullWidth
-                label="ИИН"
+                label={t("iinCheckForm.fields.iin")}
                 value={iin}
-                placeholder="Введите 12 цифр"
+                placeholder={t("iinCheckForm.fields.placeholder")}
                 disabled={isLoading}
                 error={Boolean(error)}
-                helperText={error || `${iin.length}/12`}
+                helperText={
+                    error ||
+                    t("iinCheckForm.fields.counter", {
+                        current: iin.length,
+                        max: 12,
+                    })
+                }
                 onChange={(event) => onIinChange(event.target.value)}
                 onKeyDown={(event) => {
                     if (
@@ -89,7 +100,7 @@ export const IinCheckForm = ({
                 {isLoading ? (
                     <CircularProgress size={23} color="inherit" />
                 ) : (
-                    "Проверить"
+                    t("iinCheckForm.actions.check")
                 )}
             </Button>
         </Box>

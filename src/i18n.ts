@@ -7,8 +7,8 @@ i18n.use(Backend)
     .use(LanguageDetector)
     .use(initReactI18next)
     .init({
-        fallbackLng: "ru",
-        supportedLngs: ["ru", "en", "kz"],
+        fallbackLng: "kz",
+        supportedLngs: ["ru", "kz", "en",],
         debug: false,
         interpolation: {
             escapeValue: false,
@@ -19,7 +19,7 @@ i18n.use(Backend)
     });
 
 if (!localStorage.getItem("i18nextLng")) {
-    i18n.changeLanguage("ru");
+    i18n.changeLanguage("kz");
 }
 
 export default i18n;

@@ -7,6 +7,7 @@ import {
     TextField,
     Typography,
 } from "@mui/material";
+import { useTranslation } from "react-i18next";
 
 import { ActiveRequest } from "../model/types";
 
@@ -28,6 +29,8 @@ export const ServiceReviewForm = ({
     onSubmit,
     onSkip,
 }: ServiceReviewFormProps) => {
+    const { t } = useTranslation();
+
     const [rating, setRating] =
         useState<number | null>(null);
 
@@ -43,6 +46,14 @@ export const ServiceReviewForm = ({
             rating,
             comment.trim()
         );
+    };
+
+    const getRatingLabel = () => {
+        if (!rating) {
+            return "";
+        }
+
+        return t(`serviceReviewForm.ratings.${rating}`);
     };
 
     return (
@@ -80,10 +91,11 @@ export const ServiceReviewForm = ({
                     fontSize: 24,
                     fontWeight: 850,
                     color: "#111827",
+                       fontFamily: '"Roboto", "Arial", sans-serif',
                     lineHeight: 1.25,
                 }}
             >
-                Обслуживание завершено
+                {t("serviceReviewForm.title")}
             </Typography>
 
             <Typography
@@ -95,7 +107,7 @@ export const ServiceReviewForm = ({
                     color: "#64748b",
                 }}
             >
-                Оцените качество полученной услуги
+                {t("serviceReviewForm.description")}
             </Typography>
 
             <Box
@@ -113,7 +125,7 @@ export const ServiceReviewForm = ({
                         color: "#64748b",
                     }}
                 >
-                    Услуга
+                    {t("serviceReviewForm.fields.service")}
                 </Typography>
 
                 <Typography
@@ -126,7 +138,9 @@ export const ServiceReviewForm = ({
                     }}
                 >
                     {data.serviceNameRu ||
-                        "Название услуги не указано"}
+                        t(
+                            "serviceReviewForm.values.serviceNotSpecified"
+                        )}
                 </Typography>
 
                 <Box
@@ -143,7 +157,9 @@ export const ServiceReviewForm = ({
                             color: "#64748b",
                         }}
                     >
-                        Талон №{data.ticketNumber}
+                        {t("serviceReviewForm.ticketNumber", {
+                            ticketNumber: data.ticketNumber,
+                        })}
                     </Typography>
 
                     <Typography
@@ -152,7 +168,9 @@ export const ServiceReviewForm = ({
                             color: "#64748b",
                         }}
                     >
-                        Заявка #{data.recordId}
+                        {t("serviceReviewForm.recordNumber", {
+                            recordId: data.recordId,
+                        })}
                     </Typography>
                 </Box>
             </Box>
@@ -171,7 +189,7 @@ export const ServiceReviewForm = ({
                         color: "#334155",
                     }}
                 >
-                    Ваша оценка
+                    {t("serviceReviewForm.fields.rating")}
                 </Typography>
 
                 <Rating
@@ -195,11 +213,7 @@ export const ServiceReviewForm = ({
                         color: "#64748b",
                     }}
                 >
-                    {rating === 1 && "Очень плохо"}
-                    {rating === 2 && "Плохо"}
-                    {rating === 3 && "Нормально"}
-                    {rating === 4 && "Хорошо"}
-                    {rating === 5 && "Отлично"}
+                    {getRatingLabel()}
                 </Typography>
             </Box>
 
@@ -207,8 +221,10 @@ export const ServiceReviewForm = ({
                 fullWidth
                 multiline
                 minRows={4}
-                label="Комментарий"
-                placeholder="Расскажите о качестве обслуживания"
+                label={t("serviceReviewForm.fields.comment")}
+                placeholder={t(
+                    "serviceReviewForm.fields.commentPlaceholder"
+                )}
                 value={comment}
                 disabled={isSubmitting}
                 onChange={(event) => {
@@ -217,7 +233,13 @@ export const ServiceReviewForm = ({
                 inputProps={{
                     maxLength: 500,
                 }}
-                helperText={`${comment.length}/500`}
+                helperText={t(
+                    "serviceReviewForm.fields.commentCounter",
+                    {
+                        current: comment.length,
+                        max: 500,
+                    }
+                )}
                 sx={{
                     mt: 2.2,
 
@@ -291,7 +313,7 @@ export const ServiceReviewForm = ({
                         color="inherit"
                     />
                 ) : (
-                    "Отправить оценку"
+                    t("serviceReviewForm.actions.submit")
                 )}
             </Button>
 
@@ -308,7 +330,7 @@ export const ServiceReviewForm = ({
                     color: "#64748b",
                 }}
             >
-                Пропустить
+                {t("serviceReviewForm.actions.skip")}
             </Button>
         </Box>
     );

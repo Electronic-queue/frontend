@@ -127,5 +127,168 @@
     "i18n_landing": {
         "officeRegistrar": "Офис регистратор",
         "admissionsOffice": "Приемная комиссия"
+    },
+    "activeRequest": {
+        "status": {
+            "waiting": {
+                "title": "Вы в очереди",
+                "subtitle": "Ожидайте вызова",
+                "badge": "Ожидает",
+                "message": "Следите за номером окна. Информация обновляется автоматически."
+            },
+            "calling": {
+                "title": "Вас вызывают",
+                "subtitle": "Подойдите к указанному окну",
+                "badge": "Подойдите к окну",
+                "message": "Пожалуйста, подойдите к вашему окну. Менеджер ожидает вас."
+            },
+            "serving": {
+                "title": "Идёт обслуживание",
+                "subtitle": "Ваша заявка сейчас обрабатывается",
+                "badge": "Обслуживание",
+                "message": "Вы уже на обслуживании. Дождитесь завершения работы менеджера."
+            },
+            "active": {
+                "title": "Активная заявка",
+                "subtitle": "Информация о вашей очереди",
+                "badge": "Активная",
+                "message": "Информация обновляется автоматически."
+            }
+        },
+        "ticket": {
+            "label": "Ваш талон"
+        },
+        "fields": {
+            "iin": "ИИН",
+            "service": "Услуга",
+            "window": "Окно",
+            "manager": "Менеджер",
+            "expectedAcceptanceTime": "Ожидаемое время",
+            "averageExecutionTime": "Среднее время",
+            "recordNumber": "Номер заявки",
+            "createdOn": "Создана"
+        },
+        "values": {
+            "waitForCall": "Ожидайте вызова",
+            "serviceNotSpecified": "Название услуги не указано",
+            "windowNotAssigned": "Ещё не назначено",
+            "managerNotAssigned": "Ещё не назначен",
+            "notSpecified": "Не указано",
+            "minutes": "{{count}} мин."
+        },
+        "actions": {
+            "cancelQueue": "Отказаться от очереди",
+            "checkAnotherIin": "Проверить другой ИИН"
+        },
+        "cancelDialog": {
+            "title": "Отказаться от очереди?",
+            "description": "Вы уверены, что хотите отменить талон №{{ticketNumber}}? После отказа заявка будет закрыта.",
+            "no": "Нет",
+            "confirm": "Да, отказаться"
+        }
+    },
+    "departmentServiceForm": {
+        "step": "Шаг 2 из 2",
+        "title": "Выберите услугу",
+        "description": "Сначала выберите подразделение, затем необходимую услугу.",
+        "fields": {
+            "department": "Подразделение",
+            "service": "Услуга"
+        },
+        "states": {
+            "loadingDepartments": "Загрузка подразделений...",
+            "departmentsNotFound": "Подразделения не найдены",
+            "selectDepartmentFirst": "Сначала выберите подразделение",
+            "loadingServices": "Загрузка услуг...",
+            "servicesNotFound": "Услуги не найдены"
+        },
+        "averageTime": "Среднее время: {{count}} мин.",
+        "actions": {
+            "createRequest": "Создать заявку",
+            "back": "Назад"
+        }
+    },
+    "iinCheckForm": {
+        "title": "Проверка заявки",
+        "description": "Введите ИИН, чтобы проверить наличие активной заявки.",
+        "fields": {
+            "iin": "ИИН",
+            "placeholder": "Введите 12 цифр",
+            "counter": "{{current}}/{{max}}"
+        },
+        "actions": {
+            "check": "Проверить"
+        }
+    },
+    "personalDataForm": {
+        "step": "Шаг 1 из 2",
+        "title": "Личные данные",
+        "description": "Активная заявка не найдена. Укажите данные пользователя.",
+        "fields": {
+            "lastName": "Фамилия",
+            "firstName": "Имя",
+            "surname": "Отчество"
+        },
+        "actions": {
+            "continue": "Продолжить",
+            "changeIin": "Изменить ИИН"
+        }
+    },
+    "serviceReviewForm": {
+        "title": "Обслуживание завершено",
+        "description": "Оцените качество полученной услуги",
+        "fields": {
+            "service": "Услуга",
+            "rating": "Ваша оценка",
+            "comment": "Комментарий",
+            "commentPlaceholder": "Расскажите о качестве обслуживания",
+            "commentCounter": "{{current}}/{{max}}"
+        },
+        "values": {
+            "serviceNotSpecified": "Название услуги не указано"
+        },
+        "ticketNumber": "Талон №{{ticketNumber}}",
+        "recordNumber": "Заявка #{{recordId}}",
+        "ratings": {
+            "1": "Очень плохо",
+            "2": "Плохо",
+            "3": "Нормально",
+            "4": "Хорошо",
+            "5": "Отлично"
+        },
+        "actions": {
+            "submit": "Отправить оценку",
+            "skip": "Пропустить"
+        }
+    },
+    "successRegistrationCard": {
+        "title": "Заявка создана",
+        "description": "Вы успешно зарегистрировались в электронной очереди.",
+        "ticketLabel": "Ваш талон",
+        "recordNumber": "Номер заявки: #{{recordId}}",
+        "actions": {
+            "createAnother": "Новая регистрация"
+        }
+    },
+    "newRegisterPage": {
+        "createdAnimation": {
+            "title": "Заявка создана",
+            "description": "Загружаем информацию о вашем талоне"
+        },
+        "errors": {
+            "invalidIin": "Введите корректный ИИН из 12 цифр",
+            "checkIin": "Не удалось проверить ИИН",
+            "loadDepartments": "Не удалось получить подразделения",
+            "loadServices": "Не удалось получить услуги",
+            "selectService": "Выберите услугу",
+            "fillRequiredFields": "Заполните фамилию и имя",
+            "ticketNotLoaded": "Заявка создана, но информация о талоне пока не загружена. Обновите страницу.",
+            "createRequest": "Не удалось создать заявку",
+            "activeRequestNotFound": "Активная заявка не найдена",
+            "cancelTokenMissing": "Отсутствует токен отмены заявки",
+            "cancelRequest": "Не удалось отказаться от очереди",
+            "reviewRequestNotFound": "Не удалось определить заявку",
+            "submitReview": "Не удалось отправить оценку"
+        }
     }
 }

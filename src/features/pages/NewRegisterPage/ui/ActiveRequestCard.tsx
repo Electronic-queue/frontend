@@ -9,6 +9,8 @@ import {
     DialogTitle,
     Typography,
 } from "@mui/material";
+import { TFunction } from "i18next";
+import { useTranslation } from "react-i18next";
 
 import { ActiveRequest } from "../model/types";
 
@@ -38,17 +40,20 @@ interface RequestStatusDesign {
     showCancelButton: boolean;
 }
 
-const getStatusDesign = (statusId: number): RequestStatusDesign => {
+const getStatusDesign = (
+    statusId: number,
+    t: TFunction
+): RequestStatusDesign => {
     switch (statusId) {
         case 1:
             return {
-                title: "Вы в очереди",
-                subtitle: "Ожидайте вызова",
-                badge: "Ожидает",
-                background: "linear-gradient(135deg, #3678dc 0%, #2159cc 100%)",
+                title: t("activeRequest.status.waiting.title"),
+                subtitle: t("activeRequest.status.waiting.subtitle"),
+                badge: t("activeRequest.status.waiting.badge"),
+                background:
+                    "linear-gradient(135deg, #3678dc 0%, #2159cc 100%)",
                 shadow: "0 14px 40px rgba(37, 99, 235, 0.18)",
-                message:
-                    "Следите за номером окна. Информация обновляется автоматически.",
+                message: t("activeRequest.status.waiting.message"),
                 messageBackground: "#eff6ff",
                 messageColor: "#1d4ed8",
                 showCancelButton: true,
@@ -56,13 +61,13 @@ const getStatusDesign = (statusId: number): RequestStatusDesign => {
 
         case 3:
             return {
-                title: "Вас вызывают",
-                subtitle: "Подойдите к указанному окну",
-                badge: "Подойдите к окну",
-                background: "linear-gradient(135deg, #f97316 0%, #ea580c 100%)",
+                title: t("activeRequest.status.calling.title"),
+                subtitle: t("activeRequest.status.calling.subtitle"),
+                badge: t("activeRequest.status.calling.badge"),
+                background:
+                    "linear-gradient(135deg, #f97316 0%, #ea580c 100%)",
                 shadow: "0 14px 40px rgba(234, 88, 12, 0.2)",
-                message:
-                    "Пожалуйста, подойдите к вашему окну. Менеджер ожидает вас.",
+                message: t("activeRequest.status.calling.message"),
                 messageBackground: "#fff7ed",
                 messageColor: "#c2410c",
                 showCancelButton: true,
@@ -70,13 +75,13 @@ const getStatusDesign = (statusId: number): RequestStatusDesign => {
 
         case 4:
             return {
-                title: "Идёт обслуживание",
-                subtitle: "Ваша заявка сейчас обрабатывается",
-                badge: "Обслуживание",
-                background: "linear-gradient(135deg, #16a34a 0%, #15803d 100%)",
+                title: t("activeRequest.status.serving.title"),
+                subtitle: t("activeRequest.status.serving.subtitle"),
+                badge: t("activeRequest.status.serving.badge"),
+                background:
+                    "linear-gradient(135deg, #16a34a 0%, #15803d 100%)",
                 shadow: "0 14px 40px rgba(22, 163, 74, 0.2)",
-                message:
-                    "Вы уже на обслуживании. Дождитесь завершения работы менеджера.",
+                message: t("activeRequest.status.serving.message"),
                 messageBackground: "#f0fdf4",
                 messageColor: "#15803d",
                 showCancelButton: false,
@@ -84,12 +89,13 @@ const getStatusDesign = (statusId: number): RequestStatusDesign => {
 
         default:
             return {
-                title: "Активная заявка",
-                subtitle: "Информация о вашей очереди",
-                badge: "Активная",
-                background: "linear-gradient(135deg, #3678dc 0%, #2159cc 100%)",
+                title: t("activeRequest.status.active.title"),
+                subtitle: t("activeRequest.status.active.subtitle"),
+                badge: t("activeRequest.status.active.badge"),
+                background:
+                    "linear-gradient(135deg, #3678dc 0%, #2159cc 100%)",
                 shadow: "0 14px 40px rgba(37, 99, 235, 0.18)",
-                message: "Информация обновляется автоматически.",
+                message: t("activeRequest.status.active.message"),
                 messageBackground: "#eff6ff",
                 messageColor: "#1d4ed8",
                 showCancelButton: false,
@@ -97,18 +103,34 @@ const getStatusDesign = (statusId: number): RequestStatusDesign => {
     }
 };
 
-const formatDate = (date?: string | null) => {
+const getDateLocale = (language: string) => {
+    if (language.startsWith("kk") || language.startsWith("kz")) {
+        return "kk-KZ";
+    }
+
+    if (language.startsWith("en")) {
+        return "en-US";
+    }
+
+    return "ru-RU";
+};
+
+const formatDate = (
+    date: string | null | undefined,
+    language: string,
+    fallback: string
+) => {
     if (!date) {
-        return "Не указано";
+        return fallback;
     }
 
     const parsedDate = new Date(date);
 
     if (Number.isNaN(parsedDate.getTime())) {
-        return "Не указано";
+        return fallback;
     }
 
-    return new Intl.DateTimeFormat("ru-RU", {
+    return new Intl.DateTimeFormat(getDateLocale(language), {
         day: "2-digit",
         month: "2-digit",
         year: "numeric",
@@ -117,30 +139,34 @@ const formatDate = (date?: string | null) => {
     }).format(parsedDate);
 };
 
-const formatExpectedTime = (date?: string | null) => {
+const formatExpectedTime = (
+    date: string | null | undefined,
+    language: string,
+    fallback: string
+) => {
     if (!date) {
-        return "Ожидайте вызова";
+        return fallback;
     }
 
     const parsedDate = new Date(date);
 
     if (Number.isNaN(parsedDate.getTime())) {
-        return "Ожидайте вызова";
+        return fallback;
     }
 
-    return new Intl.DateTimeFormat("ru-RU", {
+    return new Intl.DateTimeFormat(getDateLocale(language), {
         hour: "2-digit",
         minute: "2-digit",
     }).format(parsedDate);
 };
 
-const getManagerName = (data: ActiveRequest) => {
+const getManagerName = (data: ActiveRequest, fallback: string) => {
     const managerName = [data.managerLastName, data.managerFirstName]
         .filter(Boolean)
         .join(" ")
         .trim();
 
-    return managerName || "Ещё не назначен";
+    return managerName || fallback;
 };
 
 const InfoRow = ({ label, value, emphasized = false }: InfoRowProps) => {
@@ -194,9 +220,10 @@ export const ActiveRequestCard = ({
     onCheckAnotherIin,
     onCancelRequest,
 }: ActiveRequestCardProps) => {
+    const { t, i18n } = useTranslation();
     const [isConfirmOpen, setIsConfirmOpen] = useState(false);
 
-    const design = getStatusDesign(data.statusId);
+    const design = getStatusDesign(data.statusId, t);
 
     const handleConfirmCancel = async () => {
         await onCancelRequest();
@@ -291,7 +318,8 @@ export const ActiveRequestCard = ({
                                     px: 1.3,
                                     py: 0.7,
                                     borderRadius: "999px",
-                                    backgroundColor: "rgba(255,255,255,0.18)",
+                                    backgroundColor:
+                                        "rgba(255,255,255,0.18)",
                                     backdropFilter: "blur(8px)",
                                 }}
                             >
@@ -314,7 +342,7 @@ export const ActiveRequestCard = ({
                                 opacity: 0.85,
                             }}
                         >
-                            Ваш талон
+                            {t("activeRequest.ticket.label")}
                         </Typography>
 
                         <Typography
@@ -341,7 +369,8 @@ export const ActiveRequestCard = ({
                                 sx={{
                                     p: 1.4,
                                     borderRadius: "15px",
-                                    backgroundColor: "rgba(255,255,255,0.13)",
+                                    backgroundColor:
+                                        "rgba(255,255,255,0.13)",
                                     backdropFilter: "blur(8px)",
                                 }}
                             >
@@ -351,7 +380,7 @@ export const ActiveRequestCard = ({
                                         opacity: 0.8,
                                     }}
                                 >
-                                    Окно
+                                    {t("activeRequest.fields.window")}
                                 </Typography>
 
                                 <Typography
@@ -370,7 +399,8 @@ export const ActiveRequestCard = ({
                                 sx={{
                                     p: 1.4,
                                     borderRadius: "15px",
-                                    backgroundColor: "rgba(255,255,255,0.13)",
+                                    backgroundColor:
+                                        "rgba(255,255,255,0.13)",
                                     backdropFilter: "blur(8px)",
                                 }}
                             >
@@ -380,7 +410,9 @@ export const ActiveRequestCard = ({
                                         opacity: 0.8,
                                     }}
                                 >
-                                    Ожидаемое время
+                                    {t(
+                                        "activeRequest.fields.expectedAcceptanceTime"
+                                    )}
                                 </Typography>
 
                                 <Typography
@@ -392,7 +424,9 @@ export const ActiveRequestCard = ({
                                     }}
                                 >
                                     {formatExpectedTime(
-                                        data.expectedAcceptanceTime
+                                        data.expectedAcceptanceTime,
+                                        i18n.language,
+                                        t("activeRequest.values.waitForCall")
                                     )}
                                 </Typography>
                             </Box>
@@ -419,7 +453,7 @@ export const ActiveRequestCard = ({
                             color: "#64748b",
                         }}
                     >
-                        ИИН: {data.iin}
+                        {t("activeRequest.fields.iin")}: {data.iin}
                     </Typography>
 
                     <Box
@@ -438,7 +472,7 @@ export const ActiveRequestCard = ({
                                 color: "#64748b",
                             }}
                         >
-                            Услуга
+                            {t("activeRequest.fields.service")}
                         </Typography>
 
                         <Typography
@@ -449,7 +483,8 @@ export const ActiveRequestCard = ({
                                 lineHeight: 1.4,
                             }}
                         >
-                            {data.serviceNameRu || "Название услуги не указано"}
+                            {data.serviceNameRu ||
+                                t("activeRequest.values.serviceNotSpecified")}
                         </Typography>
                     </Box>
 
@@ -462,40 +497,55 @@ export const ActiveRequestCard = ({
                         }}
                     >
                         <InfoRow
-                            label="Окно"
+                            label={t("activeRequest.fields.window")}
                             value={
-                                data.windowNumber !== null
+                                data.windowNumber !== null &&
+                                data.windowNumber !== undefined
                                     ? String(data.windowNumber)
-                                    : "Ещё не назначено"
+                                    : t(
+                                          "activeRequest.values.windowNotAssigned"
+                                      )
                             }
                             emphasized={
                                 data.statusId === 3 &&
-                                data.windowNumber !== null
+                                data.windowNumber !== null &&
+                                data.windowNumber !== undefined
                             }
                         />
 
                         <InfoRow
-                            label="Менеджер"
-                            value={getManagerName(data)}
+                            label={t("activeRequest.fields.manager")}
+                            value={getManagerName(
+                                data,
+                                t("activeRequest.values.managerNotAssigned")
+                            )}
                         />
 
                         <InfoRow
-                            label="Среднее время"
+                            label={t(
+                                "activeRequest.fields.averageExecutionTime"
+                            )}
                             value={
                                 data.averageExecutionTime > 0
-                                    ? `${data.averageExecutionTime} мин.`
-                                    : "Не указано"
+                                    ? t("activeRequest.values.minutes", {
+                                          count: data.averageExecutionTime,
+                                      })
+                                    : t("activeRequest.values.notSpecified")
                             }
                         />
 
                         <InfoRow
-                            label="Номер заявки"
+                            label={t("activeRequest.fields.recordNumber")}
                             value={`#${data.recordId}`}
                         />
 
                         <InfoRow
-                            label="Создана"
-                            value={formatDate(data.createdOn)}
+                            label={t("activeRequest.fields.createdOn")}
+                            value={formatDate(
+                                data.createdOn,
+                                i18n.language,
+                                t("activeRequest.values.notSpecified")
+                            )}
                         />
                     </Box>
 
@@ -556,14 +606,15 @@ export const ActiveRequestCard = ({
                                 fontSize: 14,
                                 fontWeight: 750,
                                 backgroundColor: "#dc2626",
-                                boxShadow: "0 8px 18px rgba(220,38,38,0.20)",
+                                boxShadow:
+                                    "0 8px 18px rgba(220,38,38,0.20)",
 
                                 "&:hover": {
                                     backgroundColor: "#b91c1c",
                                 },
                             }}
                         >
-                            Отказаться от очереди
+                            {t("activeRequest.actions.cancelQueue")}
                         </Button>
                     )}
 
@@ -585,7 +636,7 @@ export const ActiveRequestCard = ({
                             },
                         }}
                     >
-                        Проверить другой ИИН
+                        {t("activeRequest.actions.checkAnotherIin")}
                     </Button>
                 </Box>
             </Box>
@@ -616,7 +667,7 @@ export const ActiveRequestCard = ({
                         color: "#111827",
                     }}
                 >
-                    Отказаться от очереди?
+                    {t("activeRequest.cancelDialog.title")}
                 </DialogTitle>
 
                 <DialogContent sx={{ px: 2.5 }}>
@@ -627,8 +678,9 @@ export const ActiveRequestCard = ({
                             color: "#64748b",
                         }}
                     >
-                        Вы уверены, что хотите отменить талон №
-                        {data.ticketNumber}? После отказа заявка будет закрыта.
+                        {t("activeRequest.cancelDialog.description", {
+                            ticketNumber: data.ticketNumber,
+                        })}
                     </Typography>
                 </DialogContent>
 
@@ -654,7 +706,7 @@ export const ActiveRequestCard = ({
                             backgroundColor: "#f1f5f9",
                         }}
                     >
-                        Нет
+                        {t("activeRequest.cancelDialog.no")}
                     </Button>
 
                     <Button
@@ -677,7 +729,7 @@ export const ActiveRequestCard = ({
                         {isCancelling ? (
                             <CircularProgress size={21} color="inherit" />
                         ) : (
-                            "Да, отказаться"
+                            t("activeRequest.cancelDialog.confirm")
                         )}
                     </Button>
                 </DialogActions>

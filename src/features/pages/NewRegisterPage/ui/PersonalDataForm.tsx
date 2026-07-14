@@ -1,4 +1,6 @@
 import { Box, Button, TextField, Typography } from "@mui/material";
+import { useTranslation } from "react-i18next";
+
 import { StudentFormData } from "../model/types";
 import { inputStyles, primaryButtonStyles } from "./commonStyles";
 
@@ -17,8 +19,11 @@ export const PersonalDataForm = ({
     onSubmit,
     onBack,
 }: PersonalDataFormProps) => {
+    const { t } = useTranslation();
+
     const isValid =
-        form.lastName.trim().length > 0 && form.firstName.trim().length > 0;
+        form.lastName.trim().length > 0 &&
+        form.firstName.trim().length > 0;
 
     return (
         <Box>
@@ -27,10 +32,11 @@ export const PersonalDataForm = ({
                     fontSize: 13,
                     color: "#356fbd",
                     fontWeight: 700,
+                     fontFamily: '"Arial", "Roboto", sans-serif',
                     mb: 0.8,
                 }}
             >
-                Шаг 1 из 2
+                {t("personalDataForm.step")}
             </Typography>
 
             <Typography
@@ -39,9 +45,10 @@ export const PersonalDataForm = ({
                     fontWeight: 800,
                     color: "#111827",
                     mb: 0.7,
+                     fontFamily: '"Arial", "Roboto", sans-serif',
                 }}
             >
-                Личные данные
+                {t("personalDataForm.title")}
             </Typography>
 
             <Typography
@@ -52,7 +59,7 @@ export const PersonalDataForm = ({
                     mb: 2.5,
                 }}
             >
-                Активная заявка не найдена. Укажите данные пользователя.
+                {t("personalDataForm.description")}
             </Typography>
 
             <Box
@@ -73,7 +80,7 @@ export const PersonalDataForm = ({
                 <TextField
                     required
                     fullWidth
-                    label="Фамилия"
+                    label={t("personalDataForm.fields.lastName")}
                     value={form.lastName}
                     disabled={isLoading}
                     onChange={(event) =>
@@ -85,7 +92,7 @@ export const PersonalDataForm = ({
                 <TextField
                     required
                     fullWidth
-                    label="Имя"
+                    label={t("personalDataForm.fields.firstName")}
                     value={form.firstName}
                     disabled={isLoading}
                     onChange={(event) =>
@@ -96,7 +103,7 @@ export const PersonalDataForm = ({
 
                 <TextField
                     fullWidth
-                    label="Отчество"
+                    label={t("personalDataForm.fields.surname")}
                     value={form.surname}
                     disabled={isLoading}
                     onChange={(event) =>
@@ -115,7 +122,7 @@ export const PersonalDataForm = ({
                         mt: 0.5,
                     }}
                 >
-                    Продолжить
+                    {t("personalDataForm.actions.continue")}
                 </Button>
 
                 <Button
@@ -130,7 +137,7 @@ export const PersonalDataForm = ({
                         color: "#64748b",
                     }}
                 >
-                    Изменить ИИН
+                    {t("personalDataForm.actions.changeIin")}
                 </Button>
             </Box>
         </Box>

@@ -128,5 +128,168 @@
     "i18n_landing": {
         "officeRegistrar": "Офис тіркеушісі",
         "admissionsOffice": "Қабылдау комиссиясы"
+    },
+    "activeRequest": {
+        "status": {
+            "waiting": {
+                "title": "Сіз кезектесіз",
+                "subtitle": "Шақыруды күтіңіз",
+                "badge": "Күтуде",
+                "message": "Терезе нөмірін бақылап отырыңыз. Ақпарат автоматты түрде жаңартылады."
+            },
+            "calling": {
+                "title": "Сізді шақырып жатыр",
+                "subtitle": "Көрсетілген терезеге барыңыз",
+                "badge": "Терезеге барыңыз",
+                "message": "Өз терезеңізге барыңыз. Менеджер сізді күтіп отыр."
+            },
+            "serving": {
+                "title": "Қызмет көрсетілуде",
+                "subtitle": "Сіздің өтінішіңіз қазір өңделуде",
+                "badge": "Қызмет көрсетілуде",
+                "message": "Сізге қызмет көрсетіліп жатыр. Менеджер жұмысын аяқтағанша күтіңіз."
+            },
+            "active": {
+                "title": "Белсенді өтініш",
+                "subtitle": "Кезегіңіз туралы ақпарат",
+                "badge": "Белсенді",
+                "message": "Ақпарат автоматты түрде жаңартылады."
+            }
+        },
+        "ticket": {
+            "label": "Сіздің талоныңыз"
+        },
+        "fields": {
+            "iin": "ЖСН",
+            "service": "Қызмет",
+            "window": "Терезе",
+            "manager": "Менеджер",
+            "expectedAcceptanceTime": "Болжамды уақыт",
+            "averageExecutionTime": "Орташа уақыт",
+            "recordNumber": "Өтініш нөмірі",
+            "createdOn": "Құрылған уақыты"
+        },
+        "values": {
+            "waitForCall": "Шақыруды күтіңіз",
+            "serviceNotSpecified": "Қызмет атауы көрсетілмеген",
+            "windowNotAssigned": "Әлі тағайындалмаған",
+            "managerNotAssigned": "Әлі тағайындалмаған",
+            "notSpecified": "Көрсетілмеген",
+            "minutes": "{{count}} мин."
+        },
+        "actions": {
+            "cancelQueue": "Кезектен бас тарту",
+            "checkAnotherIin": "Басқа ЖСН-ді тексеру"
+        },
+        "cancelDialog": {
+            "title": "Кезектен бас тартасыз ба?",
+            "description": "№{{ticketNumber}} талонын жойғыңыз келетініне сенімдісіз бе? Бас тартқаннан кейін өтініш жабылады.",
+            "no": "Жоқ",
+            "confirm": "Иә, бас тарту"
+        }
+    },
+    "departmentServiceForm": {
+        "step": "2 қадамның 2-сі",
+        "title": "Қызметті таңдаңыз",
+        "description": "Алдымен бөлімшені, содан кейін қажетті қызметті таңдаңыз.",
+        "fields": {
+            "department": "Бөлімше",
+            "service": "Қызмет"
+        },
+        "states": {
+            "loadingDepartments": "Бөлімшелер жүктелуде...",
+            "departmentsNotFound": "Бөлімшелер табылмады",
+            "selectDepartmentFirst": "Алдымен бөлімшені таңдаңыз",
+            "loadingServices": "Қызметтер жүктелуде...",
+            "servicesNotFound": "Қызметтер табылмады"
+        },
+        "averageTime": "Орташа уақыт: {{count}} мин.",
+        "actions": {
+            "createRequest": "Өтініш құру",
+            "back": "Артқа"
+        }
+    },
+    "iinCheckForm": {
+        "title": "Өтінішті тексеру",
+        "description": "Белсенді өтініштің бар-жоғын тексеру үшін ЖСН енгізіңіз.",
+        "fields": {
+            "iin": "ЖСН",
+            "placeholder": "12 санды енгізіңіз",
+            "counter": "{{current}}/{{max}}"
+        },
+        "actions": {
+            "check": "Тексеру"
+        }
+    },
+    "personalDataForm": {
+        "step": "2 қадамның 1-сі",
+        "title": "Жеке мәліметтер",
+        "description": "Белсенді өтініш табылмады. Пайдаланушының мәліметтерін енгізіңіз.",
+        "fields": {
+            "lastName": "Тегі",
+            "firstName": "Аты",
+            "surname": "Әкесінің аты"
+        },
+        "actions": {
+            "continue": "Жалғастыру",
+            "changeIin": "ЖСН-ді өзгерту"
+        }
+    },
+    "serviceReviewForm": {
+        "title": "Қызмет көрсету аяқталды",
+        "description": "Алынған қызметтің сапасын бағалаңыз",
+        "fields": {
+            "service": "Қызмет",
+            "rating": "Сіздің бағаңыз",
+            "comment": "Пікір",
+            "commentPlaceholder": "Қызмет көрсету сапасы туралы айтып беріңіз",
+            "commentCounter": "{{current}}/{{max}}"
+        },
+        "values": {
+            "serviceNotSpecified": "Қызмет атауы көрсетілмеген"
+        },
+        "ticketNumber": "Талон №{{ticketNumber}}",
+        "recordNumber": "Өтініш #{{recordId}}",
+        "ratings": {
+            "1": "Өте нашар",
+            "2": "Нашар",
+            "3": "Қалыпты",
+            "4": "Жақсы",
+            "5": "Өте жақсы"
+        },
+        "actions": {
+            "submit": "Бағаны жіберу",
+            "skip": "Өткізіп жіберу"
+        }
+    },
+    "successRegistrationCard": {
+        "title": "Өтініш құрылды",
+        "description": "Сіз электрондық кезекке сәтті тіркелдіңіз.",
+        "ticketLabel": "Сіздің талоныңыз",
+        "recordNumber": "Өтініш нөмірі: #{{recordId}}",
+        "actions": {
+            "createAnother": "Жаңа тіркелу"
+        }
+    },
+    "newRegisterPage": {
+        "createdAnimation": {
+            "title": "Өтініш құрылды",
+            "description": "Талоныңыз туралы ақпарат жүктелуде"
+        },
+        "errors": {
+            "invalidIin": "12 цифрдан тұратын дұрыс ЖСН енгізіңіз",
+            "checkIin": "ЖСН-ді тексеру мүмкін болмады",
+            "loadDepartments": "Бөлімшелерді жүктеу мүмкін болмады",
+            "loadServices": "Қызметтерді жүктеу мүмкін болмады",
+            "selectService": "Қызметті таңдаңыз",
+            "fillRequiredFields": "Тегіңіз бен атыңызды енгізіңіз",
+            "ticketNotLoaded": "Өтініш құрылды, бірақ талон туралы ақпарат әлі жүктелмеді. Бетті жаңартыңыз.",
+            "createRequest": "Өтінішті құру мүмкін болмады",
+            "activeRequestNotFound": "Белсенді өтініш табылмады",
+            "cancelTokenMissing": "Өтініштен бас тарту токені жоқ",
+            "cancelRequest": "Кезектен бас тарту мүмкін болмады",
+            "reviewRequestNotFound": "Өтінішті анықтау мүмкін болмады",
+            "submitReview": "Бағаны жіберу мүмкін болмады"
+        }
     }
 }

@@ -15,8 +15,6 @@ import Alert from "@mui/material/Alert";
 import Tooltip from "@mui/material/Tooltip"; // Добавил тултип
 import FreeBreakfastIcon from '@mui/icons-material/FreeBreakfast'; // Иконка Кофе
 import NotificationsNoneIcon from "@mui/icons-material/NotificationsNone";
-import Brightness4Icon from "@mui/icons-material/Brightness4";
-import Brightness7Icon from "@mui/icons-material/Brightness7";
 import { Typography, Box } from "@mui/material";
 
 // Импорты компонентов паузы
@@ -31,7 +29,7 @@ import LanguageSwitcher from "src/components/LanguageSwitcher";
 import { MediaContext } from "src/features/MediaProvider";
 import connection from "src/features/signalR";
 import { useGetManagerIdQuery, usePauseWindowMutation } from "src/store/managerApi";
-import { ColorModeContext } from "src/features/ThemeContext";
+
 import i18n from "src/i18n";
 import { RootState } from "src/store/store";
 
@@ -113,7 +111,6 @@ const Header: FC = () => {
     const dispatch = useDispatch();
     const { isAuthenticated } = useSelector((state: RootState) => state.auth);
     const theme = useTheme();
-    const colorMode = useContext(ColorModeContext);
     
     // --- Логика Паузы ---
     const [selectedTime, setSelectedTime] = useState<number>(1);
@@ -301,9 +298,7 @@ const Header: FC = () => {
                             </IconButton>
                         </NotificationBadge>
                         
-                        <IconButton onClick={colorMode.toggleColorMode} color="inherit">
-                            {theme.palette.mode === 'dark' ? <Brightness7Icon sx={{ color: "#3A6CB4", width: "30px", height: "40px" }} /> : <Brightness4Icon sx={{ color: "#3A6CB4" }} />}
-                        </IconButton>
+                
                         
                         <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
                             {isAuthenticated && windowInfo && (
@@ -386,9 +381,7 @@ const Header: FC = () => {
                     </>
                 ) : (
                     <>
-                        <IconButton onClick={colorMode.toggleColorMode} color="inherit">
-                            {theme.palette.mode === 'dark' ? <Brightness7Icon sx={{ color: "#3A6CB4", width: "30px", height: "40px" }} /> : <Brightness4Icon sx={{ color: "#3A6CB4" }} />}
-                        </IconButton>
+                     
                         <NotificationBadge badgeContent={notifications.length} color="primary">
                             <IconButton onClick={handleNotificationClick}>
                                 <StyledNotificationCircle>

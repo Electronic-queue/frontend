@@ -1,4 +1,6 @@
 import { Box, Button, Typography } from "@mui/material";
+import { useTranslation } from "react-i18next";
+
 import { CreatedRecordResponse } from "../model/types";
 
 interface SuccessRegistrationCardProps {
@@ -10,6 +12,8 @@ export const SuccessRegistrationCard = ({
     data,
     onCreateAnother,
 }: SuccessRegistrationCardProps) => {
+    const { t } = useTranslation();
+
     return (
         <Box
             sx={{
@@ -48,7 +52,7 @@ export const SuccessRegistrationCard = ({
                     color: "#111827",
                 }}
             >
-                Заявка создана
+                {t("successRegistrationCard.title")}
             </Typography>
 
             <Typography
@@ -59,7 +63,7 @@ export const SuccessRegistrationCard = ({
                     color: "#64748b",
                 }}
             >
-                Вы успешно зарегистрировались в электронной очереди.
+                {t("successRegistrationCard.description")}
             </Typography>
 
             {data?.ticketNumber !== undefined && (
@@ -80,7 +84,7 @@ export const SuccessRegistrationCard = ({
                             opacity: 0.9,
                         }}
                     >
-                        Ваш талон
+                        {t("successRegistrationCard.ticketLabel")}
                     </Typography>
 
                     <Typography
@@ -104,7 +108,9 @@ export const SuccessRegistrationCard = ({
                         color: "#64748b",
                     }}
                 >
-                    Номер заявки: #{data.recordId}
+                    {t("successRegistrationCard.recordNumber", {
+                        recordId: data.recordId,
+                    })}
                 </Typography>
             )}
 
@@ -125,7 +131,7 @@ export const SuccessRegistrationCard = ({
                     },
                 }}
             >
-                Новая регистрация
+                {t("successRegistrationCard.actions.createAnother")}
             </Button>
         </Box>
     );

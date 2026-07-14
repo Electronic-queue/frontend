@@ -6,6 +6,8 @@ import {
     TextField,
     Typography,
 } from "@mui/material";
+import { useTranslation } from "react-i18next";
+
 import { QueueType, Service } from "../model/types";
 import { inputStyles, primaryButtonStyles } from "./commonStyles";
 
@@ -28,6 +30,88 @@ interface DepartmentServiceFormProps {
     onBack: () => void;
 }
 
+interface LocalizedNames {
+    nameRu?: string | null;
+    nameEn?: string | null;
+    nameKk?: string | null;
+}
+
+interface LocalizedDescriptions {
+    descriptionRu?: string | null;
+    descriptionEn?: string | null;
+    descriptionKk?: string | null;
+}
+
+const getLocalizedName = (
+    item: LocalizedNames,
+    language: string
+): string => {
+    const normalizedLanguage = language.toLowerCase();
+
+    if (
+        normalizedLanguage.startsWith("kk") ||
+        normalizedLanguage.startsWith("kz")
+    ) {
+        return (
+            item.nameKk?.trim() ||
+            item.nameRu?.trim() ||
+            item.nameEn?.trim() ||
+            ""
+        );
+    }
+
+    if (normalizedLanguage.startsWith("en")) {
+        return (
+            item.nameEn?.trim() ||
+            item.nameRu?.trim() ||
+            item.nameKk?.trim() ||
+            ""
+        );
+    }
+
+    return (
+        item.nameRu?.trim() ||
+        item.nameKk?.trim() ||
+        item.nameEn?.trim() ||
+        ""
+    );
+};
+
+const getLocalizedDescription = (
+    item: LocalizedDescriptions,
+    language: string
+): string => {
+    const normalizedLanguage = language.toLowerCase();
+
+    if (
+        normalizedLanguage.startsWith("kk") ||
+        normalizedLanguage.startsWith("kz")
+    ) {
+        return (
+            item.descriptionKk?.trim() ||
+            item.descriptionRu?.trim() ||
+            item.descriptionEn?.trim() ||
+            ""
+        );
+    }
+
+    if (normalizedLanguage.startsWith("en")) {
+        return (
+            item.descriptionEn?.trim() ||
+            item.descriptionRu?.trim() ||
+            item.descriptionKk?.trim() ||
+            ""
+        );
+    }
+
+    return (
+        item.descriptionRu?.trim() ||
+        item.descriptionKk?.trim() ||
+        item.descriptionEn?.trim() ||
+        ""
+    );
+};
+
 export const DepartmentServiceForm = ({
     queueTypes,
     services,
@@ -42,7 +126,10 @@ export const DepartmentServiceForm = ({
     onSubmit,
     onBack,
 }: DepartmentServiceFormProps) => {
-    const isLoading = isQueueTypesLoading || isServicesLoading || isCreating;
+    const { t, i18n } = useTranslation();
+
+    const isLoading =
+        isQueueTypesLoading || isServicesLoading || isCreating;
 
     return (
         <Box>
@@ -54,7 +141,7 @@ export const DepartmentServiceForm = ({
                     mb: 0.8,
                 }}
             >
-                Шаг 2 из 2
+                {t("departmentServiceForm.step")}
             </Typography>
 
             <Typography
@@ -63,9 +150,10 @@ export const DepartmentServiceForm = ({
                     fontWeight: 800,
                     color: "#111827",
                     mb: 0.7,
+                     fontFamily: '"Arial", "Roboto", sans-serif',
                 }}
             >
-                Выберите услугу
+                {t("departmentServiceForm.title")}
             </Typography>
 
             <Typography
@@ -76,7 +164,7 @@ export const DepartmentServiceForm = ({
                     mb: 2.5,
                 }}
             >
-                Сначала выберите подразделение, затем необходимую услугу.
+                {t("departmentServiceForm.description")}
             </Typography>
 
             <Box
@@ -98,10 +186,12 @@ export const DepartmentServiceForm = ({
                     select
                     required
                     fullWidth
-                    label="Подразделение"
+                    label={t("departmentServiceForm.fields.department")}
                     value={selectedQueueTypeId}
                     disabled={isQueueTypesLoading || isCreating}
-                    onChange={(event) => onQueueTypeChange(event.target.value)}
+                    onChange={(event) =>
+                        onQueueTypeChange(event.target.value)
+                    }
                     sx={inputStyles}
                     SelectProps={{
                         MenuProps: {
@@ -116,28 +206,43 @@ export const DepartmentServiceForm = ({
                 >
                     {isQueueTypesLoading && (
                         <MenuItem disabled value="">
-                            Загрузка подразделений...
+                            {t(
+                                "departmentServiceForm.states.loadingDepartments"
+                            )}
                         </MenuItem>
                     )}
 
-                    {!isQueueTypesLoading && queueTypes.length === 0 && (
-                        <MenuItem disabled value="">
-                            Подразделения не найдены
-                        </MenuItem>
-                    )}
+                    {!isQueueTypesLoading &&
+                        queueTypes.length === 0 && (
+                            <MenuItem disabled value="">
+                                {t(
+                                    "departmentServiceForm.states.departmentsNotFound"
+                                )}
+                            </MenuItem>
+                        )}
 
-                    {queueTypes.map((queueType) => (
-                        <MenuItem
-                            key={queueType.queueTypeId}
-                            value={queueType.queueTypeId}
-                            sx={{
-                                whiteSpace: "normal",
-                                py: 1.3,
-                            }}
-                        >
-                            {queueType.nameRu.trim()}
-                        </MenuItem>
-                    ))}
+                    {queueTypes.map((queueType) => {
+                        const queueTypeName = getLocalizedName(
+                            queueType,
+                            i18n.language
+                        );
+
+                        return (
+                            <MenuItem
+                                key={queueType.queueTypeId}
+                                value={queueType.queueTypeId}
+                                sx={{
+                                    whiteSpace: "normal",
+                                    py: 1.3,
+                                }}
+                            >
+                                {queueTypeName ||
+                                    t(
+                                        "departmentServiceForm.values.nameNotSpecified"
+                                    )}
+                            </MenuItem>
+                        );
+                    })}
                 </TextField>
 
                 <Box sx={{ position: "relative" }}>
@@ -145,7 +250,9 @@ export const DepartmentServiceForm = ({
                         select
                         required
                         fullWidth
-                        label="Услуга"
+                        label={t(
+                            "departmentServiceForm.fields.service"
+                        )}
                         value={selectedServiceId}
                         disabled={
                             !selectedQueueTypeId ||
@@ -169,60 +276,101 @@ export const DepartmentServiceForm = ({
                     >
                         {!selectedQueueTypeId && (
                             <MenuItem disabled value="">
-                                Сначала выберите подразделение
+                                {t(
+                                    "departmentServiceForm.states.selectDepartmentFirst"
+                                )}
                             </MenuItem>
                         )}
 
-                        {selectedQueueTypeId && isServicesLoading && (
-                            <MenuItem disabled value="">
-                                Загрузка услуг...
-                            </MenuItem>
-                        )}
+                        {selectedQueueTypeId &&
+                            isServicesLoading && (
+                                <MenuItem disabled value="">
+                                    {t(
+                                        "departmentServiceForm.states.loadingServices"
+                                    )}
+                                </MenuItem>
+                            )}
 
                         {selectedQueueTypeId &&
                             !isServicesLoading &&
                             services.length === 0 && (
                                 <MenuItem disabled value="">
-                                    Услуги не найдены
+                                    {t(
+                                        "departmentServiceForm.states.servicesNotFound"
+                                    )}
                                 </MenuItem>
                             )}
 
-                        {services.map((service) => (
-                            <MenuItem
-                                key={service.serviceId}
-                                value={service.serviceId}
-                                sx={{
-                                    alignItems: "flex-start",
-                                    whiteSpace: "normal",
-                                    py: 1.3,
-                                }}
-                            >
-                                <Box>
-                                    <Typography
-                                        sx={{
-                                            fontSize: 14,
-                                            fontWeight: 600,
-                                            lineHeight: 1.4,
-                                        }}
-                                    >
-                                        {service.nameRu}
-                                    </Typography>
+                        {services.map((service) => {
+                            const serviceName = getLocalizedName(
+                                service,
+                                i18n.language
+                            );
 
-                                    {service.averageExecutionTime > 0 && (
+                            const serviceDescription =
+                                getLocalizedDescription(
+                                    service,
+                                    i18n.language
+                                );
+
+                            return (
+                                <MenuItem
+                                    key={service.serviceId}
+                                    value={service.serviceId}
+                                    sx={{
+                                        alignItems: "flex-start",
+                                        whiteSpace: "normal",
+                                        py: 1.3,
+                                    }}
+                                >
+                                    <Box>
                                         <Typography
                                             sx={{
-                                                mt: 0.3,
-                                                fontSize: 12,
-                                                color: "#64748b",
+                                                fontSize: 14,
+                                                fontWeight: 600,
+                                                lineHeight: 1.4,
                                             }}
                                         >
-                                            Среднее время:{" "}
-                                            {service.averageExecutionTime} мин.
+                                            {serviceName ||
+                                                t(
+                                                    "departmentServiceForm.values.nameNotSpecified"
+                                                )}
                                         </Typography>
-                                    )}
-                                </Box>
-                            </MenuItem>
-                        ))}
+
+                                        {serviceDescription && (
+                                            <Typography
+                                                sx={{
+                                                    mt: 0.35,
+                                                    fontSize: 12,
+                                                    lineHeight: 1.4,
+                                                    color: "#64748b",
+                                                }}
+                                            >
+                                                {serviceDescription}
+                                            </Typography>
+                                        )}
+
+                                        {service.averageExecutionTime >
+                                            0 && (
+                                            <Typography
+                                                sx={{
+                                                    mt: 0.4,
+                                                    fontSize: 12,
+                                                    color: "#64748b",
+                                                }}
+                                            >
+                                                {t(
+                                                    "departmentServiceForm.averageTime",
+                                                    {
+                                                        count: service.averageExecutionTime,
+                                                    }
+                                                )}
+                                            </Typography>
+                                        )}
+                                    </Box>
+                                </MenuItem>
+                            );
+                        })}
                     </TextField>
 
                     {isServicesLoading && (
@@ -271,9 +419,14 @@ export const DepartmentServiceForm = ({
                     }}
                 >
                     {isCreating ? (
-                        <CircularProgress size={23} color="inherit" />
+                        <CircularProgress
+                            size={23}
+                            color="inherit"
+                        />
                     ) : (
-                        "Создать заявку"
+                        t(
+                            "departmentServiceForm.actions.createRequest"
+                        )
                     )}
                 </Button>
 
@@ -289,7 +442,7 @@ export const DepartmentServiceForm = ({
                         color: "#64748b",
                     }}
                 >
-                    Назад
+                    {t("departmentServiceForm.actions.back")}
                 </Button>
             </Box>
         </Box>
