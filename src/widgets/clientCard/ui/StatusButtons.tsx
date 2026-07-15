@@ -18,7 +18,8 @@ import i18n from "src/i18n";
 
 interface StatusButtonsProps {
     status: string;
-    callNext: () => void;
+    recordId: number;
+    callNext: (recordId: number) => void;
     onAccept: () => void;
     onComplete: () => void;
     onRedirect: (serviceIdRedirect: string) => void;
@@ -26,7 +27,7 @@ interface StatusButtonsProps {
 }
 
 const MainWrapper = styled(Box)(({ theme }) => ({
-    display: "flex",
+    display: "flex",    
     flexDirection: "column",
     gap: theme.spacing(2),
 }));
@@ -46,9 +47,10 @@ const ButtonContent = styled(Box)({
 
 const currentLanguage = i18n.language || "ru";
 
-const IdleButton: FC<{ callNext: () => void; isLoading: boolean }> = ({
+const IdleButton: FC<{ callNext: (recordId: number) => void; isLoading: boolean; recordId: number; }> = ({
     callNext,
     isLoading,
+    recordId
 }) => {
     const { t } = useTranslation();
 
@@ -56,7 +58,7 @@ const IdleButton: FC<{ callNext: () => void; isLoading: boolean }> = ({
         <CustomButton
             variantType="primary"
             sizeType="small"
-            onClick={callNext}
+            onClick={() => callNext(recordId)}
             disabled={isLoading}
         >
             <ButtonContent>
@@ -132,9 +134,10 @@ const AcceptedButtons: FC<{
 
 const RedirectModal: FC<{
     open: boolean;
+    recordId: number;
     onClose: () => void;
     onSuccess: (id: string) => void;
-}> = ({ open, onClose, onSuccess }) => {
+}> = ({ open, recordId, onClose, onSuccess }) => {
     const { t } = useTranslation();
 
     const [searchValue, setSearchValue] = useState("");
@@ -156,13 +159,20 @@ const RedirectModal: FC<{
     const handleFinalServiceSubmit = async () => {
         if (!selectedServiceId) return;
 
+        if (recordId == null) {
+            console.error("Не найден recordId клиента");
+            return;
+        }
+
         try {
             await redirectClient({
                 serviceId: selectedServiceId,
+                recordId,
             }).unwrap();
 
             await updateClientService({
                 serviceId: selectedServiceId,
+                recordId,
             }).unwrap();
 
             onSuccess(selectedServiceId);
@@ -269,6 +279,7 @@ const StatusButtons: FC<StatusButtonsProps> = (props) => {
                         case "idle":
                             return (
                                 <IdleButton
+                                    recordId={props.recordId}
                                     callNext={props.callNext}
                                     isLoading={props.isLoading}
                                 />
@@ -301,6 +312,7 @@ const StatusButtons: FC<StatusButtonsProps> = (props) => {
 
             <RedirectModal
                 open={isRedirectModalOpen}
+                recordId={props.recordId}
                 onClose={() => setIsRedirectModalOpen(false)}
                 onSuccess={props.onRedirect}
             />

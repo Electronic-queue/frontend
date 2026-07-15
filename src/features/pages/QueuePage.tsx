@@ -29,6 +29,7 @@ import { logout } from "src/store/authSlice";
 type StatusType = "idle" | "called" | "accepted" | "redirected";
 
 type ClientData = {
+    recordId: any;
     clientNumber: number;
     ticketNumber: number;
     lastName: string | null;
@@ -475,10 +476,20 @@ const QueuePage: FC = () => {
     ]);
 
     const handleAcceptClient = async () => {
-        try {
-            await acceptClient({}).unwrap();
+        const recordId = displayClientObj?.recordId;
 
-            // Получаем новый statusId через GET
+        if (recordId == null) {
+            setSnackbar({
+                open: true,
+                message: "Не найден recordId клиента",
+                severity: "error",
+            });
+            return;
+        }
+
+        try {
+            await acceptClient(recordId).unwrap();
+
             await fetchManagerRecords();
 
             setSnackbar({
@@ -505,13 +516,22 @@ const QueuePage: FC = () => {
     const handleRedirectClient = async (
         serviceIdRedirect: string
     ) => {
-        console.log(
-            "Клиент перенаправлен на услугу:",
-            serviceIdRedirect
-        );
+        const recordId = displayClientObj?.recordId;
 
-        // API перенаправления уже вызывается внутри RedirectModal.
-        // Здесь только загружаем актуальные записи.
+        if (recordId == null) {
+            setSnackbar({
+                open: true,
+                message: "Не найден recordId клиента",
+                severity: "error",
+            });
+            return;
+        }
+
+        console.log("Перенаправление:", {
+            serviceId: serviceIdRedirect,
+            recordId,
+        });
+
         await fetchManagerRecords();
 
         setSnackbar({
@@ -522,6 +542,8 @@ const QueuePage: FC = () => {
     };
 
     const handleCallNextClient = async () => {
+        const recordId = displayClientObj?.recordId;
+        console.log('recordId', recordId)
         if (!snapshot?.queue?.length) {
             setSnackbar({
                 open: true,
@@ -532,7 +554,7 @@ const QueuePage: FC = () => {
         }
 
         try {
-            await callNext({}).unwrap();
+              await callNext(recordId).unwrap();
 
             // После изменения статуса заново получаем записи через GET
             await fetchManagerRecords();
@@ -564,10 +586,20 @@ const QueuePage: FC = () => {
     };
 
     const handleСompleteClient = async () => {
-        try {
-            await completeClient({ managerId }).unwrap();
+        const recordId = displayClientObj?.recordId;
 
-            // Убираем обслуженного клиента и показываем следующего
+        if (recordId == null) {
+            setSnackbar({
+                open: true,
+                message: "Не найден recordId клиента",
+                severity: "error",
+            });
+            return;
+        }
+
+        try {
+            await completeClient(recordId).unwrap();
+
             await fetchManagerRecords();
 
             setSnackbar({
@@ -865,6 +897,7 @@ const QueuePage: FC = () => {
                 }
                 onRedirect={handleRedirectClient}
                 onAccept={handleAcceptClient}
+                recordId={displayClientObj?.recordId}
                 callNext={handleCallNextClient}
                 onComplete={handleСompleteClient}
                 status={computedStatus}

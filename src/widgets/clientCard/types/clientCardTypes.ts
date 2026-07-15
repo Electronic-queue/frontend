@@ -14,7 +14,8 @@ export interface ClientCardProps {
     onRedirect: (serviceIdRedirect: number) => void;
     onAccept: () => void;
     onComplete: () => void;
-    callNext: () => void;
+    recordId: number;
+    callNext: (recordId: number) => void;
     status: "idle" | "called" | "accepted" | "redirected";
     isLoading: boolean;
 }

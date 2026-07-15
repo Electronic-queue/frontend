@@ -20,6 +20,7 @@ const ClientCard: FC<ClientCardProps> = ({
     onRedirect,
     status,
     isLoading,
+     recordId,
 }) => {
     const { t } = useTranslation();
 
@@ -405,6 +406,7 @@ const ClientCard: FC<ClientCardProps> = ({
 
                     <StatusButtons
                         status={status}
+                        recordId={recordId}
                         callNext={callNext}
                         onAccept={onAccept}
                         onComplete={onComplete}

@@ -20,7 +20,7 @@ export const managerApi = createApi({
             if (token) {
                 const authHeader = `Bearer ${token}`;
                 headers.set("Authorization", authHeader);
-                
+
                 console.log(
                     "📡 [prepareHeaders] Auth header set:",
                     authHeader.substring(0, 20) + "..."
@@ -78,22 +78,33 @@ export const managerApi = createApi({
             }),
         }),
 
-        acceptClient: builder.mutation<any, {}>({
-            query: ({}) => ({
+        acceptClient: builder.mutation<any, number>({
+            query: (recordId) => ({
                 url: "Manager/acceptclient",
                 method: "POST",
                 params: {
-                    "api-version": "1",
+                    recordId,
+                    "api-version": "v1",
                 },
             }),
         }),
 
-        callNext: builder.mutation<any, {}>({
-            query: ({}) => ({
+        // callNext: builder.mutation<any, {}>({
+        //     query: ({}) => ({
+        //         url: "Manager/callnext",
+        //         method: "POST",
+        //         params: {
+        //             "api-version": "1",
+        //         },
+        //     }),
+        // }),
+        callNext: builder.mutation<any, number>({
+            query: (recordId) => ({
                 url: "Manager/callnext",
                 method: "POST",
                 params: {
-                    "api-version": "1",
+                    recordId: recordId,
+                    "api-version": "v1",
                 },
             }),
         }),
@@ -106,13 +117,13 @@ export const managerApi = createApi({
                 },
             }),
         }),
-        completeClient: builder.mutation<any, { managerId: number }>({
-            query: ({ managerId }) => ({
+        completeClient: builder.mutation<any, number>({
+            query: (recordId) => ({
                 url: "Manager/completeclient",
                 method: "POST",
                 params: {
-                    managerId,
-                    "api-version": "1",
+                    recordId,
+                    "api-version": "v1",
                 },
             }),
         }),
@@ -143,22 +154,22 @@ export const managerApi = createApi({
         //         },
         //     }),
         // }),
-        redirectClient: builder.mutation<any, { serviceId: string }>({
+        redirectClient: builder.mutation<any,{ serviceId: string; recordId: number }>({
             query: (payload) => ({
                 url: "Manager/redirectclient",
                 method: "POST",
                 params: {
-                    "api-version": "1",
+                    "api-version": "v1",
                 },
                 body: payload,
             }),
         }),
-        updateClientService: builder.mutation<any, { serviceId: string }>({
+        updateClientService: builder.mutation<any,{ serviceId: string; recordId: number }>({
             query: (payload) => ({
                 url: "Manager/update-client-service",
                 method: "POST",
                 params: {
-                    "api-version": "1",
+                    "api-version": "v1",
                 },
                 body: payload,
             }),
